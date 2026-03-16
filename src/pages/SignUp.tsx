@@ -1,0 +1,222 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import { ROUTES } from "@/lib/routes";
+import {
+  PROFESSION_OPTIONS,
+  signUpSchema,
+  type SignUpFormValues,
+} from "@/features/auth/domain/schemas";
+import { signUp } from "@/features/auth/services/auth-service";
+import { useAuth } from "@/features/auth/context/AuthContext";
+import AuthPageCard from "@/features/auth/components/AuthPageCard";
+import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
+import { AppShell } from "@/shared/components/layout/AppShell";
+
+const SignUp = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { signIn: storeToken } = useAuth();
+
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      name: "",
+      username: "",
+      password: "",
+      confirmPassword: "",
+      profession: undefined,
+    },
+  });
+
+  const onSubmit = async (data: SignUpFormValues) => {
+    try {
+      const response = await signUp(data);
+      storeToken(response.access_token);
+
+      toast({
+        title: "Account created",
+        description: "Welcome to Perspectiva!",
+      });
+
+      navigate(ROUTES.home);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <AppShell withContainer mainClassName="min-h-full max-w-md p-4" backgroundClassName="bg-gradient-subtle">
+      <AuthPageCard title="Sign Up">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Your full name"
+                      {...field}
+                      disabled={form.formState.isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Choose a username"
+                      {...field}
+                      disabled={form.formState.isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="At least 8 characters"
+                      {...field}
+                      disabled={form.formState.isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Confirm your password"
+                      {...field}
+                      disabled={form.formState.isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="profession"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profession</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={form.formState.isSubmitting}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your profession" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PROFESSION_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              type="submit"
+              className="w-full bg-gradient-primary shadow-elegant transition-all hover:shadow-glow"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Sign Up"
+              )}
+            </Button>
+          </form>
+        </Form>
+
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            to={ROUTES.signIn}
+            className="font-medium text-primary hover:underline"
+          >
+            Sign in
+          </Link>
+        </div>
+
+        <div className="mt-6">
+          <div className="relative flex items-center gap-3 mb-4">
+            <div className="flex-1 border-t border-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+          <GoogleSignInButton label="Sign up with Google" />
+        </div>
+      </AuthPageCard>
+    </AppShell>
+  );
+};
+
+export default SignUp;
