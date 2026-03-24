@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons/simple-icons";
 import { ROUTES } from "@/lib/routes";
 import {
   PROFESSION_OPTIONS,
@@ -42,8 +42,8 @@ const SignUp = () => {
     defaultValues: {
       name: "",
       username: "",
+      email: "",
       password: "",
-      confirmPassword: "",
       profession: undefined,
     },
   });
@@ -58,7 +58,7 @@ const SignUp = () => {
         description: "Welcome to Perspectiva!",
       });
 
-      navigate(ROUTES.home);
+      navigate(ROUTES.categorizer);
     } catch (error) {
       toast({
         title: "Error",
@@ -72,10 +72,10 @@ const SignUp = () => {
   };
 
   return (
-    <AppShell withContainer mainClassName="min-h-full max-w-md p-4" backgroundClassName="bg-gradient-subtle">
-      <AuthPageCard title="Sign Up">
+    <AppShell mainClassName="auth-page-main" showFooter={false}>
+      <AuthPageCard mode="signup">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="signup-form">
             <FormField
               control={form.control}
               name="name"
@@ -133,14 +133,14 @@ const SignUp = () => {
 
             <FormField
               control={form.control}
-              name="confirmPassword"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      type="password"
-                      placeholder="Confirm your password"
+                      type="email"
+                      placeholder="you@example.com"
                       {...field}
                       disabled={form.formState.isSubmitting}
                     />
@@ -181,7 +181,7 @@ const SignUp = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-primary shadow-elegant transition-all hover:shadow-glow"
+              className="w-full"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
@@ -195,16 +195,6 @@ const SignUp = () => {
             </Button>
           </form>
         </Form>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link
-            to={ROUTES.signIn}
-            className="font-medium text-primary hover:underline"
-          >
-            Sign in
-          </Link>
-        </div>
 
         <div className="mt-6">
           <div className="relative flex items-center gap-3 mb-4">

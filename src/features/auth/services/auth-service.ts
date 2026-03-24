@@ -16,6 +16,7 @@ export const signUp = (payload: SignUpFormValues): Promise<TokenResponse> =>
   api.post<TokenResponse>("/auth/signup", {
     name: payload.name,
     username: payload.username,
+    email: payload.email,
     password: payload.password,
     profession: payload.profession,
   });

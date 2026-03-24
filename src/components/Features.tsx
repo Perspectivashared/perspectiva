@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Trophy, Target, BarChart3, Users, Zap, Shield } from "lucide-react";
+import { Trophy, Target, BarChart3, Users, Zap, Shield } from "@/components/icons/simple-icons";
 
 const features = [
   {

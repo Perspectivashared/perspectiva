@@ -4,13 +4,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "@/app/query-client";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
+import { SmoothScrollProvider } from "@/components/SmoothScrollProvider";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
   <AuthProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        {children}
+        <SmoothScrollProvider>
+          <Toaster />
+          {children}
+        </SmoothScrollProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </AuthProvider>

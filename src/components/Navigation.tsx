@@ -1,16 +1,16 @@
+import { Suspense, lazy } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import logo from "@/assets/logo.png";
 import { ROUTES } from "@/lib/routes";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut } from "@/components/icons/simple-icons";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+
+const NavigationMobileMenu = lazy(
+  () => import("@/components/navigation-mobile-menu"),
+);
 
 const navItems = [
   { to: ROUTES.forYou, label: "For You" },
@@ -22,6 +22,7 @@ const navItems = [
 
 const Navigation = () => {
   const { isAuthenticated, signOut } = useAuth();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -32,7 +33,7 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+    <nav className="fixed top-0 w-full z-50 bg-background/[0.5] backdrop-blur-lg border-b border-border/50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -44,20 +45,20 @@ const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-10 lg:gap-12">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `transition-colors ${
+                  `nav-slot-link transition-colors focus-visible:text-foreground ${
                     isActive
-                      ? "text-foreground font-medium"
+                      ? "is-active text-foreground font-medium"
                       : "text-foreground/80 hover:text-foreground"
                   }`
                 }
               >
-                {item.label}
+                <span>{item.label}</span>
               </NavLink>
             ))}
           </div>
@@ -66,20 +67,19 @@ const Navigation = () => {
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
               <Button
-                variant="ghost"
-                className="hidden md:inline-flex items-center gap-2 text-foreground/80 hover:text-foreground"
+                className="hidden md:inline-flex items-center gap-2 bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
                 onClick={handleSignOut}
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                <span>Sign Out</span>
               </Button>
             ) : (
               <>
                 <Link
                   to={ROUTES.signIn}
-                  className="hidden md:inline-flex text-foreground/80 hover:text-foreground transition-colors"
+                  className="nav-slot-link hidden md:inline-flex text-foreground/80 hover:text-foreground focus-visible:text-foreground transition-colors"
                 >
-                  Sign In
+                  <span>Sign In</span>
                 </Link>
                 <Button
                   asChild
@@ -90,57 +90,27 @@ const Navigation = () => {
               </>
             )}
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="w-5 h-5" />
-                  <span className="sr-only">Open navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[85%] max-w-sm">
-                <div className="mt-10 flex flex-col gap-2">
-                  {navItems.map((item) => (
-                    <SheetClose key={item.to} asChild>
-                      <NavLink
-                        to={item.to}
-                        className={({ isActive }) =>
-                          `rounded-md px-3 py-2 transition-colors ${
-                            isActive
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-foreground/80 hover:bg-muted hover:text-foreground"
-                          }`
-                        }
-                      >
-                        {item.label}
-                      </NavLink>
-                    </SheetClose>
-                  ))}
-                  <div className="mt-4 flex flex-col gap-2">
-                    {isAuthenticated ? (
-                      <SheetClose asChild>
-                        <Button variant="outline" onClick={handleSignOut} className="flex items-center gap-2">
-                          <LogOut className="w-4 h-4" />
-                          Sign Out
-                        </Button>
-                      </SheetClose>
-                    ) : (
-                      <>
-                        <SheetClose asChild>
-                          <Button asChild variant="outline">
-                            <Link to={ROUTES.signIn}>Sign In</Link>
-                          </Button>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Button asChild className="bg-gradient-primary">
-                            <Link to={ROUTES.signUp}>Get Started</Link>
-                          </Button>
-                        </SheetClose>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+            {isMobile ? (
+              <Suspense
+                fallback={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden"
+                    disabled
+                  >
+                    <Menu className="w-5 h-5" />
+                    <span className="sr-only">Open navigation menu</span>
+                  </Button>
+                }
+              >
+                <NavigationMobileMenu
+                  navItems={navItems}
+                  isAuthenticated={isAuthenticated}
+                  onSignOut={handleSignOut}
+                />
+              </Suspense>
+            ) : null}
           </div>
         </div>
       </div>

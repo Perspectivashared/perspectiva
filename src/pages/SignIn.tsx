@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons/simple-icons";
 import { ROUTES } from "@/lib/routes";
 import {
   signInSchema,
@@ -47,7 +47,7 @@ const SignIn = () => {
         description: "Signed in successfully!",
       });
 
-      navigate(ROUTES.home);
+      navigate(ROUTES.forYou);
     } catch (error) {
       toast({
         title: "Error",
@@ -61,8 +61,8 @@ const SignIn = () => {
   };
 
   return (
-    <AppShell withContainer mainClassName="min-h-full max-w-md p-4" backgroundClassName="bg-gradient-subtle">
-      <AuthPageCard title="Sign In">
+    <AppShell mainClassName="auth-page-main" showFooter={false}>
+      <AuthPageCard mode="signin">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -104,7 +104,7 @@ const SignIn = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-primary shadow-elegant transition-all hover:shadow-glow"
+              className="w-full"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
@@ -118,16 +118,6 @@ const SignIn = () => {
             </Button>
           </form>
         </Form>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link
-            to={ROUTES.signUp}
-            className="font-medium text-primary hover:underline"
-          >
-            Sign up
-          </Link>
-        </div>
 
         <div className="mt-6">
           <div className="relative flex items-center gap-3 mb-4">

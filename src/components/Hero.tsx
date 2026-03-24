@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "@/components/icons/simple-icons";
 import heroImage from "@/assets/hero-image.jpg";
 
 const Hero = () => {
