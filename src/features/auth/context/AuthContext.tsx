@@ -2,37 +2,50 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
 } from "react";
-import { getStoredToken, removeToken, storeToken } from "@/lib/api";
+import { api, SESSION_EXPIRED } from "@/lib/api";
 
 interface AuthContextValue {
-  token: string | null;
-  isAuthenticated: boolean;
-  signIn: (token: string) => void;
+  isAuthenticated: boolean | null;
+  signIn: () => void;
   signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
-  const [token, setToken] = useState<string | null>(() => getStoredToken());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const signIn = useCallback((newToken: string) => {
-    storeToken(newToken);
-    setToken(newToken);
+  useEffect(() => {
+    api.get("/users/me")
+      .then(() => setIsAuthenticated(true))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
-  const signOut = useCallback(() => {
-    removeToken();
-    setToken(null);
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      if (event.reason?.message === SESSION_EXPIRED) {
+        setIsAuthenticated(false);
+      }
+    };
+    window.addEventListener("unhandledrejection", handler);
+    return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+
+  const signIn = useCallback(() => setIsAuthenticated(true), []);
+
+  const signOut = useCallback(async () => {
+    await api.post("/auth/signout").catch(() => {});
+    setIsAuthenticated(false);
   }, []);
 
   const value = useMemo(
-    () => ({ token, isAuthenticated: token !== null, signIn, signOut }),
-    [token, signIn, signOut],
+    () => ({ isAuthenticated, signIn, signOut }),
+    [isAuthenticated, signIn, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

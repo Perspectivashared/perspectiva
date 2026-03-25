@@ -35,7 +35,7 @@ import { AppShell } from "@/shared/components/layout/AppShell";
 const SignUp = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn: storeToken } = useAuth();
+  const { signIn: markAuthenticated } = useAuth();
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -50,8 +50,8 @@ const SignUp = () => {
 
   const onSubmit = async (data: SignUpFormValues) => {
     try {
-      const response = await signUp(data);
-      storeToken(response.access_token);
+      await signUp(data);
+      markAuthenticated();
 
       toast({
         title: "Account created",

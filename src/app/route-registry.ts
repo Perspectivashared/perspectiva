@@ -26,6 +26,9 @@ export const APP_ROUTE_PATHS = {
   contact: "/contact",
   security: "/security",
   features: "/features",
+  verifyEmail: "/verify-email",
+  forgotPassword: "/forgot-password",
+  resetPassword: "/reset-password",
 } as const;
 
 export type AppRouteKey = keyof typeof APP_ROUTE_PATHS;
@@ -65,6 +68,9 @@ const routeComponents: Record<AppRouteKey | "notFound", RouteComponent> = {
   contact: lazy(() => import("@/pages/Contact")),
   security: lazy(() => import("@/pages/Security")),
   features: lazy(() => import("@/pages/Features")),
+  verifyEmail: lazy(() => import("@/pages/VerifyEmail")),
+  forgotPassword: lazy(() => import("@/pages/ForgotPassword")),
+  resetPassword: lazy(() => import("@/pages/ResetPassword")),
   notFound: lazy(() => import("@/pages/NotFound")),
 };
 

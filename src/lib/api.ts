@@ -1,28 +1,40 @@
 const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
 
-export function getStoredToken(): string | null {
-  return localStorage.getItem("token");
+export const SESSION_EXPIRED = "SESSION_EXPIRED";
+
+let _refreshing: Promise<boolean> | null = null;
+
+async function tryRefresh(): Promise<boolean> {
+  if (_refreshing) return _refreshing;
+  _refreshing = fetch(`${BASE_URL}/auth/refresh`, {
+    method: "POST",
+    credentials: "include",
+  })
+    .then((r) => r.ok)
+    .catch(() => false)
+    .finally(() => {
+      _refreshing = null;
+    });
+  return _refreshing;
 }
 
-export function storeToken(token: string): void {
-  localStorage.setItem("token", token);
-}
+async function request<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string> | undefined),
+    },
+  });
 
-export function removeToken(): void {
-  localStorage.removeItem("token");
-}
-
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getStoredToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string> | undefined),
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (res.status === 401 && retry) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      return request<T>(path, options, false);
+    }
+    throw new Error(SESSION_EXPIRED);
   }
-
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: res.statusText }));

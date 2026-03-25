@@ -7,6 +7,10 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
+  if (isAuthenticated === null) {
+    return null;
+  }
+
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.signIn} state={{ from: location }} replace />;
   }
