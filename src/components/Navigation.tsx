@@ -26,8 +26,8 @@ const Navigation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSignOut = () => {
-    signOut();
+  const handleSignOut = async () => {
+    await signOut();
     toast({ title: "Signed out", description: "See you next time!" });
     navigate(ROUTES.home);
   };

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Activity, ArrowUpRight, CalendarDays, FileText, Users } from "lucide-react";
+import { Activity, ArrowUpRight, CalendarDays, FileText, Heart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CommunityCardSummary } from "@/features/communities/domain/community-data";
@@ -15,6 +15,8 @@ export interface CommunityCardData extends Omit<CommunityCardSummary, "icon"> {
 interface CommunityCardProps {
   community: CommunityCardData;
   onExplore: (communityId: string) => void;
+  onFavourite?: (communityId: string) => void;
+  isFavourited?: boolean;
   className?: string;
   buttonLabel?: string;
 }
@@ -22,6 +24,8 @@ interface CommunityCardProps {
 const CommunityCard = ({
   community,
   onExplore,
+  onFavourite,
+  isFavourited = false,
   className,
   buttonLabel = "Explore",
 }: CommunityCardProps) => {
@@ -43,21 +47,40 @@ const CommunityCard = ({
         className,
       )}
     >
-      <Button
-        type="button"
-        variant="default"
-        size="sm"
-        onClick={() => onExplore(community.id)}
-        aria-label="Explore community"
-        className="absolute right-5 top-5 z-10 h-9 w-9 origin-right justify-end overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-200 ease-out hover:bg-gradient-primary hover:shadow-glow focus-visible:w-24 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-24 group-focus-within:w-24"
-      >
-        <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-200 ease-out group-hover:mr-1 group-hover:max-w-14 group-hover:opacity-100 group-focus-within:mr-1 group-focus-within:max-w-14 group-focus-within:opacity-100 focus-visible:mr-1 focus-visible:max-w-14 focus-visible:opacity-100">
-          {buttonLabel}
-        </span>
-        <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-      </Button>
+      {/* Top-right: Explore button + optional Favourite button */}
+      <div className="absolute right-5 top-5 z-10 flex items-center gap-1.5">
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          onClick={() => onExplore(community.id)}
+          aria-label="Explore community"
+          className="h-9 w-9 origin-right justify-end overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[110ms] ease-out hover:bg-gradient-primary hover:shadow-glow focus-visible:w-[5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5rem] group-focus-within:w-[5rem]"
+        >
+          <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[110ms] ease-out group-hover:mr-1 group-hover:max-w-[3rem] group-hover:opacity-100 group-focus-within:mr-1 group-focus-within:max-w-[3rem] group-focus-within:opacity-100 focus-visible:mr-1 focus-visible:max-w-[3rem] focus-visible:opacity-100">
+            {buttonLabel}
+          </span>
+          <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        </Button>
+        {onFavourite && (
+          <button
+            type="button"
+            onClick={() => onFavourite(community.id)}
+            title={isFavourited ? "Remove from favourites" : "Add to favourites"}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/90 text-muted-foreground shadow-sm transition-colors hover:border-rose-400/50 hover:text-rose-500"
+          >
+            <Heart
+              className={cn(
+                "h-3.5 w-3.5 transition-colors",
+                isFavourited && "fill-rose-500 text-rose-500",
+              )}
+              aria-hidden="true"
+            />
+          </button>
+        )}
+      </div>
 
-      <div className="mb-4 flex items-start gap-3 pr-12">
+      <div className={cn("mb-4 flex items-start gap-3", onFavourite ? "pr-24" : "pr-12")}>
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all duration-200 ease-out group-hover:bg-primary/20 group-hover:scale-105">
           <Icon className="h-5 w-5" aria-hidden="true" />
         </div>

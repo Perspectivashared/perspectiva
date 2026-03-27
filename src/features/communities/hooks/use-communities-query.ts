@@ -17,6 +17,9 @@ export const useCommunitiesQuery = (
   useQuery({
     queryKey: communitiesKeys.all,
     queryFn: repository.fetchAll,
+    // Communities are seeded/static — they don't change without a deploy.
+    // Cache indefinitely for the session; no need to refetch every 30 seconds.
+    staleTime: Infinity,
   });
 
 export const useCommunityByIdQuery = (
@@ -27,4 +30,5 @@ export const useCommunityByIdQuery = (
     queryKey: communitiesKeys.detail(communityId ?? ""),
     queryFn: () => repository.fetchById(communityId ?? ""),
     enabled: Boolean(communityId),
+    staleTime: Infinity,
   });

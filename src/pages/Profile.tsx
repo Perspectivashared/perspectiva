@@ -76,6 +76,21 @@ const Profile = () => {
     );
   }
 
+  if (profileQuery.isError) {
+    return (
+      <AppShell
+        withContainer
+        mainClassName="flex min-h-[60vh] max-w-6xl items-center justify-center px-4 pb-12 pt-24"
+        backgroundClassName="bg-gradient-subtle"
+      >
+        <div className="text-center text-destructive">
+          <p className="font-semibold">Failed to load profile</p>
+          <p className="text-sm text-muted-foreground mt-1">{profileQuery.error?.message}</p>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell
       withContainer
@@ -218,11 +233,9 @@ const Profile = () => {
                             >
                               {survey.status.charAt(0).toUpperCase() + survey.status.slice(1)}
                             </Badge>
-                            {survey.status === "published" && (
-                              <Button asChild variant="ghost" size="sm">
-                                <Link to={`/surveys/${survey.id}/analytics`}>View Analytics</Link>
-                              </Button>
-                            )}
+                            <Button asChild variant="outline" size="sm">
+                              <Link to={`/surveys/${survey.id}/analytics`}>View Results & Statistics</Link>
+                            </Button>
                           </div>
                         </div>
                         <div className="space-y-2 mb-4">

@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Collapsible open/close animation */
+@keyframes collapsible-down {
+  from { height: 0; opacity: 0; }
+  to   { height: var(--radix-collapsible-content-height); opacity: 1; }
+}
+@keyframes collapsible-up {
+  from { height: var(--radix-collapsible-content-height); opacity: 1; }
+  to   { height: 0; opacity: 0; }
+}
+.collapsible-animate[data-state="open"] {
+  overflow: hidden;
+  animation: collapsible-down 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.collapsible-animate[data-state="closed"] {
+  overflow: hidden;
+  animation: collapsible-up 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Lenis smooth scroll */
 html.lenis,
 html.lenis body {

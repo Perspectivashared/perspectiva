@@ -12,7 +12,7 @@ import { api, SESSION_EXPIRED } from "@/lib/api";
 interface AuthContextValue {
   isAuthenticated: boolean | null;
   signIn: () => void;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
