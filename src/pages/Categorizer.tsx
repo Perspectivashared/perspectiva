@@ -1,3 +1,4 @@
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -50,15 +51,34 @@ const PRIMARY_STATUS_TO_PROFESSION: Record<string, string> = {
   "Unemployed": "other",
 };
 
+const TAB_ORDER = [
+  "acknowledgement",
+  "basic",
+  "profession",
+  "income",
+  "expenditure",
+  "digital-activity",
+  "payment-pattern",
+  "feedback",
+] as const;
+
 const Categorizer = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = React.useState<string>("acknowledgement");
 
   const form = useForm<CategorizerFormValues>({
     resolver: zodResolver(categorizerSchema),
     defaultValues: createDefaultCategorizerValues(),
   });
+
+  const goNext = () => {
+    const currentIndex = TAB_ORDER.indexOf(activeTab as typeof TAB_ORDER[number]);
+    if (currentIndex < TAB_ORDER.length - 1) {
+      setActiveTab(TAB_ORDER[currentIndex + 1]);
+    }
+  };
 
   const onSubmit = async (data: CategorizerFormValues) => {
     const profession = PRIMARY_STATUS_TO_PROFESSION[data.primaryStatus] ?? "other";
@@ -97,7 +117,7 @@ const Categorizer = () => {
             Profiling
           </span>
         </h1>
-        <Tabs defaultValue="acknowledgement" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="acknowledgement">Acknowledgement</TabsTrigger>
             <TabsTrigger value="basic">Basic</TabsTrigger>
@@ -113,10 +133,7 @@ const Categorizer = () => {
           <TabsContent value="acknowledgement" className="mt-6">
             <Card className="p-6 shadow-lg">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form className="space-y-4">
                   <FormField
                     control={form.control}
                     name="accept"
@@ -142,18 +159,12 @@ const Categorizer = () => {
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-                    disabled={form.formState.isSubmitting}
+                    disabled={!form.watch("accept")}
+                    onClick={goNext}
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
+                    Next →
                   </Button>
                 </form>
               </Form>
@@ -164,10 +175,7 @@ const Categorizer = () => {
           <TabsContent value="basic" className="mt-6">
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form className="space-y-4">
                   <FormField
                     control={form.control}
                     name="fullName"
@@ -312,18 +320,11 @@ const Categorizer = () => {
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-                    disabled={form.formState.isSubmitting}
+                    onClick={goNext}
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
+                    Next →
                   </Button>
                 </form>
               </Form>
@@ -334,10 +335,7 @@ const Categorizer = () => {
           <TabsContent value="profession" className="mt-6">
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form className="space-y-4">
                   <FormField
                     control={form.control}
                     name="profession"
@@ -357,18 +355,11 @@ const Categorizer = () => {
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-                    disabled={form.formState.isSubmitting}
+                    onClick={goNext}
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
+                    Next →
                   </Button>
                 </form>
               </Form>
@@ -379,10 +370,7 @@ const Categorizer = () => {
           <TabsContent value="income" className="mt-6">
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form className="space-y-4">
                   <FormField
                     control={form.control}
                     name="monthlyIncome"
@@ -467,18 +455,11 @@ const Categorizer = () => {
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-                    disabled={form.formState.isSubmitting}
+                    onClick={goNext}
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
+                    Next →
                   </Button>
                 </form>
               </Form>
@@ -489,10 +470,7 @@ const Categorizer = () => {
           <TabsContent value="expenditure" className="mt-6">
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form className="space-y-4">
                   <FormField
                     control={form.control}
                     name="majorExpenditures"
@@ -750,18 +728,11 @@ const Categorizer = () => {
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-                    disabled={form.formState.isSubmitting}
+                    onClick={goNext}
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
+                    Next →
                   </Button>
                 </form>
               </Form>
@@ -772,10 +743,7 @@ const Categorizer = () => {
           <TabsContent value="digital-activity" className="mt-6">
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form className="space-y-4">
                   <FormField
                     control={form.control}
                     name="averageDailyScreenTime"
@@ -914,18 +882,11 @@ const Categorizer = () => {
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-                    disabled={form.formState.isSubmitting}
+                    onClick={goNext}
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
+                    Next →
                   </Button>
                 </form>
               </Form>
@@ -936,10 +897,7 @@ const Categorizer = () => {
           <TabsContent value="payment-pattern" className="mt-6">
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form className="space-y-4">
                   <FormField
                     control={form.control}
                     name="everPaidForDigitalContent"
@@ -1093,18 +1051,11 @@ const Categorizer = () => {
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-                    disabled={form.formState.isSubmitting}
+                    onClick={goNext}
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
+                    Next →
                   </Button>
                 </form>
               </Form>
@@ -1115,10 +1066,7 @@ const Categorizer = () => {
           <TabsContent value="feedback" className="mt-6">
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="preferredFeedbackFormat"

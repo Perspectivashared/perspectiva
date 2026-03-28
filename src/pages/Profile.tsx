@@ -20,14 +20,18 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Trash2, FolderOpen, Loader2 } from "lucide-react";
+import type { SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
 import {
   defaultProfile,
   fetchUserProfile,
 } from "@/features/profile/services/profile-service";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/lib/routes";
 
 interface ApiSurveySummary {
@@ -42,6 +46,58 @@ interface ApiSurveySummary {
 }
 
 const Profile = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [loadingId, setLoadingId] = useState<number | null>(null);
+
+  const loadDraft = async (surveyId: number) => {
+    setLoadingId(surveyId);
+    try {
+      const survey = await api.get<any>(`/surveys/${surveyId}`);
+      navigate("/create-survey", {
+        state: {
+          draftId: survey.id,
+          surveyTitle: survey.title,
+          surveyDescription: survey.description,
+          category: survey.category,
+          targetResponses: survey.target_responses,
+          deadline: survey.deadline ? survey.deadline.split("T")[0] : "",
+          questions: survey.questions
+            .sort((a: any, b: any) => a.order - b.order)
+            .map((q: any) => ({
+              question: q.question_text,
+              type: q.question_type as SurveyBuilderQuestionType,
+              required: q.required,
+              options: q.options.map((o: any) => ({ text: o.text })),
+            })),
+        },
+      });
+    } catch {
+      toast({ title: "Failed to load draft", variant: "destructive" });
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const deleteDraft = async (surveyId: number) => {
+    setDeletingId(surveyId);
+    try {
+      await api.delete(`/surveys/${surveyId}`);
+      await queryClient.invalidateQueries({ queryKey: ["my-surveys"] });
+      toast({ title: "Draft deleted" });
+    } catch (err) {
+      toast({
+        title: "Failed to delete draft",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const profileQuery = useQuery({
     queryKey: ["profile"],
     queryFn: fetchUserProfile,
@@ -233,9 +289,39 @@ const Profile = () => {
                             >
                               {survey.status.charAt(0).toUpperCase() + survey.status.slice(1)}
                             </Badge>
-                            <Button asChild variant="outline" size="sm">
-                              <Link to={`/surveys/${survey.id}/analytics`}>View Results & Statistics</Link>
-                            </Button>
+                            {survey.status === "draft" ? (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={loadingId === survey.id}
+                                  onClick={() => loadDraft(survey.id)}
+                                >
+                                  {loadingId === survey.id ? (
+                                    <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Loading...</>
+                                  ) : (
+                                    <><FolderOpen className="h-3.5 w-3.5 mr-1" />Load</>
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                                  disabled={deletingId === survey.id}
+                                  onClick={() => deleteDraft(survey.id)}
+                                >
+                                  {deletingId === survey.id ? (
+                                    <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Deleting...</>
+                                  ) : (
+                                    <><Trash2 className="h-3.5 w-3.5 mr-1" />Delete</>
+                                  )}
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button asChild variant="outline" size="sm">
+                                <Link to={`/surveys/${survey.id}/analytics`}>View Results & Statistics</Link>
+                              </Button>
+                            )}
                           </div>
                         </div>
                         <div className="space-y-2 mb-4">

@@ -1,5 +1,5 @@
-import { useEffect, useReducer, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useReducer, useState, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
 import { Card } from "@/components/ui/card";
@@ -15,27 +15,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, GripVertical, Copy, Loader2 } from "lucide-react";
+import { Plus, Trash2, GripVertical, Copy, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   createInitialSurveyBuilderState,
   surveyBuilderReducer,
 } from "@/features/survey-builder/domain/reducer";
-import {
-  validateDraftSurvey,
-} from "@/features/survey-builder/domain/validation";
-import {
-  hasDraftSurvey,
-  loadDraftSurvey,
-  saveDraftSurvey,
-} from "@/features/survey-builder/services/draft-storage";
+import { validateDraftSurvey } from "@/features/survey-builder/domain/validation";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import type { SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
 
 interface ApiSurveyOut {
   id: number;
   status: string;
+}
+
+interface LocationState {
+  draftId?: number;
+  surveyTitle?: string;
+  surveyDescription?: string;
+  category?: string | null;
+  targetResponses?: number | null;
+  deadline?: string;
+  questions?: Array<{
+    question: string;
+    type: SurveyBuilderQuestionType;
+    required: boolean;
+    options: Array<{ text: string }>;
+  }>;
 }
 
 const QUESTION_TYPE_MAP: Record<SurveyBuilderQuestionType, string> = {
@@ -47,87 +55,110 @@ const QUESTION_TYPE_MAP: Record<SurveyBuilderQuestionType, string> = {
   "linear-scale": "linear-scale",
 };
 
+const buildSurveyPayload = (state: ReturnType<typeof createInitialSurveyBuilderState>) => ({
+  title: state.surveyTitle.trim(),
+  description: state.surveyDescription.trim(),
+  category: state.category || null,
+  target_responses: state.targetResponses,
+  deadline: state.deadline ? new Date(state.deadline).toISOString() : null,
+  questions: state.questions.map((q, i) => ({
+    order: i + 1,
+    question_type: QUESTION_TYPE_MAP[q.type],
+    question_text: q.question.trim(),
+    required: q.required,
+    options: q.options.map((o) => ({ text: o.text.trim() })).filter((o) => o.text),
+  })),
+});
+
 const CreateSurvey = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [isPublishing, setIsPublishing] = useState(false);
+  const location = useLocation();
+  const locationState = (location.state ?? {}) as LocationState;
+
+  // If navigated from Drafts with pre-loaded data, initialise from that
   const [state, dispatch] = useReducer(
     surveyBuilderReducer,
     undefined,
-    createInitialSurveyBuilderState,
+    () => {
+      const initial = createInitialSurveyBuilderState();
+      if (locationState.surveyTitle) {
+        return {
+          ...initial,
+          surveyTitle: locationState.surveyTitle ?? "",
+          surveyDescription: locationState.surveyDescription ?? "",
+          category: locationState.category ?? null,
+          targetResponses: locationState.targetResponses ?? null,
+          deadline: locationState.deadline ?? "",
+          questions: locationState.questions?.map((q) => ({
+            id: crypto.randomUUID(),
+            type: q.type,
+            question: q.question,
+            required: q.required,
+            options: q.options.map((o) => ({ id: crypto.randomUUID(), text: o.text })),
+          })) ?? initial.questions,
+        };
+      }
+      return initial;
+    },
   );
-  const [hasSavedDraft, setHasSavedDraft] = useState(false);
 
-  useEffect(() => {
-    setHasSavedDraft(hasDraftSurvey());
-  }, []);
+  // Track whether this builder is editing an existing backend draft
+  const [draftId, setDraftId] = useState<number | null>(locationState.draftId ?? null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  const saveDraft = () => {
-    saveDraftSurvey(state);
-    setHasSavedDraft(true);
-    toast({
-      title: "Draft saved",
-      description: "Your survey draft was saved locally.",
-    });
-  };
-
-  const loadDraft = () => {
-    const draft = loadDraftSurvey();
-
-    if (!draft) {
-      toast({
-        title: "No valid draft found",
-        description: "There is no valid local draft to load.",
-        variant: "destructive",
-      });
+  const saveDraft = useCallback(async () => {
+    if (!state.surveyTitle.trim()) {
+      toast({ title: "Add a title before saving", variant: "destructive" });
       return;
     }
-
-    dispatch({
-      type: "LOAD_DRAFT",
-      payload: draft,
-    });
-
-    toast({
-      title: "Draft loaded",
-      description: "Your saved survey draft is now loaded.",
-    });
-  };
+    setIsSaving(true);
+    try {
+      const payload = buildSurveyPayload(state);
+      if (draftId) {
+        await api.put<ApiSurveyOut>(`/surveys/${draftId}`, payload);
+        toast({ title: "Draft updated", description: "Your draft has been saved." });
+      } else {
+        const created = await api.post<ApiSurveyOut>("/surveys", payload);
+        setDraftId(created.id);
+        toast({ title: "Draft saved", description: "Your draft has been saved." });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to save draft",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [state, draftId, toast]);
 
   const publishSurvey = useCallback(async () => {
     const validationError = validateDraftSurvey(state);
     if (validationError) {
-      toast({
-        title: "Survey not ready",
-        description: validationError,
-        variant: "destructive",
-      });
+      toast({ title: "Survey not ready", description: validationError, variant: "destructive" });
       return;
     }
 
     setIsPublishing(true);
     try {
-      // Step 1: create survey as draft
-      const created = await api.post<ApiSurveyOut>("/surveys", {
-        title: state.surveyTitle.trim(),
-        description: state.surveyDescription.trim(),
-        category: state.category || null,
-        target_responses: state.targetResponses,
-        deadline: state.deadline ? new Date(state.deadline).toISOString() : null,
-        questions: state.questions.map((q, i) => ({
-          order: i + 1,
-          question_type: QUESTION_TYPE_MAP[q.type],
-          question_text: q.question.trim(),
-          required: q.required,
-          options: q.options.map((o) => ({ text: o.text.trim() })).filter((o) => o.text),
-        })),
-      });
+      let surveyId = draftId;
 
-      // Step 2: publish (costs 2 points)
-      await api.post<ApiSurveyOut>(`/surveys/${created.id}/publish`);
+      if (!surveyId) {
+        // No draft saved yet — create one first
+        const created = await api.post<ApiSurveyOut>("/surveys", buildSurveyPayload(state));
+        surveyId = created.id;
+      } else {
+        // Update existing draft with latest changes before publishing
+        await api.put<ApiSurveyOut>(`/surveys/${surveyId}`, buildSurveyPayload(state));
+      }
+
+      await api.post<ApiSurveyOut>(`/surveys/${surveyId}/publish`);
 
       navigate(ROUTES.surveyPublished, {
-        state: { surveyId: created.id, surveyTitle: state.surveyTitle.trim() },
+        state: { surveyId, surveyTitle: state.surveyTitle.trim() },
       });
     } catch (error) {
       toast({
@@ -138,14 +169,14 @@ const CreateSurvey = () => {
     } finally {
       setIsPublishing(false);
     }
-  }, [state, toast, navigate]);
+  }, [state, draftId, toast, navigate]);
 
   return (
     <AppShell withContainer mainClassName="max-w-4xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
       <div className="mb-8">
         <h1 className="mb-3 text-4xl font-bold">
           <span className="bg-gradient-primary bg-clip-text text-transparent">
-            Create Survey
+            {draftId ? "Edit Draft" : "Create Survey"}
           </span>
         </h1>
         <p className="text-lg text-muted-foreground">
@@ -178,11 +209,7 @@ const CreateSurvey = () => {
                   placeholder="Enter survey title"
                   value={state.surveyTitle}
                   onChange={(event) =>
-                    dispatch({
-                      type: "SET_FIELD",
-                      field: "surveyTitle",
-                      value: event.target.value,
-                    })
+                    dispatch({ type: "SET_FIELD", field: "surveyTitle", value: event.target.value })
                   }
                   className="mt-2"
                 />
@@ -194,11 +221,7 @@ const CreateSurvey = () => {
                   placeholder="What is this survey about?"
                   value={state.surveyDescription}
                   onChange={(event) =>
-                    dispatch({
-                      type: "SET_FIELD",
-                      field: "surveyDescription",
-                      value: event.target.value,
-                    })
+                    dispatch({ type: "SET_FIELD", field: "surveyDescription", value: event.target.value })
                   }
                   className="mt-2"
                   rows={3}
@@ -211,11 +234,7 @@ const CreateSurvey = () => {
                   <Select
                     value={state.category || undefined}
                     onValueChange={(value) =>
-                      dispatch({
-                        type: "SET_FIELD",
-                        field: "category",
-                        value,
-                      })
+                      dispatch({ type: "SET_FIELD", field: "category", value })
                     }
                   >
                     <SelectTrigger className="mt-2">
@@ -255,11 +274,7 @@ const CreateSurvey = () => {
                     className="mt-2"
                     value={state.deadline}
                     onChange={(event) =>
-                      dispatch({
-                        type: "SET_FIELD",
-                        field: "deadline",
-                        value: event.target.value,
-                      })
+                      dispatch({ type: "SET_FIELD", field: "deadline", value: event.target.value })
                     }
                   />
                 </div>
@@ -281,12 +296,7 @@ const CreateSurvey = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() =>
-                          dispatch({
-                            type: "DUPLICATE_QUESTION",
-                            questionId: question.id,
-                          })
-                        }
+                        onClick={() => dispatch({ type: "DUPLICATE_QUESTION", questionId: question.id })}
                         type="button"
                       >
                         <Copy className="h-4 w-4" />
@@ -294,12 +304,7 @@ const CreateSurvey = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() =>
-                          dispatch({
-                            type: "REMOVE_QUESTION",
-                            questionId: question.id,
-                          })
-                        }
+                        onClick={() => dispatch({ type: "REMOVE_QUESTION", questionId: question.id })}
                         disabled={state.questions.length === 1}
                         type="button"
                       >
@@ -397,12 +402,7 @@ const CreateSurvey = () => {
                         </div>
                       ))}
                       <Button
-                        onClick={() =>
-                          dispatch({
-                            type: "ADD_OPTION",
-                            questionId: question.id,
-                          })
-                        }
+                        onClick={() => dispatch({ type: "ADD_OPTION", questionId: question.id })}
                         variant="ghost"
                         size="sm"
                         type="button"
@@ -430,17 +430,16 @@ const CreateSurvey = () => {
           <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Cost: <span className="font-bold text-primary">2 Points</span> to launch this
-                survey
+                Cost: <span className="font-bold text-primary">2 Points</span> to publish
+                {draftId && <span className="ml-2 text-xs text-success">• Draft #{draftId}</span>}
               </div>
               <div className="flex gap-3">
-                {hasSavedDraft ? (
-                  <Button type="button" variant="outline" onClick={loadDraft}>
-                    Load Draft
-                  </Button>
-                ) : null}
-                <Button type="button" variant="outline" onClick={saveDraft}>
-                  Save as Draft
+                <Button type="button" variant="outline" onClick={saveDraft} disabled={isSaving}>
+                  {isSaving ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
+                  ) : (
+                    <><Save className="mr-2 h-4 w-4" />Save as Draft</>
+                  )}
                 </Button>
                 <Button
                   onClick={() => { void publishSurvey(); }}
@@ -449,10 +448,7 @@ const CreateSurvey = () => {
                   disabled={isPublishing}
                 >
                   {isPublishing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Publishing...
-                    </>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Publishing...</>
                   ) : (
                     "Publish Survey"
                   )}
