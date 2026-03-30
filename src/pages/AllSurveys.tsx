@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,11 +15,14 @@ import {
 } from "@/components/ui/select";
 import { SurveyCard, CATEGORY_LIST, type ApiSurveySummary } from "@/components/SurveyCard";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { api } from "@/lib/api";
+import { api, SESSION_EXPIRED } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 const AllSurveys = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const communityIdFilter = searchParams.get("community") ?? null;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -48,6 +52,7 @@ const AllSurveys = () => {
       published
         .filter(
           (s) =>
+            (!communityIdFilter || s.community_id === communityIdFilter) &&
             (categoryFilter === "all" || s.category === categoryFilter) &&
             (searchQuery === "" ||
               s.title.toLowerCase().includes(searchQuery.toLowerCase())),
@@ -69,21 +74,27 @@ const AllSurveys = () => {
 
   const handleToggleSave = async (surveyId: number) => {
     const isSaved = savedIds.has(surveyId);
+    setLocalSavedIds((prev) => {
+      const next = new Set(prev);
+      if (isSaved) { next.delete(surveyId); } else { next.add(surveyId); }
+      return next;
+    });
     try {
       if (isSaved) {
         await api.delete(`/surveys/${surveyId}/save`);
-        setLocalSavedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(surveyId);
-          return next;
-        });
-        toast({ title: "Survey unsaved" });
       } else {
         await api.post(`/surveys/${surveyId}/save`);
-        setLocalSavedIds((prev) => new Set(prev).add(surveyId));
-        toast({ title: "Survey saved" });
       }
-    } catch {
+      queryClient.invalidateQueries({ queryKey: ["saved-surveys"] });
+    } catch (err) {
+      setLocalSavedIds((prev) => {
+        const next = new Set(prev);
+        if (isSaved) { next.add(surveyId); } else { next.delete(surveyId); }
+        return next;
+      });
+      if (err instanceof Error && err.message === SESSION_EXPIRED) {
+        throw err;
+      }
       toast({ title: "Failed to update saved status", variant: "destructive" });
     }
   };

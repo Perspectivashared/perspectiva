@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { AppShell } from "@/shared/components/layout/AppShell";
+import SurveyListCard from "@/components/SurveyListCard";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -125,18 +125,15 @@ const Drafts = () => {
       ) : (
         <div className="space-y-4">
           {drafts.map((draft) => (
-            <Card key={draft.id} className="border-border/50 bg-card/50 p-6 backdrop-blur">
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="font-semibold truncate">{draft.title || "Untitled Survey"}</h2>
-                    <Badge variant="secondary">Draft</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {draft.category ?? "No category"} • Saved {new Date(draft.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
+            <SurveyListCard
+              key={draft.id}
+              title={draft.title || "Untitled Survey"}
+              status="draft"
+              category={draft.category}
+              date={draft.created_at}
+              dateLabel="Saved"
+              action={
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -144,9 +141,9 @@ const Drafts = () => {
                     disabled={loadingId === draft.id}
                   >
                     {loadingId === draft.id ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading...</>
+                      <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Loading...</>
                     ) : (
-                      <><FolderOpen className="mr-2 h-4 w-4" />Load</>
+                      <><FolderOpen className="mr-2 h-3.5 w-3.5" />Load</>
                     )}
                   </Button>
                   <Button
@@ -157,14 +154,14 @@ const Drafts = () => {
                     disabled={deletingId === draft.id}
                   >
                     {deletingId === draft.id ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Deleting...</>
+                      <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Deleting...</>
                     ) : (
-                      <><Trash2 className="mr-2 h-4 w-4" />Delete</>
+                      <><Trash2 className="mr-2 h-3.5 w-3.5" />Delete</>
                     )}
                   </Button>
                 </div>
-              </div>
-            </Card>
+              }
+            />
           ))}
         </div>
       )}

@@ -75,12 +75,14 @@ const Navigation = () => {
               </Button>
             ) : (
               <>
-                <Link
-                  to={ROUTES.signIn}
-                  className="nav-slot-link hidden md:inline-flex text-foreground/80 hover:text-foreground focus-visible:text-foreground transition-colors"
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="hidden md:inline-flex bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:text-[hsl(195_85%_28%)] hover:border-primary/50 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.2)] transition-all"
                 >
-                  <span>Sign In</span>
-                </Link>
+                  <Link to={ROUTES.signIn}>Sign In</Link>
+                </Button>
                 <Button
                   asChild
                   className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
@@ -106,7 +108,7 @@ const Navigation = () => {
               >
                 <NavigationMobileMenu
                   navItems={navItems}
-                  isAuthenticated={isAuthenticated}
+                  isAuthenticated={isAuthenticated ?? undefined}
                   onSignOut={handleSignOut}
                 />
               </Suspense>

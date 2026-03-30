@@ -12,6 +12,7 @@ export interface Transaction {
 export interface UserProfile {
   name: string;
   username: string;
+  isAdmin: boolean;
   role: string;
   institution: string;
   category: string;
@@ -29,6 +30,7 @@ interface ApiUser {
   name: string;
   username: string;
   profession: string;
+  is_admin: boolean;
   institution: string | null;
   category: string | null;
   sub_category: string | null;
@@ -73,7 +75,8 @@ export const fetchUserProfile = async (): Promise<UserProfile> => {
   return {
     name: user.name,
     username: user.username,
-    role: PROFESSION_LABELS[user.profession] ?? user.profession,
+    isAdmin: user.is_admin,
+    role: user.is_admin ? "Admin" : (PROFESSION_LABELS[user.profession] ?? user.profession),
     institution: user.institution ?? "",
     category: user.category ?? "",
     subCategory: user.sub_category ?? "",
@@ -96,6 +99,7 @@ export const fetchUserProfile = async (): Promise<UserProfile> => {
 export const defaultProfile: UserProfile = {
   name: "Loading...",
   username: "",
+  isAdmin: false,
   role: "",
   institution: "",
   category: "",

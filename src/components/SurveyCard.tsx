@@ -31,6 +31,7 @@ export interface ApiSurveySummary {
   title: string;
   description: string;
   category: string | null;
+  community_id: string | null;
   status: string;
   target_responses: number | null;
   deadline: string | null;

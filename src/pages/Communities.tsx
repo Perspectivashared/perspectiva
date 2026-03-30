@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
@@ -16,6 +17,9 @@ import { getCommunityRoute, ROUTES } from "@/lib/routes";
 import { AsyncStateView } from "@/shared/components/state/AsyncStateView";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { queryToAsyncState } from "@/shared/lib/query-state";
+import { api, SESSION_EXPIRED } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
 interface CommunitySectionConfig {
   id: string;
@@ -62,14 +66,58 @@ const SECTION_CONFIGS: CommunitySectionConfig[] = [
 
 const Communities = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
+
   const communitiesQuery = useCommunitiesQuery();
   const communitiesState = useMemo(
     () => queryToAsyncState(communitiesQuery),
     [communitiesQuery],
   );
 
+  const favouritesQ = useQuery({
+    queryKey: ["favourite-communities"],
+    queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
+    enabled: isAuthenticated === true,
+  });
+
+  const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
+
+  const favouriteIds = useMemo(
+    () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
+    [localFavouriteIds, favouritesQ.data],
+  );
+
   const handleExploreCommunity = (communityId: string) => {
     navigate(getCommunityRoute(communityId));
+  };
+
+  const handleToggleFavouriteCommunity = async (communityId: string) => {
+    const isFav = favouriteIds.has(communityId);
+    setLocalFavouriteIds((prev) => {
+      const next = new Set(prev);
+      if (isFav) { next.delete(communityId); } else { next.add(communityId); }
+      return next;
+    });
+    try {
+      if (isFav) {
+        await api.delete(`/communities/${communityId}/favourite`);
+      } else {
+        await api.post(`/communities/${communityId}/favourite`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
+    } catch (err) {
+      setLocalFavouriteIds((prev) => {
+        const next = new Set(prev);
+        if (isFav) { next.add(communityId); } else { next.delete(communityId); }
+        return next;
+      });
+      if (err instanceof Error && err.message === SESSION_EXPIRED) {
+        throw err;
+      }
+      toast({ title: "Failed to update favourite", variant: "destructive" });
+    }
   };
 
   const getSectionHref = (sectionSort: CommunitySortOption) => {
@@ -179,6 +227,8 @@ const Communities = () => {
                   <PaginatedCommunityGrid
                     communities={section.communities}
                     onExplore={handleExploreCommunity}
+                    onFavourite={isAuthenticated ? handleToggleFavouriteCommunity : undefined}
+                    isFavourited={(id) => favouriteIds.has(id)}
                     pageSize={6}
                     className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
                   />

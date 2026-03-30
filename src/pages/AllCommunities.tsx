@@ -1,5 +1,9 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { api, SESSION_EXPIRED } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import CommunityFilterBar from "@/components/CommunityFilterBar";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
 import { Button } from "@/components/ui/button";
@@ -23,6 +27,9 @@ import { setQueryParam } from "@/shared/lib/query-params";
 
 const AllCommunities = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const communitiesQuery = useCommunitiesQuery();
@@ -30,6 +37,46 @@ const AllCommunities = () => {
     () => queryToAsyncState(communitiesQuery),
     [communitiesQuery],
   );
+
+  const favouritesQ = useQuery({
+    queryKey: ["favourite-communities"],
+    queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
+    enabled: isAuthenticated === true,
+  });
+
+  const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
+
+  const favouriteIds = useMemo(
+    () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
+    [localFavouriteIds, favouritesQ.data],
+  );
+
+  const handleToggleFavouriteCommunity = async (communityId: string) => {
+    const isFav = favouriteIds.has(communityId);
+    setLocalFavouriteIds((prev) => {
+      const next = new Set(prev);
+      if (isFav) { next.delete(communityId); } else { next.add(communityId); }
+      return next;
+    });
+    try {
+      if (isFav) {
+        await api.delete(`/communities/${communityId}/favourite`);
+      } else {
+        await api.post(`/communities/${communityId}/favourite`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
+    } catch (err) {
+      setLocalFavouriteIds((prev) => {
+        const next = new Set(prev);
+        if (isFav) { next.add(communityId); } else { next.delete(communityId); }
+        return next;
+      });
+      if (err instanceof Error && err.message === SESSION_EXPIRED) {
+        throw err;
+      }
+      toast({ title: "Failed to update favourite", variant: "destructive" });
+    }
+  };
 
   const categoryFilter = normalizeCategoryFilter(searchParams.get("category"));
   const sortBy = fromSortQueryValue(searchParams.get("sort"));
@@ -134,6 +181,8 @@ const AllCommunities = () => {
                 <PaginatedCommunityGrid
                   communities={visibleCommunities}
                   onExplore={handleExploreCommunity}
+                  onFavourite={isAuthenticated ? handleToggleFavouriteCommunity : undefined}
+                  isFavourited={(id) => favouriteIds.has(id)}
                   pageSize={9}
                   emptyTitle="No communities match your filters"
                   emptyDescription="Change category or sort order to discover more communities."

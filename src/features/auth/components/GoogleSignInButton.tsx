@@ -6,19 +6,20 @@ import { ROUTES } from "@/lib/routes";
 import { useToast } from "@/hooks/use-toast";
 
 declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: {
-            client_id: string;
-            callback: (response: { credential: string }) => void;
-          }) => void;
-          renderButton: (el: HTMLElement, options: object) => void;
+  // eslint-disable-next-line no-var
+  var google:
+    | {
+        accounts: {
+          id: {
+            initialize: (config: {
+              client_id: string;
+              callback: (response: { credential: string }) => void;
+            }) => void;
+            renderButton: (el: HTMLElement, options: object) => void;
+          };
         };
-      };
-    };
-  }
+      }
+    | undefined;
 }
 
 interface GoogleSignInButtonProps {
@@ -36,22 +37,24 @@ const GoogleSignInButton = ({ label = "Sign in with Google" }: GoogleSignInButto
   useEffect(() => {
     if (!CLIENT_ID) return;
 
+    const handleCredential = async (credential: string) => {
+      try {
+        await api.post("/auth/google", { id_token: credential });
+        storeToken();
+        toast({ title: "Signed in with Google" });
+        navigate(ROUTES.home);
+      } catch {
+        toast({ title: "Google sign-in failed", variant: "destructive" });
+      }
+    };
+
     const initGoogle = () => {
-      if (!window.google || !containerRef.current) return;
-      window.google.accounts.id.initialize({
+      if (!globalThis.google || !containerRef.current) return;
+      globalThis.google.accounts.id.initialize({
         client_id: CLIENT_ID,
-        callback: async ({ credential }) => {
-          try {
-            const res = await api.post<{ access_token: string }>("/auth/google", { id_token: credential });
-            storeToken(res.access_token);
-            toast({ title: "Signed in with Google" });
-            navigate(ROUTES.home);
-          } catch {
-            toast({ title: "Google sign-in failed", variant: "destructive" });
-          }
-        },
+        callback: ({ credential }) => { void handleCredential(credential); },
       });
-      window.google.accounts.id.renderButton(containerRef.current, {
+      globalThis.google.accounts.id.renderButton(containerRef.current, {
         theme: "outline",
         size: "large",
         width: 320,
@@ -59,7 +62,7 @@ const GoogleSignInButton = ({ label = "Sign in with Google" }: GoogleSignInButto
       });
     };
 
-    if (window.google) {
+    if (globalThis.google) {
       initGoogle();
     } else {
       const script = document.createElement("script");

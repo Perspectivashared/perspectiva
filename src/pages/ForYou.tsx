@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import SurveyListCard from "@/components/SurveyListCard";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -28,7 +28,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { api } from "@/lib/api";
+import { api, SESSION_EXPIRED } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { browserSurveySessionStorage } from "@/features/surveys/services/survey-session-storage";
 import { useCommunitiesQuery } from "@/features/communities/hooks/use-communities-query";
@@ -85,8 +85,16 @@ const SectionShell = ({
   emptyMessage,
   emptyAction,
   children,
-}: SectionShellProps) => (
-  <Collapsible open={isOpen} onOpenChange={onToggle}>
+}: SectionShellProps) => {
+  const [chevronDeg, setChevronDeg] = useState(isOpen ? 180 : 0);
+
+  const handleOpenChange = () => {
+    setChevronDeg((prev) => prev + 180);
+    onToggle();
+  };
+
+  return (
+  <Collapsible open={isOpen} onOpenChange={handleOpenChange}>
     {/* Header — card lives only here */}
     <CollapsibleTrigger asChild>
       <button className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl border border-border/60 bg-card/60 backdrop-blur shadow-sm hover:bg-card/90 hover:border-border hover:shadow-elegant transition-all duration-200 group">
@@ -108,7 +116,8 @@ const SectionShell = ({
           )}
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 ${isOpen ? "rotate-180" : "rotate-0"}`}
+          className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300"
+          style={{ transform: `rotate(${chevronDeg}deg)` }}
         />
       </button>
     </CollapsibleTrigger>
@@ -133,7 +142,8 @@ const SectionShell = ({
       </div>
     </CollapsibleContent>
   </Collapsible>
-);
+  );
+};
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
@@ -152,7 +162,7 @@ const ForYou = () => {
   // Local save-state (optimistic)
   const [localSavedIds, setLocalSavedIds] = useState<Set<number>>(new Set());
 
-  // Local favourite-community state
+  // Local favourite-community state (optimistic — merged with server data below)
   const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
 
   // Search / filter / sort for "Browse All" section
@@ -185,6 +195,11 @@ const ForYou = () => {
 
   const communitiesQ = useCommunitiesQuery();
 
+  const favouritesQ = useQuery({
+    queryKey: ["favourite-communities"],
+    queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
+  });
+
   // ─── Derived data ─────────────────────────────────────────────────────────
 
   const published = publishedQ.data ?? [];
@@ -198,6 +213,12 @@ const ForYou = () => {
   const savedIds = useMemo(
     () => new Set([...localSavedIds, ...savedSurveys.map((s) => s.id)]),
     [localSavedIds, savedSurveys],
+  );
+
+  // Merged favourite community IDs (server + optimistic local)
+  const favouriteIds = useMemo(
+    () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
+    [localFavouriteIds, favouritesQ.data],
   );
 
   // In-progress surveys from localStorage
@@ -306,18 +327,11 @@ const ForYou = () => {
     [communities],
   );
 
-  // Favourite communities — locally favourited + user-category matches
-  const favouriteCommunities = useMemo(() => {
-    const categoryMatched = userCategory
-      ? communities.filter((c) => c.category === userCategory)
-      : [];
-    const localFaved = communities.filter((c) => localFavouriteIds.has(c.id));
-    return [
-      ...new Map(
-        [...categoryMatched, ...localFaved].map((c) => [c.id, c]),
-      ).values(),
-    ];
-  }, [communities, userCategory, localFavouriteIds]);
+  // Favourite communities — server-persisted + optimistic local
+  const favouriteCommunities = useMemo(
+    () => communities.filter((c) => favouriteIds.has(c.id)),
+    [communities, favouriteIds],
+  );
 
   // Surveys by user's category (for "Explore by Category" section)
   const categoryMatched = useMemo(
@@ -372,12 +386,33 @@ const ForYou = () => {
 
   // ─── Toggle community favourite ───────────────────────────────────────────
 
-  const handleToggleFavouriteCommunity = (communityId: string) => {
+  const handleToggleFavouriteCommunity = async (communityId: string) => {
+    const isFav = favouriteIds.has(communityId);
+    // Optimistic update
     setLocalFavouriteIds((prev) => {
       const next = new Set(prev);
-      if (next.has(communityId)) { next.delete(communityId); } else { next.add(communityId); }
+      if (isFav) { next.delete(communityId); } else { next.add(communityId); }
       return next;
     });
+    try {
+      if (isFav) {
+        await api.delete(`/communities/${communityId}/favourite`);
+      } else {
+        await api.post(`/communities/${communityId}/favourite`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
+    } catch (err) {
+      // Revert optimistic update
+      setLocalFavouriteIds((prev) => {
+        const next = new Set(prev);
+        if (isFav) { next.add(communityId); } else { next.delete(communityId); }
+        return next;
+      });
+      if (err instanceof Error && err.message === SESSION_EXPIRED) {
+        throw err;
+      }
+      toast({ title: "Failed to update favourite", variant: "destructive" });
+    }
   };
 
   // ─── Section definitions ──────────────────────────────────────────────────
@@ -441,18 +476,15 @@ const ForYou = () => {
         emptyMessage: "No surveys in progress. Find a survey and start answering!",
         emptyAction: { label: "Browse Surveys", to: ROUTES.forYou },
         content: rowList(inProgress.map((entry) => (
-          <Card
+          <SurveyListCard
             key={entry.surveyId}
-            className="px-5 py-4 border-border/50 bg-card/50 backdrop-blur hover:shadow-elegant transition-all duration-200"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[0.9375rem]">{entry.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {entry.answeredCount} question{entry.answeredCount !== 1 ? "s" : ""} answered
-                  {" · "}Last updated {new Date(entry.updatedAt).toLocaleDateString()}
-                </p>
-              </div>
+            title={entry.title}
+            status="in-progress"
+            date={entry.updatedAt}
+            dateLabel="Updated"
+            responseCount={entry.answeredCount}
+            metricLabel="Questions answered"
+            action={
               <Button
                 asChild
                 size="sm"
@@ -462,8 +494,8 @@ const ForYou = () => {
                   Continue
                 </Link>
               </Button>
-            </div>
-          </Card>
+            }
+          />
         ))),
       },
 
@@ -536,24 +568,16 @@ const ForYou = () => {
         emptyMessage: "You haven't answered any surveys yet. Take your first one today!",
         emptyAction: { label: "Find Surveys", to: ROUTES.forYou },
         content: rowList(completed.slice(0, 6).map((s) => (
-          <Card
+          <SurveyListCard
             key={s.id}
-            className="px-5 py-4 border-border/50 bg-card/50 backdrop-blur hover:shadow-elegant transition-all duration-200"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold text-[0.9375rem]">{s.title}</h3>
-                  {s.category && <Badge variant="outline" className="text-xs">{s.category}</Badge>}
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {s.response_count} total responses ·{" "}
-                  {s.published_at ? new Date(s.published_at).toLocaleDateString() : "—"}
-                </p>
-              </div>
-              <Badge className="bg-success/10 text-success border-success/20 shrink-0">Completed</Badge>
-            </div>
-          </Card>
+            title={s.title}
+            status="completed"
+            category={s.category}
+            date={s.published_at ?? s.created_at}
+            dateLabel="Published"
+            responseCount={s.response_count}
+            metricLabel="Total responses"
+          />
         ))),
       },
 
@@ -583,25 +607,19 @@ const ForYou = () => {
         emptyMessage: "No drafts yet. Start building your first survey!",
         emptyAction: { label: "Create Survey", to: ROUTES.createSurvey },
         content: rowList(myDrafts.map((s) => (
-          <Card
+          <SurveyListCard
             key={s.id}
-            className="px-5 py-4 border-border/50 bg-card/50 backdrop-blur hover:shadow-elegant transition-all duration-200"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-[0.9375rem]">{s.title}</h3>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">Draft</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Created {new Date(s.created_at).toLocaleDateString()}{s.category ? ` · ${s.category}` : ""}
-                </p>
-              </div>
+            title={s.title || "Untitled Survey"}
+            status="draft"
+            category={s.category}
+            date={s.created_at}
+            dateLabel="Created"
+            action={
               <Button asChild variant="outline" size="sm">
                 <Link to={getSurveyEditRoute(String(s.id))}>Edit Draft</Link>
               </Button>
-            </div>
-          </Card>
+            }
+          />
         ))),
       },
 
@@ -612,7 +630,7 @@ const ForYou = () => {
         title: "Favourite Communities",
         count: favouriteCommunities.length,
         isEmpty: favouriteCommunities.length === 0,
-        isLoading: communitiesQ.isPending,
+        isLoading: communitiesQ.isPending || favouritesQ.isPending,
         emptyMessage: "No favourited communities yet. Explore communities and join ones that interest you.",
         emptyAction: { label: "Explore Communities", to: ROUTES.communities },
         content: communityGrid(favouriteCommunities.map((c) => (
@@ -621,7 +639,7 @@ const ForYou = () => {
             community={c}
             onExplore={(id) => navigate(getCommunityRoute(id))}
             onFavourite={handleToggleFavouriteCommunity}
-            isFavourited={localFavouriteIds.has(c.id) || c.category === userCategory}
+            isFavourited={favouriteIds.has(c.id)}
           />
         ))),
       },
@@ -642,7 +660,7 @@ const ForYou = () => {
             community={c}
             onExplore={(id) => navigate(getCommunityRoute(id))}
             onFavourite={handleToggleFavouriteCommunity}
-            isFavourited={localFavouriteIds.has(c.id) || c.category === userCategory}
+            isFavourited={favouriteIds.has(c.id)}
           />
         ))),
       },
@@ -698,10 +716,10 @@ const ForYou = () => {
     closingSoon, inProgress, topMatches, newThisWeek, trending,
     savedSurveys, completed, myPublished, myDrafts,
     favouriteCommunities, recommendedCommunities, categoryMatched,
-    published, newestPublished, savedIds, localFavouriteIds,
+    published, newestPublished, savedIds, favouriteIds,
     userCategory, publishedQ.isPending, mySurveysQ.isPending,
     completedQ.isPending, savedQ.isPending, communitiesQ.isPending, profileQ.isPending,
-    handleToggleSave, handleToggleFavouriteCommunity, navigate,
+    favouritesQ.isPending, handleToggleSave, handleToggleFavouriteCommunity, navigate,
   ]);
 
   // ─── Render ───────────────────────────────────────────────────────────────

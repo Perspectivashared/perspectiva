@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { Activity, CalendarDays, FileText, Trophy, Users, UserPlus, Check } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, SESSION_EXPIRED } from "@/lib/api";
+import { Activity, ArrowRight, FileText, Trophy, Users, UserPlus, Check } from "lucide-react";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
+import { SurveyCard, type ApiSurveySummary } from "@/components/SurveyCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/features/auth/context/AuthContext";
 import {
   sortCommunities,
   type Community,
@@ -26,18 +28,10 @@ import {
   useCommunityByIdQuery,
 } from "@/features/communities/hooks/use-communities-query";
 import { apiCommunityRepository } from "@/features/communities/services/community-repository";
+import { useToast } from "@/hooks/use-toast";
 import { getCommunityRoute, ROUTES } from "@/lib/routes";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { queryToAsyncState } from "@/shared/lib/query-state";
-
-interface Survey {
-  id: string;
-  title: string;
-  description: string;
-  participants: number;
-  rewardLabel: string;
-  deadlineDays: number;
-}
 
 interface LeaderboardEntry {
   username: string;
@@ -45,18 +39,6 @@ interface LeaderboardEntry {
   surveys_completed: number;
   rank: number;
 }
-
-const buildSurveysForCommunity = (community: Community): Survey[] =>
-  community.subcategories.slice(0, 3).map((subcategory, index) => ({
-    id: `${community.id}-survey-${index + 1}`,
-    title: `${subcategory} Pulse Study`,
-    description:
-      `Share your perspective on ${subcategory.toLowerCase()} trends in ` +
-      `${community.name} and help shape the next research cycle.`,
-    participants: Math.round(community.members * (0.18 + index * 0.05)),
-    rewardLabel: `${10 + index * 5} Forge Points`,
-    deadlineDays: 3 + index * 2,
-  }));
 
 const CommunityOverview = ({
   community,
@@ -152,48 +134,58 @@ const CommunityOverview = ({
   );
 };
 
-const SurveysSection = ({ surveys }: { surveys: Survey[] }) => (
+const SurveysSection = ({
+  surveys,
+  isSaved,
+  onToggleSave,
+  communityId,
+}: {
+  surveys: ApiSurveySummary[];
+  isSaved: (id: number) => boolean;
+  onToggleSave: (id: number) => void;
+  communityId: string;
+}) => (
   <section className="mb-12 space-y-6">
     <div className="space-y-2">
-      <h2 className="text-3xl font-semibold tracking-tight">Active Surveys</h2>
-      <p className="max-w-3xl text-sm text-muted-foreground md:text-base">
-        Participate in current studies and add your perspective to this
-        community&apos;s active research stream.
-      </p>
-    </div>
-
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      {surveys.map((survey) => (
-        <Card
-          key={survey.id}
-          className="border-border/70 bg-card p-6 shadow-sm transition-all duration-200 ease-out hover:border-primary/20 hover:shadow-md"
-        >
-          <h3 className="text-xl font-semibold tracking-tight">
-            {survey.title}
-          </h3>
-          <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
-            {survey.description}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-semibold tracking-tight">Active Surveys</h2>
+          <p className="max-w-3xl text-sm text-muted-foreground md:text-base">
+            Participate in current studies and add your perspective to this
+            community&apos;s active research stream.
           </p>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" aria-hidden="true" />
-              {survey.participants.toLocaleString()} participants
-            </span>
-            <span aria-hidden="true">·</span>
-            <span className="flex items-center gap-1.5">
-              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-              {survey.deadlineDays} days left
-            </span>
-          </div>
-
-          <div className="mt-5 flex items-center justify-between gap-3">
-            <Badge variant="secondary">{survey.rewardLabel}</Badge>
-            <Button>Participate</Button>
-          </div>
-        </Card>
-      ))}
+        </div>
+        {surveys.length > 0 && (
+          <Button asChild size="sm" variant="outline" className="shrink-0">
+            <Link to={`${ROUTES.allSurveys}?community=${communityId}`}>
+              View all <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        )}
+      </div>
     </div>
+
+    {surveys.length === 0 ? (
+      <Card className="border-border/70 p-8 text-center shadow-sm">
+        <p className="text-muted-foreground">No active surveys in this community yet.</p>
+        <Button asChild className="mt-4" size="sm" variant="outline">
+          <Link to={ROUTES.allSurveys}>
+            Browse all surveys <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      </Card>
+    ) : (
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {surveys.map((survey) => (
+          <SurveyCard
+            key={survey.id}
+            survey={survey}
+            isSaved={isSaved(survey.id)}
+            onToggleSave={onToggleSave}
+          />
+        ))}
+      </div>
+    )}
   </section>
 );
 
@@ -269,7 +261,12 @@ const LeaderboardSection = ({ entries }: { entries: LeaderboardEntry[] }) => {
 const CommunityDetails = () => {
   const { communityId } = useParams<{ communityId: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
+  const [localSavedIds, setLocalSavedIds] = useState<Set<number>>(new Set());
+  const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
 
   const communityQuery = useCommunityByIdQuery(communityId);
   const communitiesQuery = useCommunitiesQuery();
@@ -278,6 +275,32 @@ const CommunityDetails = () => {
     queryFn: () => api.get<LeaderboardEntry[]>(`/communities/${communityId}/leaderboard`),
     enabled: !!communityId,
   });
+
+  const publishedQ = useQuery({
+    queryKey: ["published-surveys"],
+    queryFn: () => api.get<ApiSurveySummary[]>("/surveys/published"),
+  });
+
+  const savedQ = useQuery({
+    queryKey: ["saved-surveys"],
+    queryFn: () => api.get<ApiSurveySummary[]>("/users/me/saved-surveys"),
+  });
+
+  const favouritesQ = useQuery({
+    queryKey: ["favourite-communities"],
+    queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
+    enabled: isAuthenticated === true,
+  });
+
+  const savedIds = useMemo(
+    () => new Set([...localSavedIds, ...(savedQ.data ?? []).map((s) => s.id)]),
+    [localSavedIds, savedQ.data],
+  );
+
+  const favouriteIds = useMemo(
+    () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
+    [localFavouriteIds, favouritesQ.data],
+  );
 
   const handleJoin = async () => {
     if (!communityId || isJoining) return;
@@ -290,11 +313,63 @@ const CommunityDetails = () => {
     }
   };
 
+  const handleToggleSave = async (surveyId: number) => {
+    const isSaved = savedIds.has(surveyId);
+    try {
+      if (isSaved) {
+        await api.delete(`/surveys/${surveyId}/save`);
+        setLocalSavedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(surveyId);
+          return next;
+        });
+        toast({ title: "Survey unsaved" });
+      } else {
+        await api.post(`/surveys/${surveyId}/save`);
+        setLocalSavedIds((prev) => new Set(prev).add(surveyId));
+        toast({ title: "Survey saved" });
+      }
+      queryClient.invalidateQueries({ queryKey: ["saved-surveys"] });
+    } catch {
+      toast({ title: "Failed to update saved status", variant: "destructive" });
+    }
+  };
+
+  const handleToggleFavouriteCommunity = async (favCommunityId: string) => {
+    const isFav = favouriteIds.has(favCommunityId);
+    setLocalFavouriteIds((prev) => {
+      const next = new Set(prev);
+      if (isFav) { next.delete(favCommunityId); } else { next.add(favCommunityId); }
+      return next;
+    });
+    try {
+      if (isFav) {
+        await api.delete(`/communities/${favCommunityId}/favourite`);
+      } else {
+        await api.post(`/communities/${favCommunityId}/favourite`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
+    } catch (err) {
+      setLocalFavouriteIds((prev) => {
+        const next = new Set(prev);
+        if (isFav) { next.add(favCommunityId); } else { next.delete(favCommunityId); }
+        return next;
+      });
+      if (err instanceof Error && err.message === SESSION_EXPIRED) {
+        throw err;
+      }
+      toast({ title: "Failed to update favourite", variant: "destructive" });
+    }
+  };
+
   const communityState = useMemo(() => queryToAsyncState(communityQuery), [communityQuery]);
 
-  const surveys = useMemo(
-    () => (communityQuery.data ? buildSurveysForCommunity(communityQuery.data) : []),
-    [communityQuery.data],
+  const activeSurveys = useMemo(
+    () =>
+      (publishedQ.data ?? [])
+        .filter((s) => s.community_id === communityId)
+        .slice(0, 4),
+    [publishedQ.data, communityId],
   );
 
   const similarCommunities = useMemo(
@@ -363,7 +438,12 @@ const CommunityDetails = () => {
   return (
     <AppShell withContainer mainClassName="pb-14 pt-24">
       <CommunityOverview community={communityQuery.data} onJoin={handleJoin} isJoining={isJoining} />
-      <SurveysSection surveys={surveys} />
+      <SurveysSection
+        surveys={activeSurveys}
+        isSaved={(id) => savedIds.has(id)}
+        onToggleSave={handleToggleSave}
+        communityId={communityId!}
+      />
       <LeaderboardSection entries={leaderboardQuery.data ?? []} />
 
       <section className="space-y-6">
@@ -379,6 +459,8 @@ const CommunityDetails = () => {
         <PaginatedCommunityGrid
           communities={similarCommunities}
           onExplore={handleExploreCommunity}
+          onFavourite={isAuthenticated ? handleToggleFavouriteCommunity : undefined}
+          isFavourited={(id) => favouriteIds.has(id)}
           pageSize={6}
           className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
         />

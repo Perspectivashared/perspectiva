@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 interface PaginatedCommunityGridProps {
   communities: CommunityCardData[];
   onExplore: (communityId: string) => void;
+  onFavourite?: (communityId: string) => void;
+  isFavourited?: (communityId: string) => boolean;
   pageSize?: number;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -16,6 +18,8 @@ interface PaginatedCommunityGridProps {
 const PaginatedCommunityGrid = ({
   communities,
   onExplore,
+  onFavourite,
+  isFavourited,
   pageSize = 6,
   emptyTitle = "No communities found",
   emptyDescription = "Try updating your filters to explore other communities.",
@@ -57,6 +61,8 @@ const PaginatedCommunityGrid = ({
             key={community.id}
             community={community}
             onExplore={onExplore}
+            onFavourite={onFavourite}
+            isFavourited={isFavourited ? isFavourited(community.id) : undefined}
           />
         ))}
       </div>

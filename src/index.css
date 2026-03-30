@@ -1051,6 +1051,34 @@ All colors MUST be HSL.
     transform-origin: left;
   }
 
+  .primary-nav-link {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.2rem;
+  }
+
+  .primary-nav-link::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+    pointer-events: none;
+    background: hsl(var(--primary));
+  }
+
+  .primary-nav-link:hover::before,
+  .primary-nav-link:focus-visible::before {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
   .nav-slot-link {
     position: relative;
     display: inline-flex;

@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import { Activity, ArrowUpRight, CalendarDays, FileText, Heart, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CommunityCardSummary } from "@/features/communities/domain/community-data";
 import { cn } from "@/lib/utils";
@@ -49,19 +48,17 @@ const CommunityCard = ({
     >
       {/* Top-right: Explore button + optional Favourite button */}
       <div className="absolute right-5 top-5 z-10 flex items-center gap-1.5">
-        <Button
+        <button
           type="button"
-          variant="default"
-          size="sm"
           onClick={() => onExplore(community.id)}
           aria-label="Explore community"
-          className="h-9 w-9 origin-right justify-end overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[110ms] ease-out hover:bg-gradient-primary hover:shadow-glow focus-visible:w-[5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5rem] group-focus-within:w-[5rem]"
+          className="flex h-9 w-9 origin-right items-center justify-end overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[110ms] ease-out hover:shadow-glow focus-visible:w-[5.5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]"
         >
-          <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[110ms] ease-out group-hover:mr-1 group-hover:max-w-[3rem] group-hover:opacity-100 group-focus-within:mr-1 group-focus-within:max-w-[3rem] group-focus-within:opacity-100 focus-visible:mr-1 focus-visible:max-w-[3rem] focus-visible:opacity-100">
+          <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[110ms] ease-out group-hover:mr-1 group-hover:max-w-[3.5rem] group-hover:opacity-100 group-focus-within:mr-1 group-focus-within:max-w-[3.5rem] group-focus-within:opacity-100 focus-visible:mr-1 focus-visible:max-w-[3.5rem] focus-visible:opacity-100">
             {buttonLabel}
           </span>
           <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        </Button>
+        </button>
         {onFavourite && (
           <button
             type="button"
