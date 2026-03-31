@@ -110,7 +110,7 @@ export const SurveyCard = ({
           type="button"
           onClick={() => navigate(ROUTES.survey, { state: { surveyId: String(survey.id), source: "for-you" } })}
           aria-label="Take survey"
-          className="flex h-9 w-9 origin-right items-center justify-end overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[190ms] ease-out hover:shadow-glow group-hover:w-[7rem]"
+          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[190ms] ease-out hover:shadow-glow group-hover:w-[7rem]"
         >
           <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[190ms] ease-out group-hover:mr-1.5 group-hover:max-w-[4.5rem] group-hover:opacity-100">
             Take Survey
@@ -199,7 +199,7 @@ export const OwnedSurveyCard = ({ survey }: OwnedSurveyCardProps) => {
         type="button"
         onClick={() => navigate(`/surveys/${survey.id}/analytics`)}
         aria-label="View analytics"
-        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-end overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[150ms] ease-out hover:shadow-glow group-hover:w-[6rem]"
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[150ms] ease-out hover:shadow-glow group-hover:w-[6rem]"
       >
         <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[150ms] ease-out group-hover:mr-1.5 group-hover:max-w-[3.5rem] group-hover:opacity-100">
           Analytics

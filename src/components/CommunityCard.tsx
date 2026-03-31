@@ -35,9 +35,6 @@ const CommunityCard = ({
         year: "numeric",
       })
     : null;
-  const activityLabel = community.activityLevel
-    ? `${community.activityLevel}% activity`
-    : `${community.activeSurveys} active`;
 
   return (
     <Card
@@ -52,7 +49,7 @@ const CommunityCard = ({
           type="button"
           onClick={() => onExplore(community.id)}
           aria-label="Explore community"
-          className="flex h-9 w-9 origin-right items-center justify-end overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[110ms] ease-out hover:shadow-glow focus-visible:w-[5.5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]"
+          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[110ms] ease-out hover:shadow-glow focus-visible:w-[5.5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]"
         >
           <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[110ms] ease-out group-hover:mr-1 group-hover:max-w-[3.5rem] group-hover:opacity-100 group-focus-within:mr-1 group-focus-within:max-w-[3.5rem] group-focus-within:opacity-100 focus-visible:mr-1 focus-visible:max-w-[3.5rem] focus-visible:opacity-100">
             {buttonLabel}
@@ -100,24 +97,23 @@ const CommunityCard = ({
       <div className="mt-auto border-t border-border/70 pt-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{community.members.toLocaleString()}</span>
-          </div>
-          <span aria-hidden="true">·</span>
-          <div className="flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{community.surveys.toLocaleString()}</span>
           </div>
-        </div>
-
-        <div className="mt-1 flex h-5 items-center text-[11px] text-muted-foreground">
-          <span className="truncate">{activityLabel}</span>
+          <span aria-hidden="true">·</span>
+          <div className="flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{community.members.toLocaleString()}</span>
+          </div>
         </div>
 
         <div className="mt-0.5 h-4 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-1.5 opacity-0 transition-all duration-200 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 -translate-y-1">
             <Activity className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
             <span>{community.activeSurveys} active surveys</span>
+            <span aria-hidden="true">·</span>
+            <Users className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            <span>{community.members.toLocaleString()} active members</span>
             {launchLabel ? (
               <>
                 <span aria-hidden="true">·</span>
