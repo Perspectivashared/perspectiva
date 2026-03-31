@@ -160,7 +160,7 @@ const Categorizer = () => {
 
                   <Button
                     type="button"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     disabled={!form.watch("accept")}
                     onClick={goNext}
                   >
@@ -321,7 +321,7 @@ const Categorizer = () => {
 
                   <Button
                     type="button"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     onClick={goNext}
                   >
                     Next →
@@ -356,7 +356,7 @@ const Categorizer = () => {
 
                   <Button
                     type="button"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     onClick={goNext}
                   >
                     Next →
@@ -456,7 +456,7 @@ const Categorizer = () => {
 
                   <Button
                     type="button"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     onClick={goNext}
                   >
                     Next →
@@ -729,7 +729,7 @@ const Categorizer = () => {
 
                   <Button
                     type="button"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     onClick={goNext}
                   >
                     Next →
@@ -883,7 +883,7 @@ const Categorizer = () => {
 
                   <Button
                     type="button"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     onClick={goNext}
                   >
                     Next →
@@ -1052,7 +1052,7 @@ const Categorizer = () => {
 
                   <Button
                     type="button"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     onClick={goNext}
                   >
                     Next →
@@ -1159,7 +1159,7 @@ const Categorizer = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                    className="w-full"
                     disabled={form.formState.isSubmitting}
                   >
                     {form.formState.isSubmitting ? (

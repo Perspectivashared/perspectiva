@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 const NavigationMobileMenu = lazy(
   () => import("@/components/navigation-mobile-menu"),
@@ -65,9 +66,10 @@ const Navigation = () => {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-4">
+            <DarkModeToggle />
             {isAuthenticated ? (
               <Button
-                className="hidden md:inline-flex items-center gap-2 bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
+                className="hidden md:inline-flex items-center gap-2"
                 onClick={handleSignOut}
               >
                 <LogOut className="w-4 h-4" />
@@ -79,13 +81,12 @@ const Navigation = () => {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="hidden md:inline-flex bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:text-[hsl(195_85%_28%)] hover:border-primary/50 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.2)] transition-all"
+                  className="hidden md:inline-flex"
                 >
                   <Link to={ROUTES.signIn}>Sign In</Link>
                 </Button>
                 <Button
                   asChild
-                  className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
                 >
                   <Link to={ROUTES.signUp}>Get Started</Link>
                 </Button>
@@ -96,7 +97,7 @@ const Navigation = () => {
               <Suspense
                 fallback={
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     className="md:hidden"
                     disabled

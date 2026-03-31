@@ -38,7 +38,6 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
-                className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
               >
                 Get Started
                 <ArrowRight className="ml-2 w-5 h-5" />

@@ -215,7 +215,7 @@ const Footer = () => {
                 />
                 <Button
                   type="submit"
-                  className="h-11 bg-gradient-primary px-6 font-semibold text-white shadow-elegant transition hover:shadow-glow"
+                  className="h-11 px-6 font-semibold"
                 >
                   Submit
                 </Button>

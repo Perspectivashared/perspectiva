@@ -1663,3 +1663,201 @@ All colors MUST be HSL.
     }
   }
 }
+
+/* ─── Dark Mode Overrides ────────────────────────────────────────
+   The design-token CSS variables in :root / .dark (above) handle
+   nearly all color switching automatically.  The rules below only
+   patch the bespoke component classes that hard-code light-mode
+   HSL values instead of using var(--…) tokens.
+────────────────────────────────────────────────────────────────── */
+
+/* ── Contact Page ── */
+@layer components {
+  .dark .contact-page-bg::before {
+    background: radial-gradient(circle, hsl(195 85% 45% / 0.07), transparent 70%);
+  }
+
+  .dark .contact-page-bg::after {
+    background: radial-gradient(circle, hsl(250 70% 60% / 0.05), transparent 70%);
+  }
+
+  .dark .contact-eyebrow {
+    color: hsl(195 85% 58%);
+  }
+
+  .dark .contact-label {
+    color: hsl(210 10% 65%) !important;
+  }
+
+  .dark .contact-input {
+    background: hsl(210 18% 14%) !important;
+    border-color: hsl(210 18% 24%) !important;
+    color: hsl(210 15% 92%) !important;
+  }
+
+  .dark .contact-input::placeholder {
+    color: hsl(210 10% 48%) !important;
+  }
+
+  .dark .contact-input:focus-visible {
+    border-color: hsl(195 85% 45%) !important;
+    box-shadow: 0 0 0 3px hsl(195 85% 45% / 0.2) !important;
+  }
+
+  .dark .contact-chip {
+    background: hsl(210 18% 16%);
+    border-color: hsl(210 18% 26%);
+    color: hsl(210 15% 75%);
+  }
+
+  .dark .contact-chip:hover {
+    border-color: hsl(195 85% 45%);
+    color: hsl(195 85% 62%);
+  }
+
+  .dark .contact-chip--selected {
+    border-color: hsl(195 85% 45%);
+    background: hsl(195 85% 45% / 0.14);
+    color: hsl(195 85% 65%);
+  }
+
+  .dark .contact-card {
+    background: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+
+  .dark .contact-card__icon-svg {
+    color: hsl(195 85% 55%);
+  }
+
+  .dark .contact-card__link {
+    color: hsl(195 85% 58%);
+  }
+
+  .dark .contact-card__link:hover {
+    color: hsl(195 85% 68%);
+  }
+
+  .dark .contact-faq-cta {
+    background: hsl(var(--muted));
+    border-color: hsl(var(--border));
+  }
+
+  .dark .contact-faq-cta__link {
+    color: hsl(195 85% 58%);
+  }
+
+  .dark .contact-faq-cta__link:hover {
+    color: hsl(195 85% 68%);
+  }
+}
+
+/* ── Auth Pages ── */
+@layer components {
+  .dark .auth-page-main {
+    background: linear-gradient(160deg, hsl(210 20% 8%), hsl(210 22% 11%));
+  }
+
+  .dark .auth-card {
+    box-shadow:
+      0 2px 4px hsl(0 0% 0% / 0.25),
+      0 8px 24px hsl(0 0% 0% / 0.35),
+      0 32px 72px hsl(0 0% 0% / 0.4);
+  }
+
+  .dark .auth-panel--left {
+    background: hsl(210 18% 13%);
+  }
+
+  .dark .auth-panel--left::before {
+    background:
+      repeating-linear-gradient(
+        -45deg,
+        hsl(195 85% 45% / 0.06) 0px,
+        hsl(195 85% 45% / 0.06) 1px,
+        transparent 1px,
+        transparent 18px
+      );
+  }
+
+  .dark .auth-panel__logo {
+    background: linear-gradient(135deg, hsl(195 85% 55%), hsl(185 75% 60%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .dark .auth-panel__tagline {
+    color: hsl(210 10% 62%);
+  }
+
+  .dark .auth-panel__switch {
+    color: hsl(210 10% 58%);
+  }
+
+  .dark .auth-panel__switch-link {
+    color: hsl(195 85% 58%);
+  }
+
+  .dark .auth-panel__switch-link:hover {
+    color: hsl(195 85% 68%);
+  }
+
+  .dark .auth-panel--right {
+    background: hsl(210 18% 11%);
+  }
+
+  .dark .auth-tabs {
+    border-bottom-color: hsl(210 18% 22%);
+  }
+
+  .dark .auth-tab {
+    color: hsl(210 10% 52%);
+  }
+
+  .dark .auth-tab:hover {
+    color: hsl(210 15% 82%);
+  }
+
+  .dark .auth-tab--active {
+    color: hsl(195 85% 56%);
+    border-bottom-color: hsl(195 85% 52%);
+  }
+
+  .dark .auth-form__heading {
+    color: hsl(210 15% 94%);
+  }
+
+  .dark .auth-panel--right [data-slot="form-label"],
+  .dark .auth-panel--right label {
+    color: hsl(210 10% 65%) !important;
+  }
+
+  .dark .auth-panel--right input[type="text"],
+  .dark .auth-panel--right input[type="password"],
+  .dark .auth-panel--right input:not([type="submit"]):not([type="button"]) {
+    border-color: hsl(210 18% 26%) !important;
+    background: hsl(210 18% 14%) !important;
+    color: hsl(210 15% 92%) !important;
+  }
+
+  .dark .auth-panel--right input:focus-visible {
+    border-color: hsl(195 85% 42%) !important;
+    box-shadow: 0 0 0 3px hsl(195 85% 45% / 0.22) !important;
+  }
+
+  .dark .auth-panel--right [data-slot="select-trigger"],
+  .dark .auth-panel--right button[role="combobox"] {
+    border-color: hsl(210 18% 26%) !important;
+    background: hsl(210 18% 14%) !important;
+    color: hsl(210 15% 92%) !important;
+  }
+}
+
+/* ── For You Page eyebrow ── */
+@layer components {
+  .dark .fy-eyebrow {
+    color: hsl(195 85% 58%);
+  }
+}
+

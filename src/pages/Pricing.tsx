@@ -102,7 +102,7 @@ const Pricing = () => {
                   <CreditCard className="h-4 w-4" />
                   <Coins className="h-4 w-4 text-amber-600" />
                 </div>
-                <Button asChild className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all">
+                <Button asChild>
                   <Link to={ROUTES.converter}>Open Converter</Link>
                 </Button>
               </div>

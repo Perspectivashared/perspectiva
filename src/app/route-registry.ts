@@ -30,6 +30,7 @@ export const APP_ROUTE_PATHS = {
   verifyEmail: "/verify-email",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
+  buttonShowcase: "/dev/buttons",
 } as const;
 
 export type AppRouteKey = keyof typeof APP_ROUTE_PATHS;
@@ -73,6 +74,7 @@ const routeComponents: Record<AppRouteKey | "notFound", RouteComponent> = {
   verifyEmail: lazy(() => import("@/pages/VerifyEmail")),
   forgotPassword: lazy(() => import("@/pages/ForgotPassword")),
   resetPassword: lazy(() => import("@/pages/ResetPassword")),
+  buttonShowcase: lazy(() => import("@/pages/ButtonShowcase")),
   notFound: lazy(() => import("@/pages/NotFound")),
 };
 

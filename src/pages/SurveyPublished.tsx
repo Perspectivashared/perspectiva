@@ -28,7 +28,7 @@ const SurveyPublished = () => {
           <p className="text-muted-foreground">Your survey is now live in the For You feed. 2 points were spent.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-          <Button asChild className="bg-gradient-primary shadow-elegant">
+          <Button asChild>
             <Link to={ROUTES.forYou}>
               <Users className="mr-2 h-4 w-4" />
               View in For You Feed

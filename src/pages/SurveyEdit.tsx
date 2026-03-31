@@ -189,7 +189,7 @@ const SurveyEdit = () => {
             <span className="text-sm text-muted-foreground">
               Draft available
             </span>
-            <Button size="sm" variant="secondary" onClick={loadDraft}>
+            <Button size="sm" variant="outline" onClick={loadDraft}>
               Load Draft
             </Button>
             <Button size="sm" variant="outline" onClick={discardDraft}>
@@ -348,7 +348,7 @@ const SurveyEdit = () => {
                         <Badge variant="secondary">Question {index + 1}</Badge>
                         <div className="flex gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
                             onClick={() =>
                               dispatch({
@@ -361,7 +361,7 @@ const SurveyEdit = () => {
                             <Copy className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
                             onClick={() =>
                               dispatch({
@@ -460,7 +460,7 @@ const SurveyEdit = () => {
                                 }
                               />
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="icon"
                                 onClick={() =>
                                   dispatch({

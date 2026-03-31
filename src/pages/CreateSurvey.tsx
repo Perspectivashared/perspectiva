@@ -294,7 +294,7 @@ const CreateSurvey = () => {
                     <Badge variant="secondary">Question {index + 1}</Badge>
                     <div className="flex gap-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         onClick={() => dispatch({ type: "DUPLICATE_QUESTION", questionId: question.id })}
                         type="button"
@@ -302,7 +302,7 @@ const CreateSurvey = () => {
                         <Copy className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
                         onClick={() => dispatch({ type: "REMOVE_QUESTION", questionId: question.id })}
                         disabled={state.questions.length === 1}
@@ -386,7 +386,7 @@ const CreateSurvey = () => {
                           />
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
                             onClick={() =>
                               dispatch({
@@ -403,7 +403,7 @@ const CreateSurvey = () => {
                       ))}
                       <Button
                         onClick={() => dispatch({ type: "ADD_OPTION", questionId: question.id })}
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         type="button"
                       >
@@ -443,7 +443,6 @@ const CreateSurvey = () => {
                 </Button>
                 <Button
                   onClick={() => { void publishSurvey(); }}
-                  className="bg-gradient-primary shadow-elegant hover:shadow-glow"
                   type="button"
                   disabled={isPublishing}
                 >

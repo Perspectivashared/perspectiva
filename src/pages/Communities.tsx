@@ -146,7 +146,7 @@ const Communities = () => {
 
           <Button
             onClick={() => navigate(ROUTES.allCommunities)}
-            className="w-full bg-gradient-primary text-primary-foreground shadow-elegant transition-all duration-200 ease-out hover:bg-gradient-primary hover:shadow-glow sm:w-auto"
+            className="w-full sm:w-auto"
           >
             View All Communities
           </Button>

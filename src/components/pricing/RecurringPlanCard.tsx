@@ -65,10 +65,7 @@ const RecurringPlanCard = ({ plan, billingCycle }: RecurringPlanCardProps) => {
       </ul>
 
       <Button
-        className={cn(
-          "w-full",
-          plan.recommended ? "bg-gradient-primary shadow-elegant hover:shadow-glow transition-all" : "",
-        )}
+        className="w-full"
         variant={plan.recommended ? "default" : "outline"}
       >
         {plan.ctaLabel}

@@ -84,7 +84,7 @@ const CommunityOverview = ({
               <Button
                 size="sm"
                 variant={joined ? "outline" : "default"}
-                className={joined ? "border-success/40 text-success" : "bg-gradient-primary shadow-elegant"}
+                className={joined ? "border-success/40 text-success" : ""}
                 onClick={onJoin}
                 disabled={joined || isJoining}
               >

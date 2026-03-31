@@ -8,6 +8,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ROUTES } from "@/lib/routes";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 export interface NavigationMobileMenuProps {
   navItems: Array<{
@@ -25,13 +26,17 @@ const NavigationMobileMenu = ({
 }: NavigationMobileMenuProps) => (
   <Sheet>
     <SheetTrigger asChild>
-      <Button variant="ghost" size="icon" className="md:hidden">
+      <Button variant="outline" size="icon" className="md:hidden">
         <Menu className="w-5 h-5" />
         <span className="sr-only">Open navigation menu</span>
       </Button>
     </SheetTrigger>
     <SheetContent side="right" className="w-[85%] max-w-sm">
       <div className="mt-10 flex flex-col gap-2">
+        <div className="flex items-center justify-between px-3 pb-2 border-b border-border/40">
+          <span className="text-sm text-muted-foreground">Appearance</span>
+          <DarkModeToggle />
+        </div>
         {navItems.map((item) => (
           <SheetClose key={item.to} asChild>
             <NavLink
@@ -68,7 +73,7 @@ const NavigationMobileMenu = ({
                 </Button>
               </SheetClose>
               <SheetClose asChild>
-                <Button asChild className="bg-gradient-primary">
+                <Button asChild>
                   <Link to={ROUTES.signUp}>Get Started</Link>
                 </Button>
               </SheetClose>

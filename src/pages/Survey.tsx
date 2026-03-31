@@ -395,13 +395,12 @@ const Survey = () => {
               <Button type="button" variant="outline" onClick={handleExitSurvey} disabled={isSubmitting}>
                 Exit Survey
               </Button>
-              <Button type="button" variant="secondary" onClick={handleContinueLater} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={handleContinueLater} disabled={isSubmitting}>
                 Continue Later
               </Button>
             </div>
             <Button
               type="submit"
-              className="bg-gradient-primary shadow-elegant transition-all hover:shadow-glow"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Submitting..." : "Submit Survey"}
@@ -425,7 +424,6 @@ const Survey = () => {
             <Button
               onClick={() => setHasAcceptedAcknowledgement(true)}
               disabled={!acknowledgementChecked}
-              className="bg-gradient-primary shadow-elegant transition-all hover:shadow-glow"
             >
               Accept and Start
             </Button>

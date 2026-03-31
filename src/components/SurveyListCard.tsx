@@ -9,7 +9,7 @@ export type SurveyCardStatus = "active" | "closed" | "completed" | "draft" | "in
 const STATUS_CONFIG: Record<SurveyCardStatus, { label: string; chipClass: string }> = {
   active: {
     label: "Active",
-    chipClass: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    chipClass: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
   },
   closed: {
     label: "Closed",
@@ -17,15 +17,15 @@ const STATUS_CONFIG: Record<SurveyCardStatus, { label: string; chipClass: string
   },
   completed: {
     label: "Completed",
-    chipClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+    chipClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30",
   },
   draft: {
     label: "Draft",
-    chipClass: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    chipClass: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
   },
   "in-progress": {
     label: "In Progress",
-    chipClass: "bg-violet-500/10 text-violet-600 border-violet-500/20",
+    chipClass: "bg-violet-500/10 text-violet-600 border-violet-500/20 dark:text-violet-400 dark:border-violet-500/30",
   },
 };
 

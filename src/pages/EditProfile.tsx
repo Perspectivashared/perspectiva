@@ -143,7 +143,6 @@ const EditProfile = () => {
             <div className="flex gap-3 pt-2">
               <Button
                 type="submit"
-                className="bg-gradient-primary shadow-elegant"
                 disabled={mutation.isPending}
               >
                 {mutation.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : "Save Changes"}

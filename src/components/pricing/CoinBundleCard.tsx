@@ -84,12 +84,7 @@ const CoinBundleCard = ({ bundle }: CoinBundleCardProps) => {
       </div>
 
       <Button
-        className={cn(
-          "w-full",
-          bundle.recommended
-            ? "bg-gradient-primary shadow-elegant hover:shadow-glow transition-all"
-            : "",
-        )}
+        className="w-full"
         variant={bundle.recommended ? "default" : "outline"}
         onClick={() => mutation.mutate()}
         disabled={mutation.isPending}

@@ -232,7 +232,7 @@ const SurveyAnalytics = () => {
     <AppShell withContainer mainClassName="max-w-5xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
       {/* Header */}
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 -ml-2">
+        <Button variant="outline" asChild className="mb-4 -ml-2">
           <Link to={ROUTES.profile}><ArrowLeft className="mr-2 h-4 w-4" />Back to Profile</Link>
         </Button>
         <div className="flex items-center gap-3 mb-2">

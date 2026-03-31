@@ -18,7 +18,7 @@ const BuyCoinsIconLink = ({ className }: BuyCoinsIconLinkProps) => {
           size="icon"
           variant="outline"
           className={cn(
-            "h-8 w-8 rounded-full border-amber-500/40 bg-amber-500/10 text-amber-700 hover:border-amber-500/70 hover:bg-amber-500/20 hover:text-amber-800 focus-visible:ring-amber-500/40 dark:text-amber-300 dark:hover:text-amber-200",
+            "h-8 w-8 rounded-full border-amber-500/40 bg-amber-500/10 text-amber-700 [--btn-ring:rgb(245_158_11_/_0.4)] hover:border-amber-500/70 hover:bg-amber-500/20 hover:text-amber-800 focus-visible:ring-amber-500/40 dark:text-amber-300 dark:hover:text-amber-200",
             className,
           )}
         >

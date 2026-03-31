@@ -488,7 +488,7 @@ const ForYou = () => {
               <Button
                 asChild
                 size="sm"
-                className="bg-gradient-primary shadow-elegant hover:shadow-glow transition-all shrink-0"
+                className="shrink-0"
               >
                 <Link to={ROUTES.survey} state={{ surveyId: entry.surveyId, source: "for-you" }}>
                   Continue

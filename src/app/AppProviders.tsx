@@ -5,16 +5,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "@/app/query-client";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import { SmoothScrollProvider } from "@/components/SmoothScrollProvider";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
-  <AuthProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <SmoothScrollProvider>
-          <Toaster />
-          {children}
-        </SmoothScrollProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </AuthProvider>
+  <ThemeProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <SmoothScrollProvider>
+            <Toaster />
+            {children}
+          </SmoothScrollProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AuthProvider>
+  </ThemeProvider>
 );
