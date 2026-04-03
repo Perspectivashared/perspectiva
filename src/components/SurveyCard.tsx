@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { ROUTES } from "@/lib/routes";
 
@@ -103,12 +104,15 @@ export const SurveyCard = ({
 
   return (
     // No focus-within ring — it leaks from child buttons and causes the blue-ring artifact
-    <Card className="group relative flex h-full min-h-[200px] flex-col rounded-xl border-border/70 bg-gradient-to-b from-primary/[0.03] via-card to-card p-5 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:ring-2 hover:ring-primary/35 hover:shadow-md">
+    <Card
+      onClick={() => navigate(ROUTES.survey, { state: { surveyId: String(survey.id), source: "for-you" } })}
+      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
+    >
       {/* Top-right: Take Survey button + Save button */}
       <div className="absolute right-4 top-4 z-10 flex items-center gap-1.5">
         <button
           type="button"
-          onClick={() => navigate(ROUTES.survey, { state: { surveyId: String(survey.id), source: "for-you" } })}
+          onClick={(e) => { e.stopPropagation(); navigate(ROUTES.survey, { state: { surveyId: String(survey.id), source: "for-you" } }); }}
           aria-label="Take survey"
           className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[190ms] ease-out hover:shadow-glow group-hover:w-[7rem]"
         >
@@ -119,9 +123,14 @@ export const SurveyCard = ({
         </button>
         <button
           type="button"
-          onClick={() => onToggleSave(survey.id)}
+          onClick={(e) => { e.stopPropagation(); onToggleSave(survey.id); }}
           title={isSaved ? "Unsave" : "Save"}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/90 text-muted-foreground shadow-sm transition-colors hover:border-primary/50 hover:text-primary"
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 text-muted-foreground shadow-sm transition-colors",
+            isSaved
+              ? "border-2 border-primary/60 text-primary hover:border-primary/80"
+              : "border-border/60 hover:border-primary/50 hover:text-primary",
+          )}
         >
           {isSaved
             ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" />
@@ -193,11 +202,14 @@ export const OwnedSurveyCard = ({ survey }: OwnedSurveyCardProps) => {
       : null;
 
   return (
-    <Card className="group relative flex h-full min-h-[200px] flex-col rounded-xl border-border/70 bg-gradient-to-b from-primary/[0.03] via-card to-card p-5 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:ring-2 hover:ring-primary/35 hover:shadow-md">
+    <Card
+      onClick={() => navigate(`/surveys/${survey.id}/analytics`)}
+      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
+    >
       {/* Analytics button — content-based width */}
       <button
         type="button"
-        onClick={() => navigate(`/surveys/${survey.id}/analytics`)}
+        onClick={(e) => { e.stopPropagation(); navigate(`/surveys/${survey.id}/analytics`); }}
         aria-label="View analytics"
         className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[150ms] ease-out hover:shadow-glow group-hover:w-[6rem]"
       >

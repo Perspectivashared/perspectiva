@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide native scrollbar — replaced by CustomScrollbar overlay component */
+html {
+  scrollbar-width: none;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+
 /* Collapsible open/close animation */
 @keyframes collapsible-down {
   from { height: 0; opacity: 0; }
@@ -12,7 +20,6 @@
   to   { height: 0; opacity: 0; }
 }
 .collapsible-animate[data-state="open"] {
-  overflow: hidden;
   animation: collapsible-down 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .collapsible-animate[data-state="closed"] {
@@ -154,7 +161,7 @@ All colors MUST be HSL.
       hsl(210 30% 96%)
     );
 
-    --shadow-elegant: 0 10px 40px -15px hsl(195 85% 45% / 0.25);
+    --shadow-elegant: 0 0 40px -5px hsl(195 85% 45% / 0.25);
     --shadow-glow: 0 0 50px hsl(195 85% 45% / 0.15);
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -208,7 +215,7 @@ All colors MUST be HSL.
       hsl(210 20% 12%)
     );
 
-    --shadow-elegant: 0 10px 40px -15px hsl(195 85% 45% / 0.4);
+    --shadow-elegant: 0 0 40px -5px hsl(195 85% 45% / 0.4);
     --shadow-glow: 0 0 50px hsl(195 85% 45% / 0.25);
   }
 }
@@ -217,6 +224,7 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
+
 
   body {
     @apply bg-background text-foreground;
@@ -262,6 +270,25 @@ All colors MUST be HSL.
 }
 
 /* ─── Contact Page ───────────────────────────────────────────── */
+
+@layer components {
+  /* Card arc gradient — radial sweep from bottom-left to top-right */
+  .card-arc-gradient {
+    background-color: hsl(var(--card));
+    background-image: radial-gradient(
+      ellipse 180% 150% at 100% 100%,
+      transparent 0%,
+      hsl(var(--primary) / 0.06) 100%
+    );
+  }
+  .dark .card-arc-gradient {
+    background-image: radial-gradient(
+      ellipse 180% 150% at 100% 100%,
+      transparent 0%,
+      hsl(var(--primary) / 0.03) 100%
+    );
+  }
+}
 
 @layer components {
   /* Page shell */

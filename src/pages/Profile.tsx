@@ -908,36 +908,38 @@ const Profile = () => {
 
             {/* All Achievements Modal */}
             <Dialog open={achievementsOpen} onOpenChange={setAchievementsOpen}>
-              <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
+              <DialogContent className="max-w-2xl flex flex-col max-h-[80vh]">
+                <DialogHeader className="pb-2">
+                  <DialogTitle className="flex items-center gap-2 text-xl">
                     <Award className="w-5 h-5 text-primary" />
                     All Achievements
                   </DialogTitle>
                 </DialogHeader>
-                <div className="space-y-3 mt-2">
-                  {achievementsQuery.data?.map((achievement) => {
-                    const Icon = ACHIEVEMENT_ICONS[achievement.icon_name] ?? Award;
-                    const gradient = CATEGORY_GRADIENT[achievement.category];
-                    return (
-                      <div key={achievement.id} className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-glow flex-shrink-0`}>
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-sm">{achievement.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {achievement.description}
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain" data-lenis-prevent>
+                  <div className="space-y-1 py-2">
+                    {achievementsQuery.data?.map((achievement) => {
+                      const Icon = ACHIEVEMENT_ICONS[achievement.icon_name] ?? Award;
+                      const gradient = CATEGORY_GRADIENT[achievement.category];
+                      return (
+                        <div key={achievement.id} className="flex items-center gap-5 px-1 py-3 rounded-xl hover:bg-muted/40 transition-colors">
+                          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-glow flex-shrink-0`}>
+                            <Icon className="w-5 h-5 text-white" />
                           </div>
-                          {achievement.unlocked_at && (
-                            <div className="text-xs text-muted-foreground/60 mt-0.5">
-                              {new Date(achievement.unlocked_at).toLocaleDateString()}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium">{achievement.name}</div>
+                            <div className="text-sm text-muted-foreground mt-0.5">
+                              {achievement.description}
                             </div>
-                          )}
+                            {achievement.unlocked_at && (
+                              <div className="text-xs text-muted-foreground/50 mt-1">
+                                {new Date(achievement.unlocked_at).toLocaleDateString()}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>

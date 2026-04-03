@@ -28,9 +28,7 @@ import {
   mapSurveyDefinitionToDraftSurvey,
 } from "@/features/survey-builder/domain/mappers";
 import {
-  isSurveyBuilderQuestionType,
   SURVEY_BUILDER_CATEGORY_OPTIONS,
-  SURVEY_BUILDER_QUESTION_TYPE_OPTIONS,
 } from "@/features/survey-builder/domain/question-types";
 import {
   hasDraftSurvey,
@@ -43,6 +41,7 @@ import {
   saveSurvey,
 } from "@/features/surveys/services/survey-service";
 import { AppShell } from "@/shared/components/layout/AppShell";
+import { QuestionTypeSelector } from "@/features/survey-builder/components/question-type-selector";
 import type { RawSurveyPayload } from "@/features/surveys/domain/types";
 
 const SURVEY_EDIT_STALE_TIME_MS = 300_000;
@@ -394,36 +393,17 @@ const SurveyEdit = () => {
 
                         <div>
                           <Label>Type</Label>
-                          <Select
+                          <QuestionTypeSelector
                             value={question.type}
-                            onValueChange={(value) => {
-                              if (!isSurveyBuilderQuestionType(value)) {
-                                return;
-                              }
-
+                            onValueChange={(value) =>
                               dispatch({
                                 type: "UPDATE_QUESTION",
                                 questionId: question.id,
                                 updates: { type: value },
-                              });
-                            }}
-                          >
-                            <SelectTrigger className="mt-2">
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {SURVEY_BUILDER_QUESTION_TYPE_OPTIONS.map(
-                                (typeOption) => (
-                                  <SelectItem
-                                    key={typeOption.value}
-                                    value={typeOption.value}
-                                  >
-                                    {typeOption.label}
-                                  </SelectItem>
-                                ),
-                              )}
-                            </SelectContent>
-                          </Select>
+                              })
+                            }
+                            className="mt-2 w-full"
+                          />
                         </div>
                       </div>
 

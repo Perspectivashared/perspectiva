@@ -38,8 +38,9 @@ const CommunityCard = ({
 
   return (
     <Card
+      onClick={() => onExplore(community.id)}
       className={cn(
-        "group relative flex h-full min-h-[252px] flex-col rounded-xl border-border/70 bg-gradient-to-b from-primary/[0.03] via-card to-card p-6 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:ring-2 hover:ring-primary/35 hover:shadow-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        "group relative flex h-full min-h-[252px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-6 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         className,
       )}
     >
@@ -47,7 +48,7 @@ const CommunityCard = ({
       <div className="absolute right-5 top-5 z-10 flex items-center gap-1.5">
         <button
           type="button"
-          onClick={() => onExplore(community.id)}
+          onClick={(e) => { e.stopPropagation(); onExplore(community.id); }}
           aria-label="Explore community"
           className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[110ms] ease-out hover:shadow-glow focus-visible:w-[5.5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]"
         >
@@ -59,9 +60,14 @@ const CommunityCard = ({
         {onFavourite && (
           <button
             type="button"
-            onClick={() => onFavourite(community.id)}
+            onClick={(e) => { e.stopPropagation(); onFavourite(community.id); }}
             title={isFavourited ? "Remove from favourites" : "Add to favourites"}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/90 text-muted-foreground shadow-sm transition-colors hover:border-rose-400/50 hover:text-rose-500"
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 shadow-sm transition-colors",
+              isFavourited
+                ? "border-2 border-rose-400/60 text-rose-500 hover:border-rose-400/80"
+                : "border-border/60 text-muted-foreground hover:border-rose-400/50 hover:text-rose-500",
+            )}
           >
             <Heart
               className={cn(

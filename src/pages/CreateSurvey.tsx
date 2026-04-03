@@ -7,13 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2, GripVertical, Copy, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +17,8 @@ import {
 } from "@/features/survey-builder/domain/reducer";
 import { validateDraftSurvey } from "@/features/survey-builder/domain/validation";
 import { AppShell } from "@/shared/components/layout/AppShell";
+import { QuestionTypeSelector } from "@/features/survey-builder/components/question-type-selector";
+import { CommunitySelector } from "@/features/survey-builder/components/community-selector";
 import type { SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
 
 interface ApiSurveyOut {
@@ -146,13 +141,13 @@ const CreateSurvey = () => {
     try {
       let surveyId = draftId;
 
-      if (!surveyId) {
+      if (surveyId) {
+        // Update existing draft with latest changes before publishing
+        await api.put<ApiSurveyOut>(`/surveys/${surveyId}`, buildSurveyPayload(state));
+      } else {
         // No draft saved yet — create one first
         const created = await api.post<ApiSurveyOut>("/surveys", buildSurveyPayload(state));
         surveyId = created.id;
-      } else {
-        // Update existing draft with latest changes before publishing
-        await api.put<ApiSurveyOut>(`/surveys/${surveyId}`, buildSurveyPayload(state));
       }
 
       await api.post<ApiSurveyOut>(`/surveys/${surveyId}/publish`);
@@ -230,23 +225,13 @@ const CreateSurvey = () => {
 
               <div className="grid gap-4 md:grid-cols-3">
                 <div>
-                  <Label>Category</Label>
-                  <Select
-                    value={state.category || undefined}
+                  <Label>Community</Label>
+                  <CommunitySelector
+                    value={state.category}
                     onValueChange={(value) =>
                       dispatch({ type: "SET_FIELD", field: "category", value })
                     }
-                  >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tech">Technology</SelectItem>
-                      <SelectItem value="business">Business</SelectItem>
-                      <SelectItem value="economics">Economics</SelectItem>
-                      <SelectItem value="sports">Sports Science</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
 
                 <div>
@@ -307,6 +292,7 @@ const CreateSurvey = () => {
                         onClick={() => dispatch({ type: "REMOVE_QUESTION", questionId: question.id })}
                         disabled={state.questions.length === 1}
                         type="button"
+                        className="text-red-500 hover:text-red-600 hover:border-red-500"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -326,28 +312,16 @@ const CreateSurvey = () => {
                   />
 
                   <div className="flex gap-4">
-                    <Select
+                    <QuestionTypeSelector
                       value={question.type}
                       onValueChange={(value) =>
                         dispatch({
                           type: "UPDATE_QUESTION",
                           questionId: question.id,
-                          updates: { type: value as SurveyBuilderQuestionType },
+                          updates: { type: value },
                         })
                       }
-                    >
-                      <SelectTrigger className="w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="short-text">Short Answer</SelectItem>
-                        <SelectItem value="long-text">Paragraph</SelectItem>
-                        <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
-                        <SelectItem value="checkboxes">Checkboxes</SelectItem>
-                        <SelectItem value="dropdown">Dropdown</SelectItem>
-                        <SelectItem value="linear-scale">Linear Scale</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    />
 
                     <label className="flex items-center gap-2">
                       <input
@@ -396,6 +370,7 @@ const CreateSurvey = () => {
                               })
                             }
                             disabled={question.options.length <= 1}
+                            className="text-red-500 hover:text-red-600 hover:border-red-500"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -431,7 +406,7 @@ const CreateSurvey = () => {
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
                 Cost: <span className="font-bold text-primary">2 Points</span> to publish
-                {draftId && <span className="ml-2 text-xs text-success">• Draft #{draftId}</span>}
+                {Boolean(draftId) && <span className="ml-2 text-xs text-success">• Draft #{draftId}</span>}
               </div>
               <div className="flex gap-3">
                 <Button type="button" variant="outline" onClick={saveDraft} disabled={isSaving}>

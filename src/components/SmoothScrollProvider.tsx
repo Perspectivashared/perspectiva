@@ -4,7 +4,7 @@ import { setLenis } from "@/lib/scroll";
 
 export const SmoothScrollProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const lenis = new Lenis({
       duration: 1.2,
@@ -21,7 +21,19 @@ export const SmoothScrollProvider = ({ children }: PropsWithChildren) => {
     };
     rafId = requestAnimationFrame(raf);
 
+    // Radix UI sets data-scroll-locked="1" on <body> when any Dialog/Sheet opens.
+    // Stop Lenis so it no longer intercepts wheel events while a modal is open.
+    const observer = new MutationObserver(() => {
+      if (document.body.dataset.scrollLocked === undefined) {
+        lenis.start();
+      } else {
+        lenis.stop();
+      }
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["data-scroll-locked"] });
+
     return () => {
+      observer.disconnect();
       cancelAnimationFrame(rafId);
       lenis.destroy();
       setLenis(null);

@@ -13,6 +13,7 @@ import {
   type CommunitySortOption,
 } from "@/features/communities/domain/community-data";
 import { useCommunitiesQuery } from "@/features/communities/hooks/use-communities-query";
+import { favouriteCommunitiesKeys } from "@/features/communities/hooks/use-favourite-communities-query";
 import { getCommunityRoute, ROUTES } from "@/lib/routes";
 import { AsyncStateView } from "@/shared/components/state/AsyncStateView";
 import { AppShell } from "@/shared/components/layout/AppShell";
@@ -77,7 +78,7 @@ const Communities = () => {
   );
 
   const favouritesQ = useQuery({
-    queryKey: ["favourite-communities"],
+    queryKey: favouriteCommunitiesKeys.all,
     queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
     enabled: isAuthenticated === true,
   });
@@ -106,7 +107,7 @@ const Communities = () => {
       } else {
         await api.post(`/communities/${communityId}/favourite`);
       }
-      queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
+      queryClient.invalidateQueries({ queryKey: favouriteCommunitiesKeys.all });
     } catch (err) {
       setLocalFavouriteIds((prev) => {
         const next = new Set(prev);

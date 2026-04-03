@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "@/app/query-client";
 import { AuthProvider } from "@/features/auth/context/AuthContext";
 import { SmoothScrollProvider } from "@/components/SmoothScrollProvider";
+import { CustomScrollbar } from "@/components/CustomScrollbar";
 import { ThemeProvider } from "@/context/ThemeContext";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
@@ -14,6 +15,7 @@ export const AppProviders = ({ children }: PropsWithChildren) => (
         <TooltipProvider>
           <SmoothScrollProvider>
             <Toaster />
+            <CustomScrollbar />
             {children}
           </SmoothScrollProvider>
         </TooltipProvider>
