@@ -26,6 +26,7 @@ import {
   AlertCircle,
   Telescope,
   ArrowRight,
+  Users,
 } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { api, SESSION_EXPIRED } from "@/lib/api";
@@ -200,6 +201,11 @@ const ForYou = () => {
     queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
   });
 
+  const joinedQ = useQuery({
+    queryKey: ["joined-communities"],
+    queryFn: () => api.get<Array<{ id: string }>>("/users/me/joined-communities"),
+  });
+
   // ─── Derived data ─────────────────────────────────────────────────────────
 
   const published = publishedQ.data ?? [];
@@ -331,6 +337,18 @@ const ForYou = () => {
   const favouriteCommunities = useMemo(
     () => communities.filter((c) => favouriteIds.has(c.id)),
     [communities, favouriteIds],
+  );
+
+  // Joined community IDs
+  const joinedIds = useMemo(
+    () => new Set((joinedQ.data ?? []).map((c) => c.id)),
+    [joinedQ.data],
+  );
+
+  // Joined communities
+  const joinedCommunities = useMemo(
+    () => communities.filter((c) => joinedIds.has(c.id)),
+    [communities, joinedIds],
   );
 
   // Surveys by user's category (for "Explore by Category" section)
@@ -640,11 +658,36 @@ const ForYou = () => {
             onExplore={(id) => navigate(getCommunityRoute(id))}
             onFavourite={handleToggleFavouriteCommunity}
             isFavourited={favouriteIds.has(c.id)}
+            isJoined={joinedIds.has(c.id)}
+            buttonLabel={joinedIds.has(c.id) ? "Joined" : "Explore"}
           />
         ))),
       },
 
-      // ── 11. Recommended Communities ────────────────────────────────────────
+      // ── 11. Joined Communities ─────────────────────────────────────────────
+      {
+        id: "joined-communities",
+        icon: <Users className="w-5 h-5" />,
+        title: "Joined Communities",
+        count: joinedCommunities.length,
+        isEmpty: joinedCommunities.length === 0,
+        isLoading: communitiesQ.isPending || joinedQ.isPending,
+        emptyMessage: "You haven't joined any communities yet. Explore and join communities that interest you.",
+        emptyAction: { label: "Explore Communities", to: ROUTES.communities },
+        content: communityGrid(joinedCommunities.map((c) => (
+          <CommunityCard
+            key={c.id}
+            community={c}
+            onExplore={(id) => navigate(getCommunityRoute(id))}
+            onFavourite={handleToggleFavouriteCommunity}
+            isFavourited={favouriteIds.has(c.id)}
+            isJoined={true}
+            buttonLabel="Joined"
+          />
+        ))),
+      },
+
+      // ── 12. Recommended Communities ────────────────────────────────────────
       {
         id: "recommended-communities",
         icon: <Building2 className="w-5 h-5" />,
@@ -661,11 +704,13 @@ const ForYou = () => {
             onExplore={(id) => navigate(getCommunityRoute(id))}
             onFavourite={handleToggleFavouriteCommunity}
             isFavourited={favouriteIds.has(c.id)}
+            isJoined={joinedIds.has(c.id)}
+            buttonLabel={joinedIds.has(c.id) ? "Joined" : "Explore"}
           />
         ))),
       },
 
-      // ── 12. Explore by Your Category ───────────────────────────────────────
+      // ── 13. Explore by Your Category ───────────────────────────────────────
       {
         id: "by-category",
         icon: <Telescope className="w-5 h-5" />,
@@ -682,7 +727,7 @@ const ForYou = () => {
         ))),
       },
 
-      // ── 13. Browse All Surveys ─────────────────────────────────────────────
+      // ── 14. Browse All Surveys ─────────────────────────────────────────────
       {
         id: "browse-all",
         icon: <Search className="w-5 h-5" />,
@@ -715,11 +760,11 @@ const ForYou = () => {
   }, [
     closingSoon, inProgress, topMatches, newThisWeek, trending,
     savedSurveys, completed, myPublished, myDrafts,
-    favouriteCommunities, recommendedCommunities, categoryMatched,
-    published, newestPublished, savedIds, favouriteIds,
+    favouriteCommunities, joinedCommunities, recommendedCommunities, categoryMatched,
+    published, newestPublished, savedIds, favouriteIds, joinedIds,
     userCategory, publishedQ.isPending, mySurveysQ.isPending,
     completedQ.isPending, savedQ.isPending, communitiesQ.isPending, profileQ.isPending,
-    favouritesQ.isPending, handleToggleSave, handleToggleFavouriteCommunity, navigate,
+    favouritesQ.isPending, joinedQ.isPending, handleToggleSave, handleToggleFavouriteCommunity, navigate,
   ]);
 
   // ─── Render ───────────────────────────────────────────────────────────────

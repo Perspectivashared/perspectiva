@@ -3,9 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorCard } from "@/shared/components/state/ErrorCard";
 import {
   Select,
   SelectContent,
@@ -171,15 +170,11 @@ const AllSurveys = () => {
           ))}
         </div>
       ) : publishedQ.isError ? (
-        <Card className="border-border/70 p-8 text-center shadow-sm">
-          <h2 className="text-xl font-semibold">Failed to load surveys</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Something went wrong. Please try again.
-          </p>
-          <Button onClick={() => void publishedQ.refetch()} className="mt-5">
-            Try again
-          </Button>
-        </Card>
+        <ErrorCard
+          title="Failed to load surveys"
+          message="Something went wrong. Please try again."
+          onRetry={() => void publishedQ.refetch()}
+        />
       ) : filtered.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">
           No surveys match your current filters.

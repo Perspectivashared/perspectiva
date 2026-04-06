@@ -4,8 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorCard } from "@/shared/components/state/ErrorCard";
 import {
   sortCommunities,
   toSortQueryValue,
@@ -21,6 +21,7 @@ import { queryToAsyncState } from "@/shared/lib/query-state";
 import { api, SESSION_EXPIRED } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth/context/AuthContext";
+
 
 interface CommunitySectionConfig {
   id: string;
@@ -83,11 +84,22 @@ const Communities = () => {
     enabled: isAuthenticated === true,
   });
 
+  const joinedQ = useQuery({
+    queryKey: ["joined-communities"],
+    queryFn: () => api.get<Array<{ id: string }>>("/users/me/joined-communities"),
+    enabled: isAuthenticated === true,
+  });
+
   const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
 
   const favouriteIds = useMemo(
     () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
     [localFavouriteIds, favouritesQ.data],
+  );
+
+  const joinedIds = useMemo(
+    () => new Set((joinedQ.data ?? []).map((c) => c.id)),
+    [joinedQ.data],
   );
 
   const handleExploreCommunity = (communityId: string) => {
@@ -164,15 +176,11 @@ const Communities = () => {
           </div>
         }
         error={(errorMessage) => (
-          <Card className="border-border/70 p-8 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Failed to load communities
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">{errorMessage}</p>
-            <Button onClick={() => void communitiesQuery.refetch()} className="mt-5">
-              Try again
-            </Button>
-          </Card>
+          <ErrorCard
+            title="Failed to load communities"
+            message={errorMessage}
+            onRetry={() => void communitiesQuery.refetch()}
+          />
         )}
         empty={
           <PaginatedCommunityGrid
@@ -185,6 +193,7 @@ const Communities = () => {
         isEmpty={(communities) => !communities || communities.length === 0}
         render={(communities) => {
           const safeCommunities = communities ?? [];
+          const joinedCommunities = safeCommunities.filter((c) => joinedIds.has(c.id));
           const sections = SECTION_CONFIGS.map((section) => ({
             ...section,
             communities: sortCommunities(safeCommunities as Community[], section.sort).slice(0, 6),
@@ -192,6 +201,26 @@ const Communities = () => {
 
           return (
             <div className="space-y-10">
+              {isAuthenticated && joinedCommunities.length > 0 && (
+                <section className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-semibold tracking-tight">Joined Communities</h2>
+                    <p className="max-w-3xl text-sm text-muted-foreground md:text-base">
+                      Communities you are a member of.
+                    </p>
+                  </div>
+                  <PaginatedCommunityGrid
+                    communities={joinedCommunities as Community[]}
+                    onExplore={handleExploreCommunity}
+                    onFavourite={handleToggleFavouriteCommunity}
+                    isFavourited={(id) => favouriteIds.has(id)}
+                    isJoined={() => true}
+                    pageSize={6}
+                    className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
+                  />
+                </section>
+              )}
+
               {sections.map((section) => (
                 <section key={section.id} className="space-y-6">
                   <div className="space-y-2">
@@ -230,6 +259,7 @@ const Communities = () => {
                     onExplore={handleExploreCommunity}
                     onFavourite={isAuthenticated ? handleToggleFavouriteCommunity : undefined}
                     isFavourited={(id) => favouriteIds.has(id)}
+                    isJoined={(id) => joinedIds.has(id)}
                     pageSize={6}
                     className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
                   />

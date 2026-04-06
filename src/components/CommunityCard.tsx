@@ -16,6 +16,7 @@ interface CommunityCardProps {
   onExplore: (communityId: string) => void;
   onFavourite?: (communityId: string) => void;
   isFavourited?: boolean;
+  isJoined?: boolean;
   className?: string;
   buttonLabel?: string;
 }
@@ -25,6 +26,7 @@ const CommunityCard = ({
   onExplore,
   onFavourite,
   isFavourited = false,
+  isJoined = false,
   className,
   buttonLabel = "Explore",
 }: CommunityCardProps) => {
@@ -50,7 +52,12 @@ const CommunityCard = ({
           type="button"
           onClick={(e) => { e.stopPropagation(); onExplore(community.id); }}
           aria-label="Explore community"
-          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[110ms] ease-out hover:shadow-glow focus-visible:w-[5.5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]"
+          className={cn(
+            "flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg px-2 text-white shadow-elegant transition-all duration-[110ms] ease-out focus-visible:w-[5.5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]",
+            isJoined
+              ? "bg-emerald-500 hover:bg-emerald-600 hover:shadow-[0_0_12px_-2px_theme(colors.emerald.500/0.6)]"
+              : "bg-gradient-primary hover:shadow-glow",
+          )}
         >
           <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[110ms] ease-out group-hover:mr-1 group-hover:max-w-[3.5rem] group-hover:opacity-100 group-focus-within:mr-1 group-focus-within:max-w-[3.5rem] group-focus-within:opacity-100 focus-visible:mr-1 focus-visible:max-w-[3.5rem] focus-visible:opacity-100">
             {buttonLabel}

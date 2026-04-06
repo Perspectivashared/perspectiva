@@ -6,9 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import CommunityFilterBar from "@/components/CommunityFilterBar";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorCard } from "@/shared/components/state/ErrorCard";
 import {
   COMMUNITY_FILTER_OPTIONS,
   applyCommunityQuery,
@@ -126,15 +125,11 @@ const AllCommunities = () => {
           </div>
         }
         error={(errorMessage) => (
-          <Card className="border-border/70 p-8 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Failed to load communities
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">{errorMessage}</p>
-            <Button onClick={() => void communitiesQuery.refetch()} className="mt-5">
-              Try again
-            </Button>
-          </Card>
+          <ErrorCard
+            title="Failed to load communities"
+            message={errorMessage}
+            onRetry={() => void communitiesQuery.refetch()}
+          />
         )}
         render={(communities) => {
           const visibleCommunities = applyCommunityQuery(communities ?? [], {

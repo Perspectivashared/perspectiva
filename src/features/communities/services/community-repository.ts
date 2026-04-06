@@ -80,6 +80,7 @@ export interface CommunityRepository {
   fetchAll: () => Promise<Community[]>;
   fetchById: (communityId: string) => Promise<Community | null>;
   join: (communityId: string) => Promise<void>;
+  leave: (communityId: string) => Promise<void>;
 }
 
 export const apiCommunityRepository: CommunityRepository = {
@@ -99,6 +100,10 @@ export const apiCommunityRepository: CommunityRepository = {
 
   join: async (communityId: string) => {
     await api.post<void>(`/communities/${communityId}/join`);
+  },
+
+  leave: async (communityId: string) => {
+    await api.delete(`/communities/${communityId}/join`);
   },
 };
 

@@ -238,6 +238,10 @@ const Profile = () => {
     queryKey: ["favourite-communities"],
     queryFn: () => api.get<ApiCommunitySummary[]>("/users/me/favourite-communities"),
   });
+  const joinedCommunitiesQuery = useQuery({
+    queryKey: ["joined-communities"],
+    queryFn: () => api.get<ApiCommunitySummary[]>("/users/me/joined-communities"),
+  });
   const achievementsQuery = useQuery({
     queryKey: ["my-achievements"],
     queryFn: () => api.get<ApiAchievement[]>("/users/me/achievements"),
@@ -620,6 +624,7 @@ const Profile = () => {
                 {(() => {
                   const savedSurveys = savedQuery.data ?? [];
                   const favouriteCommunities = favouriteCommunitiesQuery.data ?? [];
+                  const joinedCommunities = joinedCommunitiesQuery.data ?? [];
 
                   const renderSavedSurveyCard = (survey: ApiSurveySummary) => {
                     const cardStatus = survey.status === "published" ? "active" : survey.status === "closed" ? "closed" : "draft";
@@ -659,22 +664,33 @@ const Profile = () => {
                     }
                   };
 
-                  const renderCommunityCard = (community: ApiCommunitySummary) => (
+                  const toCommunityCardData = (community: ApiCommunitySummary) => ({
+                    id: community.id,
+                    name: community.name,
+                    description: community.description,
+                    icon: COMMUNITY_ICONS[community.icon_name] ?? Users,
+                    members: community.member_count,
+                    surveys: community.survey_count,
+                    activeSurveys: community.active_survey_count,
+                    category: community.category,
+                  });
+
+                  const renderFavouriteCommunityCard = (community: ApiCommunitySummary) => (
                     <CommunityCard
                       key={community.id}
-                      community={{
-                        id: community.id,
-                        name: community.name,
-                        description: community.description,
-                        icon: COMMUNITY_ICONS[community.icon_name] ?? Users,
-                        members: community.member_count,
-                        surveys: community.survey_count,
-                        activeSurveys: community.active_survey_count,
-                        category: community.category,
-                      }}
+                      community={toCommunityCardData(community)}
                       onExplore={(id) => navigate(getCommunityRoute(id))}
                       onFavourite={handleUnfavouriteCommunity}
                       isFavourited
+                    />
+                  );
+
+                  const renderJoinedCommunityCard = (community: ApiCommunitySummary) => (
+                    <CommunityCard
+                      key={community.id}
+                      community={toCommunityCardData(community)}
+                      onExplore={(id) => navigate(getCommunityRoute(id))}
+                      buttonLabel="Joined"
                     />
                   );
 
@@ -693,7 +709,16 @@ const Profile = () => {
                       icon: <Heart className="w-4 h-4" />,
                       items: favouriteCommunities,
                       isLoading: favouriteCommunitiesQuery.isPending,
-                      renderCard: renderCommunityCard,
+                      renderCard: renderFavouriteCommunityCard,
+                      containerClassName: "grid grid-cols-1 gap-6",
+                    },
+                    {
+                      id: "joined-communities",
+                      label: "Joined Communities",
+                      icon: <Users className="w-4 h-4" />,
+                      items: joinedCommunities,
+                      isLoading: joinedCommunitiesQuery.isPending,
+                      renderCard: renderJoinedCommunityCard,
                       containerClassName: "grid grid-cols-1 gap-6",
                     },
                   ];

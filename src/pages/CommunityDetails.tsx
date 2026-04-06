@@ -2,11 +2,10 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, SESSION_EXPIRED } from "@/lib/api";
-import { Activity, ArrowRight, FileText, Trophy, Users, UserPlus, Check } from "lucide-react";
+import { Activity, ArrowRight, FileText, Trophy, Users, UserPlus, UserMinus, Check } from "lucide-react";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
 import { SurveyCard, type ApiSurveySummary } from "@/components/SurveyCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,94 +39,133 @@ interface LeaderboardEntry {
   rank: number;
 }
 
+const Sparkline = ({ value }: { value: number }) => (
+  <svg width="40" height="14" viewBox="0 0 40 14" aria-hidden="true" className="inline-block">
+    {value > 0 ? (
+      <polyline
+        points="0,12 7,10 14,7 21,8 28,4 35,5 40,3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ) : (
+      <line x1="0" y1="9" x2="40" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="3 3" />
+    )}
+  </svg>
+);
+
 const CommunityOverview = ({
   community,
   onJoin,
+  onLeave,
   isJoining,
+  isLeaving,
 }: {
   community: Community;
   onJoin: () => void;
+  onLeave: () => void;
   isJoining: boolean;
+  isLeaving: boolean;
 }) => {
   const Icon = community.icon;
   const joined = community.isMember;
 
   return (
     <section className="mb-12">
-      <Card className="border-primary/15 bg-gradient-to-br from-primary/[0.06] via-card to-card p-6 shadow-sm md:p-8">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+      <Card className="border border-primary/20 p-6 shadow-sm md:p-8">
+        <div>
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icon className="h-7 w-7" aria-hidden="true" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {community.category}
-                </p>
-                <h1 className="bg-gradient-primary bg-clip-text text-4xl font-bold tracking-tight text-transparent">
-                  {community.name}
-                </h1>
-              </div>
+          {/* Icon + Category + Title */}
+          <div className="flex items-center gap-4">
+            <div className="shrink-0 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20 dark:ring-primary/30 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.35)] dark:shadow-[0_0_28px_-5px_hsl(var(--primary)/0.55)]">
+              <Icon className="h-7 w-7" aria-hidden="true" />
             </div>
+            <div className="min-w-0 space-y-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/55">
+                {community.category}
+              </p>
+              <h1 className="bg-gradient-primary bg-clip-text text-3xl font-bold tracking-tight text-transparent leading-tight md:text-4xl">
+                {community.name}
+              </h1>
+            </div>
+          </div>
 
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              {community.longDescription}
-            </p>
+          {/* Description */}
+          <p className="max-w-3xl text-sm leading-relaxed text-foreground/60 dark:text-foreground/80 md:text-[15px]">
+            {community.longDescription}
+          </p>
 
-            <div className="flex flex-wrap items-center gap-2">
+          {/* Tags */}
+          {community.subcategories.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
               {community.subcategories.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
+                <span
+                  key={tag}
+                  className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-primary dark:bg-primary/[0.18]"
+                >
                   {tag}
-                </Badge>
+                </span>
               ))}
-              <Button
-                size="sm"
-                variant={joined ? "outline" : "default"}
-                className={joined ? "border-success/40 text-success" : ""}
-                onClick={onJoin}
-                disabled={joined || isJoining}
-              >
-                {joined ? (
-                  <>
-                    <Check className="mr-1.5 h-3.5 w-3.5" />
-                    Joined
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                    {isJoining ? "Joining…" : "Join Community"}
-                  </>
-                )}
-              </Button>
+            </div>
+          )}
+
+          {/* Metrics strip */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/40 pt-3">
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-primary/60" />
+              <span className="text-sm font-semibold text-foreground/85">{community.members.toLocaleString()}</span>
+              <span className="text-xs text-muted-foreground/55">Members</span>
+            </div>
+            <span className="text-border/70" aria-hidden="true">·</span>
+            <div className="flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5 text-primary/60" />
+              <span className="text-sm font-semibold text-foreground/85">{community.surveys.toLocaleString()}</span>
+              <span className="text-xs text-muted-foreground/55">Surveys</span>
+            </div>
+            <span className="text-border/70" aria-hidden="true">·</span>
+            <div className="flex items-center gap-2">
+              <Activity className="h-3.5 w-3.5 text-primary/60" />
+              <span className="text-sm font-semibold text-foreground/85">{community.activityLevel}%</span>
+              <span className="text-xs text-muted-foreground/55">Activity</span>
+              <span className="text-primary/55 -mb-0.5">
+                <Sparkline value={community.activityLevel} />
+              </span>
             </div>
           </div>
 
-          <div className="grid w-full grid-cols-3 gap-3 lg:max-w-xs">
-            <Card className="border-border/70 bg-background p-4 text-center shadow-sm">
-              <Users className="mx-auto h-4 w-4 text-muted-foreground" />
-              <p className="mt-2 text-lg font-semibold">
-                {community.members.toLocaleString()}
-              </p>
-              <p className="text-xs text-muted-foreground">Members</p>
-            </Card>
-
-            <Card className="border-border/70 bg-background p-4 text-center shadow-sm">
-              <FileText className="mx-auto h-4 w-4 text-muted-foreground" />
-              <p className="mt-2 text-lg font-semibold">
-                {community.surveys.toLocaleString()}
-              </p>
-              <p className="text-xs text-muted-foreground">Surveys</p>
-            </Card>
-
-            <Card className="border-border/70 bg-background p-4 text-center shadow-sm">
-              <Activity className="mx-auto h-4 w-4 text-muted-foreground" />
-              <p className="mt-2 text-lg font-semibold">
-                {community.activityLevel}%
-              </p>
-              <p className="text-xs text-muted-foreground">Activity</p>
-            </Card>
+          {/* CTA */}
+          <div className="flex items-center gap-3">
+            {joined ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="pointer-events-none border-emerald-500 bg-emerald-500/15 text-emerald-500 font-semibold"
+                  tabIndex={-1}
+                >
+                  <Check className="mr-1.5 h-3.5 w-3.5" />
+                  Joined
+                </Button>
+                <button
+                  type="button"
+                  onClick={onLeave}
+                  disabled={isLeaving}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-transparent px-3 py-[7px] text-[13px] font-medium text-red-500/70 transition-all hover:border-red-500/30 hover:text-red-500 disabled:opacity-50"
+                >
+                  <UserMinus className="h-3.5 w-3.5" />
+                  {isLeaving ? "Leaving…" : "Leave"}
+                </button>
+              </>
+            ) : (
+              <Button size="sm" onClick={onJoin} disabled={isJoining}>
+                <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                {isJoining ? "Joining…" : "Join Community"}
+              </Button>
+            )}
           </div>
+          </div>{/* end space-y-4 */}
         </div>
       </Card>
     </section>
@@ -265,6 +303,7 @@ const CommunityDetails = () => {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [localSavedIds, setLocalSavedIds] = useState<Set<number>>(new Set());
   const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
 
@@ -308,8 +347,23 @@ const CommunityDetails = () => {
     try {
       await apiCommunityRepository.join(communityId);
       await communityQuery.refetch();
+      queryClient.invalidateQueries({ queryKey: ["joined-communities"] });
     } finally {
       setIsJoining(false);
+    }
+  };
+
+  const handleLeave = async () => {
+    if (!communityId || isLeaving) return;
+    setIsLeaving(true);
+    try {
+      await apiCommunityRepository.leave(communityId);
+      await communityQuery.refetch();
+      queryClient.invalidateQueries({ queryKey: ["joined-communities"] });
+    } catch {
+      toast({ title: "Failed to leave community", variant: "destructive" });
+    } finally {
+      setIsLeaving(false);
     }
   };
 
@@ -414,7 +468,7 @@ const CommunityDetails = () => {
       <AppShell withContainer mainClassName="pb-14 pt-24 text-center">
         <h1 className="text-4xl font-bold tracking-tight">Community unavailable</h1>
         <p className="mt-3 text-muted-foreground">{communityState.error}</p>
-        <Button onClick={() => void communityQuery.refetch()} className="mt-8">
+        <Button onClick={() => { communityQuery.refetch(); }} className="mt-8">
           Try again
         </Button>
       </AppShell>
@@ -437,12 +491,12 @@ const CommunityDetails = () => {
 
   return (
     <AppShell withContainer mainClassName="pb-14 pt-24">
-      <CommunityOverview community={communityQuery.data} onJoin={handleJoin} isJoining={isJoining} />
+      <CommunityOverview community={communityQuery.data} onJoin={handleJoin} onLeave={handleLeave} isJoining={isJoining} isLeaving={isLeaving} />
       <SurveysSection
         surveys={activeSurveys}
         isSaved={(id) => savedIds.has(id)}
         onToggleSave={handleToggleSave}
-        communityId={communityId!}
+        communityId={communityId ?? ""}
       />
       <LeaderboardSection entries={leaderboardQuery.data ?? []} />
 

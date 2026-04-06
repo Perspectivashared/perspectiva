@@ -9,6 +9,7 @@ interface PaginatedCommunityGridProps {
   onExplore: (communityId: string) => void;
   onFavourite?: (communityId: string) => void;
   isFavourited?: (communityId: string) => boolean;
+  isJoined?: (communityId: string) => boolean;
   pageSize?: number;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -20,6 +21,7 @@ const PaginatedCommunityGrid = ({
   onExplore,
   onFavourite,
   isFavourited,
+  isJoined,
   pageSize = 6,
   emptyTitle = "No communities found",
   emptyDescription = "Try updating your filters to explore other communities.",
@@ -63,6 +65,8 @@ const PaginatedCommunityGrid = ({
             onExplore={onExplore}
             onFavourite={onFavourite}
             isFavourited={isFavourited ? isFavourited(community.id) : undefined}
+            isJoined={isJoined?.(community.id) ?? false}
+            buttonLabel={isJoined?.(community.id) ? "Joined" : "Explore"}
           />
         ))}
       </div>
