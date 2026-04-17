@@ -53,7 +53,7 @@ const QUESTION_TYPE_MAP: Record<SurveyBuilderQuestionType, string> = {
 const buildSurveyPayload = (state: ReturnType<typeof createInitialSurveyBuilderState>) => ({
   title: state.surveyTitle.trim(),
   description: state.surveyDescription.trim(),
-  category: state.category || null,
+  community_id: state.category || null,
   target_responses: state.targetResponses,
   deadline: state.deadline ? new Date(state.deadline).toISOString() : null,
   questions: state.questions.map((q, i) => ({

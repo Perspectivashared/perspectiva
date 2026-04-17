@@ -429,7 +429,7 @@ function generateInsights(data: SurveyAnalytics): Insight[] {
   }
 
   // Dominant profession
-  const profEntries = Object.entries(data.demographics.profession).sort(([, a], [, b]) => b - a);
+  const profEntries = Object.entries(data.demographics.profession ?? {}).sort(([, a], [, b]) => b - a);
   if (profEntries.length > 0 && data.response_count >= INSIGHT_THRESHOLDS.MIN_RESPONSES) {
     const [prof, cnt] = profEntries[0];
     const pct = Math.round((cnt / data.response_count) * 100);
@@ -675,7 +675,7 @@ function exportToCSV(data: SurveyAnalytics) {
   }
   rows.push([]);
   rows.push(["== Demographics (Profession) =="]);
-  for (const [k, v] of Object.entries(data.demographics.profession)) rows.push([k.replace(/_/g, " "), String(v)]);
+  for (const [k, v] of Object.entries(data.demographics.profession ?? {})) rows.push([k.replace(/_/g, " "), String(v)]);
   const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
   const a = Object.assign(document.createElement("a"), { href: url, download: `${data.title.replace(/[^a-z0-9]/gi, "_")}_analytics.csv` });
@@ -717,8 +717,8 @@ function exportToXLSX(data: SurveyAnalytics) {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(qRows), "Questions");
 
   const dRows: (string | number)[][] = [["Dimension", "Value", "Count"]];
-  for (const [k, v] of Object.entries(data.demographics.profession)) dRows.push(["Profession", k.replace(/_/g, " "), v]);
-  for (const [k, v] of Object.entries(data.demographics.category)) dRows.push(["Category", k, v]);
+  for (const [k, v] of Object.entries(data.demographics.profession ?? {})) dRows.push(["Profession", k.replace(/_/g, " "), v]);
+  for (const [k, v] of Object.entries(data.demographics.category ?? {})) dRows.push(["Category", k, v]);
   for (const [k, v] of Object.entries(data.demographics.institution ?? {})) dRows.push(["Institution", k, v]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dRows), "Demographics");
 
@@ -1165,7 +1165,7 @@ const AutoResearchSummary = ({ data }: { data: SurveyAnalytics }) => {
   const [copied, setCopied] = useState(false);
   const parts: string[] = [];
   parts.push(`This survey titled "${data.title}" received ${data.response_count} response${data.response_count !== 1 ? "s" : ""}.`);
-  const topProf = Object.entries(data.demographics.profession).sort(([, a], [, b]) => b - a)[0];
+  const topProf = Object.entries(data.demographics.profession ?? {}).sort(([, a], [, b]) => b - a)[0];
   if (topProf && data.response_count > 0) {
     parts.push(`The majority of respondents (${Math.round(topProf[1] / data.response_count * 100)}%) were ${topProf[0].replace(/_/g, " ")}s.`);
   }
@@ -1317,8 +1317,8 @@ const SurveyAnalytics = () => {
   const { score: engScore, label: engLabel } = calcEngagementScore(data);
   const moe = calcMarginOfError(data.response_count);
   const proj = calcProjection(data);
-  const professions = Object.keys(data.demographics.profession);
-  const categories = Object.keys(data.demographics.category);
+  const professions = Object.keys(data.demographics.profession ?? {});
+  const categories = Object.keys(data.demographics.category ?? {});
   const availableTypes = [...new Set(data.question_breakdowns.map(q => q.question_type))];
 
   const featuredQuestion = (() => {
@@ -1354,8 +1354,8 @@ const SurveyAnalytics = () => {
   const accel = detectTrendAcceleration(data.responses_by_day);
   const demographicWarning = checkDemographicDominance(data.demographics, data.response_count);
 
-  const professionData = Object.entries(data.demographics.profession).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k.replace(/_/g, " "), value: v }));
-  const categoryData = Object.entries(data.demographics.category).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
+  const professionData = Object.entries(data.demographics.profession ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k.replace(/_/g, " "), value: v }));
+  const categoryData = Object.entries(data.demographics.category ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
   const institutionData = Object.entries(data.demographics.institution ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
   const subCatData = Object.entries(data.demographics.sub_category ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
 
