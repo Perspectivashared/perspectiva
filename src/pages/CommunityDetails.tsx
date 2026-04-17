@@ -327,7 +327,7 @@ const CommunityDetails = () => {
 
   const favouritesQ = useQuery({
     queryKey: ["favourite-communities"],
-    queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
+    queryFn: () => api.get<Array<{ id: number; name: string }>>("/users/me/favourite-communities"),
     enabled: isAuthenticated === true,
   });
 
