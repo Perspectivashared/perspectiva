@@ -12,7 +12,6 @@ export const getSurveyResultsRoute = (surveyId: string) =>
   `/survey/${surveyId}/results`;
 
 export const LANDING_SECTION_IDS = {
-  features: "features",
   howItWorks: "how-it-works",
   communities: "communities",
 } as const;

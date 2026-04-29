@@ -37,8 +37,7 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "For You", to: ROUTES.forYou },
       { label: "Communities", to: ROUTES.communities },
-      { label: "Features", to: ROUTES.features },
-      { label: "Profile", to: ROUTES.profile },
+{ label: "Profile", to: ROUTES.profile },
     ],
   },
   {

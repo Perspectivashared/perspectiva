@@ -133,40 +133,22 @@ const Profile = () => {
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [createdOpenMap, setCreatedOpenMap] = useState<Record<string, boolean>>({});
-  const [createdChevronDeg, setCreatedChevronDeg] = useState<Record<string, number>>({});
   const isCreatedOpen = (id: string, isEmpty: boolean) =>
     id in createdOpenMap ? createdOpenMap[id] : !isEmpty;
-  const getChevronDeg = (id: string, isEmpty: boolean) =>
-    id in createdChevronDeg ? createdChevronDeg[id] : (isCreatedOpen(id, isEmpty) ? 180 : 0);
-  const toggleCreated = (id: string, isEmpty: boolean) => {
-    const currentDeg = getChevronDeg(id, isEmpty);
+  const toggleCreated = (id: string, isEmpty: boolean) =>
     setCreatedOpenMap((prev) => ({ ...prev, [id]: !isCreatedOpen(id, isEmpty) }));
-    setCreatedChevronDeg((prev) => ({ ...prev, [id]: currentDeg + 180 }));
-  };
 
   const [completedOpenMap, setCompletedOpenMap] = useState<Record<string, boolean>>({});
-  const [completedChevronDeg, setCompletedChevronDeg] = useState<Record<string, number>>({});
   const isCompletedOpen = (id: string, isEmpty: boolean) =>
     id in completedOpenMap ? completedOpenMap[id] : !isEmpty;
-  const getCompletedChevronDeg = (id: string, isEmpty: boolean) =>
-    id in completedChevronDeg ? completedChevronDeg[id] : (isCompletedOpen(id, isEmpty) ? 180 : 0);
-  const toggleCompleted = (id: string, isEmpty: boolean) => {
-    const currentDeg = getCompletedChevronDeg(id, isEmpty);
+  const toggleCompleted = (id: string, isEmpty: boolean) =>
     setCompletedOpenMap((prev) => ({ ...prev, [id]: !isCompletedOpen(id, isEmpty) }));
-    setCompletedChevronDeg((prev) => ({ ...prev, [id]: currentDeg + 180 }));
-  };
 
   const [bookmarksOpenMap, setBookmarksOpenMap] = useState<Record<string, boolean>>({});
-  const [bookmarksChevronDeg, setBookmarksChevronDeg] = useState<Record<string, number>>({});
   const isBookmarksOpen = (id: string, isEmpty: boolean) =>
     id in bookmarksOpenMap ? bookmarksOpenMap[id] : !isEmpty;
-  const getBookmarksChevronDeg = (id: string, isEmpty: boolean) =>
-    id in bookmarksChevronDeg ? bookmarksChevronDeg[id] : (isBookmarksOpen(id, isEmpty) ? 180 : 0);
-  const toggleBookmarks = (id: string, isEmpty: boolean) => {
-    const currentDeg = getBookmarksChevronDeg(id, isEmpty);
+  const toggleBookmarks = (id: string, isEmpty: boolean) =>
     setBookmarksOpenMap((prev) => ({ ...prev, [id]: !isBookmarksOpen(id, isEmpty) }));
-    setBookmarksChevronDeg((prev) => ({ ...prev, [id]: currentDeg + 180 }));
-  };
 
   const loadDraft = async (surveyId: number) => {
     setLoadingId(surveyId);
@@ -495,8 +477,7 @@ const Profile = () => {
                               )}
                             </div>
                             <ChevronDown
-                              className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300"
-                              style={{ transform: `rotate(${getChevronDeg(id, isEmpty)}deg)` }}
+                              className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180"
                             />
                           </button>
                         </CollapsibleTrigger>
@@ -590,8 +571,7 @@ const Profile = () => {
                                   )}
                                 </div>
                                 <ChevronDown
-                                  className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300"
-                                  style={{ transform: `rotate(${getCompletedChevronDeg(id, isEmpty)}deg)` }}
+                                  className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180"
                                 />
                               </button>
                             </CollapsibleTrigger>
@@ -742,8 +722,7 @@ const Profile = () => {
                               )}
                             </div>
                             <ChevronDown
-                              className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300"
-                              style={{ transform: `rotate(${getBookmarksChevronDeg(id, isEmpty)}deg)` }}
+                              className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180"
                             />
                           </button>
                         </CollapsibleTrigger>

@@ -1,6 +1,5 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import Features from "@/components/Features";
 import HowItWorks from "@/components/HowItWorks";
 import Communities from "@/components/Communities";
 import Footer from "@/components/Footer";
@@ -12,9 +11,6 @@ const Index = () => {
       <Navigation />
       <main>
         <Hero />
-        <div id={LANDING_SECTION_IDS.features}>
-          <Features />
-        </div>
         <div id={LANDING_SECTION_IDS.howItWorks}>
           <HowItWorks />
         </div>

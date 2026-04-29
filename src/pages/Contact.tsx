@@ -20,9 +20,9 @@ import { cn } from "@/lib/utils";
 import {
   contactSchema,
   buildContactMailto,
-  REASON_CONFIG,
-  REASONS,
-  type ContactReason,
+  ROLE_CONFIG,
+  ROLES,
+  type ContactRole,
   type ContactFormValues,
 } from "./contact-helpers";
 
@@ -34,7 +34,8 @@ const Contact = () => {
     defaultValues: {
       name: "",
       email: "",
-      reason: undefined as unknown as ContactReason,
+      organisation: "",
+      role: undefined as unknown as ContactRole,
       message: "",
     },
   });
@@ -50,7 +51,7 @@ const Contact = () => {
     } catch {
       toast({
         title: "Could not open mail client",
-        description: "Please email us directly at support@perspectiva.com.",
+        description: "Please email us directly at hello@perspectiva.com.",
         variant: "destructive",
       });
     }
@@ -68,8 +69,8 @@ const Contact = () => {
             <p className="contact-eyebrow">Get in touch</p>
             <h1 className="contact-heading">Let&apos;s talk.</h1>
             <p className="contact-subheading">
-              Have a question, security concern, or just want to share feedback?
-              Fill the form and we&apos;ll route it to the right place.
+              Whether you&apos;re a founder, student, or organisation, we&apos;re
+              open to collaborations, partnerships, and conversations.
             </p>
           </header>
 
@@ -121,16 +122,38 @@ const Contact = () => {
 
               <FormField
                 control={form.control}
-                name="reason"
+                name="organisation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="contact-label">Reason</FormLabel>
-                    <div
-                      className="contact-chips"
-                      role="group"
-                      aria-label="Select a reason for your message"
+                    <FormLabel className="contact-label">
+                      Organisation{" "}
+                      <span className="text-muted-foreground font-normal">
+                        (optional)
+                      </span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className="contact-input"
+                        placeholder="Your company or school"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="contact-label">You are a</FormLabel>
+                    <fieldset
+                      className="contact-chips border-0 p-0 m-0"
+                      aria-label="Select your role"
                     >
-                      {REASONS.map((r) => (
+                      {ROLES.map((r) => (
                         <button
                           key={r}
                           type="button"
@@ -147,10 +170,10 @@ const Contact = () => {
                             }
                           }}
                         >
-                          {REASON_CONFIG[r].label}
+                          {ROLE_CONFIG[r].label}
                         </button>
                       ))}
-                    </div>
+                    </fieldset>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -190,15 +213,15 @@ const Contact = () => {
         <aside className="contact-right" aria-label="Contact information">
           <div className="contact-card">
             <Mail className="contact-card__icon-svg" aria-hidden="true" />
-            <h3 className="contact-card__title">Support</h3>
+            <h3 className="contact-card__title">Direct Contact</h3>
             <p className="contact-card__desc">
-              Questions about your account, surveys, or coins.
+              Collaborations, partnerships, and general enquiries.
             </p>
             <a
-              href="mailto:support@perspectiva.com"
+              href="mailto:hello@perspectiva.com"
               className="contact-card__link"
             >
-              support@perspectiva.com
+              hello@perspectiva.com
             </a>
           </div>
 
@@ -212,10 +235,10 @@ const Contact = () => {
               Found a vulnerability? We take disclosures seriously.
             </p>
             <a
-              href="mailto:security@perspectiva.com"
+              href="mailto:hello@perspectiva.com"
               className="contact-card__link"
             >
-              security@perspectiva.com
+              hello@perspectiva.com
             </a>
           </div>
 
