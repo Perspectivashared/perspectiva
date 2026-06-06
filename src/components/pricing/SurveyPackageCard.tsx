@@ -2,14 +2,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { SurveyPackage } from "@/lib/pricing-data";
+import { BUTTON_STYLES } from "@/lib/button-styles";
+import { SurveyPackage } from "@/features/pricing/domain/pricing-data";
 import { cn } from "@/lib/utils";
 import {
   Check,
-  ChevronRight,
   Clock,
   MessageSquare,
-  Sparkles,
   Target,
   Users,
 } from "lucide-react";
@@ -25,138 +24,165 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 });
 
 const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
+  const targetingDots = Array.from({ length: 5 }, (_, index) => index + 1);
+
   return (
     <Card
       className={cn(
-        "relative flex flex-none flex-col overflow-hidden border-border/50 bg-card/50 backdrop-blur transition-all duration-200",
+        "group relative flex h-full min-w-0 flex-col overflow-hidden border-border/80 bg-card shadow-sm transition-all duration-200 hover:border-foreground/25",
         pkg.recommended
-          ? "w-[304px] border-primary/50 shadow-xl ring-1 ring-primary/20"
-          : "w-72 hover:border-border/80 hover:shadow-md",
+          ? "border-2 border-[hsl(195_85%_30%/0.82)] shadow-[0_0_42px_-18px_hsl(195_85%_30%/0.62)] ring-1 ring-[hsl(195_85%_30%/0.24)] dark:border-[hsl(195_85%_72%/0.82)] dark:shadow-[0_0_42px_-18px_hsl(195_85%_72%/0.5)] dark:ring-[hsl(195_85%_72%/0.28)]"
+          : "",
       )}
     >
-      {/* Top accent strip — recommended only */}
-      {pkg.recommended && (
-        <div className="h-1.5 w-full flex-none bg-gradient-primary" />
-      )}
-
       <div className="flex flex-1 flex-col p-6">
-        {/* Recommended badge — top-right */}
-        {pkg.recommended && (
-          <Badge className="absolute right-4 top-5 bg-gradient-primary text-xs text-white">
-            Most Popular
-          </Badge>
-        )}
-
-        {/* Key upgrade callout */}
-        {pkg.keyUpgrade && (
-          <div className="mb-4 flex w-fit items-center gap-1.5 rounded bg-primary/8 px-2 py-1 text-xs font-medium text-primary">
-            <Sparkles className="h-3 w-3 shrink-0" />
-            {pkg.keyUpgrade}
+        <div className="mb-5 flex min-h-12 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {pkg.subtitle}
+            </p>
+            <h3 className="mt-1 text-2xl font-semibold tracking-normal text-foreground">
+              {pkg.name}
+            </h3>
           </div>
-        )}
+          {pkg.recommended ? (
+            <Badge className="shrink-0 border-[hsl(195_85%_28%/0.25)] bg-[hsl(195_85%_28%/0.08)] text-[hsl(195_85%_28%)] dark:border-[hsl(195_85%_72%/0.25)] dark:bg-[hsl(195_85%_72%/0.12)] dark:text-[hsl(195_85%_72%)]">
+              Most Popular
+            </Badge>
+          ) : null}
+        </div>
 
-        {/* Header */}
+        <p className="mb-5 min-h-12 text-sm leading-relaxed text-muted-foreground">
+          <span className="font-semibold text-foreground">Best for: </span>
+          {pkg.bestFor}
+        </p>
+
         <div className="mb-6">
-          <h3
-            className={cn(
-              "font-bold leading-tight tracking-tight",
-              pkg.recommended ? "text-xl" : "text-lg",
-            )}
-          >
-            {pkg.name}
-          </h3>
-          <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-primary/80">
-            {pkg.subtitle}
-          </p>
-          <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground/70">Best for</span>{" "}
-            {pkg.bestFor}
-          </p>
-        </div>
-
-        {/* Price */}
-        <div className="mb-6">
-          <span
-            className={cn(
-              "font-extrabold tracking-tight tabular-nums",
-              pkg.recommended ? "text-5xl" : "text-4xl",
-            )}
-          >
-            {currencyFormatter.format(pkg.price)}
-          </span>
-          <p className="mt-1.5 text-xs text-muted-foreground">one-time payment</p>
-        </div>
-
-        <Separator className="mb-6" />
-
-        {/* Scope stats */}
-        <div className="mb-5 space-y-2.5">
-          <div className="flex items-center gap-2.5 text-xs">
-            <Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="font-semibold">{pkg.respondents}</span>
-            <span className="text-muted-foreground">respondents</span>
-          </div>
-          <div className="flex items-center gap-2.5 text-xs">
-            <MessageSquare className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="font-semibold">Up to {pkg.maxQuestions}</span>
-            <span className="text-muted-foreground">questions</span>
-          </div>
-          <div className="flex items-center gap-2.5 text-xs">
-            <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="text-muted-foreground">Delivered in</span>
-            <span className="font-semibold">{pkg.duration}</span>
-          </div>
-        </div>
-
-        {/* Audience pill */}
-        <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-border/60 bg-muted/40 px-3 py-2.5">
-          <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-          <div>
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-foreground/55">
-              Audience
+          <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+            <span className="text-4xl font-bold tracking-normal text-foreground tabular-nums">
+              {currencyFormatter.format(pkg.price)}
             </span>
-            <span className="text-xs leading-relaxed text-foreground">
-              {pkg.targetingDescription}
+            <span className="pb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              once
             </span>
           </div>
+          <p className="mt-1 text-xs text-muted-foreground">one-time payment</p>
         </div>
 
-        <Separator className="mb-6" />
+        <div className="mb-5 grid grid-cols-3 border-y border-border/70 py-4">
+          <div className="border-r border-border/70 pr-3">
+            <Users className="mb-2 h-4 w-4 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+            <p className="text-sm font-semibold text-foreground tabular-nums">
+              {pkg.respondents}
+            </p>
+            <p className="text-xs leading-tight text-muted-foreground">
+              respondents
+            </p>
+          </div>
+          <div className="border-r border-border/70 px-3">
+            <MessageSquare className="mb-2 h-4 w-4 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+            <p className="text-sm font-semibold text-foreground tabular-nums">
+              {pkg.maxQuestions}
+            </p>
+            <p className="text-xs leading-tight text-muted-foreground">
+              questions
+            </p>
+          </div>
+          <div className="pl-3">
+            <Clock className="mb-2 h-4 w-4 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+            <p className="text-sm font-semibold leading-tight text-foreground">
+              {pkg.duration}
+            </p>
+            <p className="text-xs leading-tight text-muted-foreground">
+              delivery
+            </p>
+          </div>
+        </div>
 
-        {/* Features */}
-        <ul className="mb-6 flex-1 space-y-3">
+        <div className="mb-5 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 shrink-0 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Targeting Level {pkg.targetingLevel}
+              </span>
+            </div>
+            <div
+              className="flex gap-1"
+              aria-label={`Targeting level ${pkg.targetingLevel} of 5`}
+            >
+              {targetingDots.map((dot) => (
+                <span
+                  key={dot}
+                  className={cn(
+                    "h-1.5 w-4 rounded-full",
+                    dot <= pkg.targetingLevel
+                      ? "bg-[hsl(195_85%_30%)] dark:bg-[hsl(195_85%_72%)]"
+                      : "bg-border",
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+          <p className="text-xs leading-relaxed text-foreground/85">
+            {pkg.targetingDescription}
+          </p>
+        </div>
+
+        {pkg.keyUpgrade ? (
+          <div className="mb-5 rounded-md border border-border/70 bg-muted/40 px-3 py-2.5 text-xs font-semibold text-foreground">
+            <span>{pkg.keyUpgrade}</span>
+          </div>
+        ) : null}
+
+        <Separator className="mb-5" />
+
+        <ul className="mb-5 flex-1 space-y-3">
           {pkg.features.map((feature) => {
             const isInheritance = feature.startsWith("Everything in");
+
             return (
-              <li key={feature} className="flex items-start gap-2 text-xs leading-relaxed">
-                {isInheritance ? (
-                  <>
-                    <ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
-                    <span className="italic text-muted-foreground">{feature}</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                    <span className="text-foreground/85">{feature}</span>
-                  </>
-                )}
+              <li
+                key={feature}
+                className="flex items-start gap-2.5 text-sm leading-relaxed"
+              >
+                <Check
+                  className={cn(
+                    "mt-0.5 h-4 w-4 shrink-0",
+                    isInheritance
+                      ? "text-muted-foreground"
+                      : "text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]",
+                  )}
+                />
+                <span
+                  className={cn(
+                    isInheritance
+                      ? "font-medium text-muted-foreground"
+                      : "text-foreground/85",
+                  )}
+                >
+                  {feature}
+                </span>
               </li>
             );
           })}
         </ul>
 
-        {/* CTA */}
         <div className="mt-auto space-y-2.5">
           <Button
             className={cn(
-              "w-full font-semibold",
-              pkg.recommended && "bg-gradient-primary shadow-elegant hover:shadow-glow",
+              BUTTON_STYLES.cardBase,
+              pkg.recommended
+                ? BUTTON_STYLES.cardPrimary
+                : BUTTON_STYLES.cardOutline,
             )}
             variant={pkg.recommended ? "default" : "outline"}
           >
             {pkg.ctaLabel}
           </Button>
-          <p className="text-center text-xs text-muted-foreground">{pkg.ctaMicrocopy}</p>
+          <p className="text-center text-xs text-muted-foreground">
+            {pkg.ctaMicrocopy}
+          </p>
         </div>
       </div>
     </Card>

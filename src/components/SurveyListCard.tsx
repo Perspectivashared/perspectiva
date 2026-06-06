@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { Calendar, Tag, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -135,4 +135,4 @@ const SurveyListCard = ({
   );
 };
 
-export default SurveyListCard;
+export default memo(SurveyListCard);

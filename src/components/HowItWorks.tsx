@@ -1,77 +1,76 @@
-import { Card } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import FadeInView from "@/components/FadeInView";
 
 const steps = [
   {
     number: "01",
-    title: "Create Your Profile",
+    title: "Create your profile",
     description:
-      "Sign up with Gmail and tell us about your expertise, interests, and academic background.",
+      "Sign up with your Gmail and tell us about your expertise, interests, and academic background.",
   },
   {
     number: "02",
-    title: "Complete Surveys",
+    title: "Complete surveys",
     description:
-      "Answer surveys matched to your interests. Each completed survey earns you 1 point.",
+      "Answer surveys matched to your interests. Each completed survey earns you 1 point toward your next post.",
   },
   {
     number: "03",
-    title: "Launch Your Research",
+    title: "Launch your research",
     description:
-      "Spend 2 points to post your own survey and reach targeted respondents.",
+      "Spend 2 points to post your own survey and reach targeted respondents in your community.",
   },
   {
     number: "04",
-    title: "Gain Insights",
+    title: "Gain insights",
     description:
-      "Access advanced analytics dashboards with AI-generated insights and visualizations.",
+      "Access advanced analytics dashboards with AI-generated summaries and interactive visualizations.",
   },
 ];
 
 const HowItWorks = () => {
   return (
-    <section className="py-24 bg-gradient-subtle">
+    <section className="py-24 bg-muted/30 border-t border-border/50">
       <div className="container mx-auto px-4">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold">
-            How{" "}
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
-              Perspectiva
-            </span>{" "}
-            Works
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            A simple, gamified approach to collaborative research
-          </p>
-        </div>
+        <FadeInView>
+          <div className="text-center mb-16">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+              How it works
+            </p>
+            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
+              Four steps to{" "}
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                better research
+              </span>
+            </h2>
+          </div>
+        </FadeInView>
 
-        <div className="max-w-4xl mx-auto space-y-6">
-          {steps.map((step) => (
-            <Card
-              key={step.number}
-              className="p-8 bg-card/80 backdrop-blur border-border/50 hover:shadow-elegant transition-all duration-300"
-            >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow">
-                    <span className="text-2xl font-bold text-white">
-                      {step.number}
-                    </span>
-                  </div>
+        <FadeInView delay={0.1}>
+          <div className="max-w-2xl mx-auto">
+            {steps.map((step, index) => (
+              <div key={step.number} className="relative flex gap-7 pb-10 last:pb-0">
+                {index < steps.length - 1 && (
+                  <div className="absolute left-5 top-11 bottom-0 w-px bg-gradient-to-b from-primary/30 to-transparent" />
+                )}
+
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-border bg-background flex items-center justify-center z-10">
+                  <span className="text-xs font-bold font-mono text-muted-foreground tabular-nums">
+                    {step.number}
+                  </span>
                 </div>
-                <div className="flex-1 pt-2">
-                  <h3 className="text-2xl font-semibold mb-3 flex items-center gap-2">
+
+                <div className="pt-1.5">
+                  <h3 className="text-xl font-semibold text-foreground mb-1.5">
                     {step.title}
-                    <CheckCircle2 className="w-6 h-6 text-success" />
                   </h3>
-                  <p className="text-muted-foreground text-lg leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        </FadeInView>
       </div>
     </section>
   );

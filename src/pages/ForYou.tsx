@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { ROUTES, getCommunityRoute, getSurveyEditRoute } from "@/lib/routes";
+import { BUTTON_STYLES } from "@/lib/button-styles";
 import {
   Search,
   Bookmark,
@@ -29,9 +30,11 @@ import {
   Users,
 } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { api, SESSION_EXPIRED } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import { useSaveSurvey } from "@/hooks/use-save-survey";
+import { useFavouriteCommunity } from "@/hooks/use-favourite-community";
 import { browserSurveySessionStorage } from "@/features/surveys/services/survey-session-storage";
+import { resolveLocalStorage } from "@/shared/lib/local-storage";
 import { useCommunitiesQuery } from "@/features/communities/hooks/use-communities-query";
 import CommunityCard from "@/components/CommunityCard";
 import { SurveyCard, OwnedSurveyCard } from "@/components/SurveyCard";
@@ -86,19 +89,11 @@ const SectionShell = ({
   emptyMessage,
   emptyAction,
   children,
-}: SectionShellProps) => {
-  const [chevronDeg, setChevronDeg] = useState(isOpen ? 180 : 0);
-
-  const handleOpenChange = () => {
-    setChevronDeg((prev) => prev + 180);
-    onToggle();
-  };
-
-  return (
-  <Collapsible open={isOpen} onOpenChange={handleOpenChange}>
+}: SectionShellProps) => (
+  <Collapsible open={isOpen} onOpenChange={onToggle}>
     {/* Header — card lives only here */}
     <CollapsibleTrigger asChild>
-      <button className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl border border-border/60 bg-card/60 backdrop-blur shadow-sm hover:bg-card/90 hover:border-border hover:shadow-elegant transition-all duration-200 group">
+      <button className={`${BUTTON_STYLES.disclosure} group flex items-center justify-between`}>
         <div className="flex items-center gap-3">
           <span className="text-primary">{icon}</span>
           <h2 className="text-base font-semibold tracking-snug">{title}</h2>
@@ -118,7 +113,7 @@ const SectionShell = ({
         </div>
         <ChevronDown
           className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300"
-          style={{ transform: `rotate(${chevronDeg}deg)` }}
+          style={{ transform: `rotate(${isOpen ? 180 : 0}deg)` }}
         />
       </button>
     </CollapsibleTrigger>
@@ -143,15 +138,12 @@ const SectionShell = ({
       </div>
     </CollapsibleContent>
   </Collapsible>
-  );
-};
+);
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 const ForYou = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Non-empty sections start open; empty sections start collapsed
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
@@ -160,13 +152,6 @@ const ForYou = () => {
   const toggle = (id: string, isEmpty = false) =>
     setOpenMap((prev) => ({ ...prev, [id]: !isOpen(id, isEmpty) }));
 
-  // Local save-state (optimistic)
-  const [localSavedIds, setLocalSavedIds] = useState<Set<number>>(new Set());
-
-  // Local favourite-community state (optimistic — merged with server data below)
-  const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
-
-  // Search / filter / sort for "Browse All" section
   // ─── Queries ──────────────────────────────────────────────────────────────
 
   const publishedQ = useQuery({
@@ -206,6 +191,10 @@ const ForYou = () => {
     queryFn: () => api.get<Array<{ id: string }>>("/users/me/joined-communities"),
   });
 
+  const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQ.data ?? []);
+  const { favouriteIds, toggleFavourite: handleToggleFavouriteCommunity } =
+    useFavouriteCommunity(favouritesQ.data ?? []);
+
   // ─── Derived data ─────────────────────────────────────────────────────────
 
   const published = publishedQ.data ?? [];
@@ -215,24 +204,16 @@ const ForYou = () => {
   const userCategory = profileQ.data?.category ?? null;
   const communities = communitiesQ.data ?? [];
 
-  // Merged saved IDs (server + optimistic local)
-  const savedIds = useMemo(
-    () => new Set([...localSavedIds, ...savedSurveys.map((s) => s.id)]),
-    [localSavedIds, savedSurveys],
-  );
 
-  // Merged favourite community IDs (server + optimistic local)
-  const favouriteIds = useMemo(
-    () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
-    [localFavouriteIds, favouritesQ.data],
-  );
 
   // In-progress surveys from localStorage
   const inProgress = useMemo((): InProgressEntry[] => {
+    const storage = resolveLocalStorage();
+    if (!storage) return [];
     const results: InProgressEntry[] = [];
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i);
         if (!key?.startsWith("survey-progress:")) continue;
         const surveyId = key.replace("survey-progress:", "");
         const stored = browserSurveySessionStorage.loadProgress(surveyId);
@@ -246,7 +227,7 @@ const ForYou = () => {
         });
       }
     } catch {
-      /* localStorage may be unavailable */
+      /* storage.key() may throw in edge cases */
     }
     return results.sort(
       (a, b) =>
@@ -373,65 +354,7 @@ const ForYou = () => {
     [published],
   );
 
-  // ─── Toggle save ──────────────────────────────────────────────────────────
 
-  const handleToggleSave = async (surveyId: number) => {
-    const isSaved = savedIds.has(surveyId);
-    try {
-      if (isSaved) {
-        await api.delete(`/surveys/${surveyId}/save`);
-        setLocalSavedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(surveyId);
-          return next;
-        });
-        toast({ title: "Survey unsaved" });
-      } else {
-        await api.post(`/surveys/${surveyId}/save`);
-        setLocalSavedIds((prev) => new Set(prev).add(surveyId));
-        toast({ title: "Survey saved" });
-      }
-      // Keep server state in sync — the saved-surveys section reads from the
-      // query cache, so invalidate it after every toggle.
-      queryClient.invalidateQueries({ queryKey: ["saved-surveys"] });
-    } catch {
-      toast({
-        title: "Failed to update saved status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // ─── Toggle community favourite ───────────────────────────────────────────
-
-  const handleToggleFavouriteCommunity = async (communityId: string) => {
-    const isFav = favouriteIds.has(communityId);
-    // Optimistic update
-    setLocalFavouriteIds((prev) => {
-      const next = new Set(prev);
-      if (isFav) { next.delete(communityId); } else { next.add(communityId); }
-      return next;
-    });
-    try {
-      if (isFav) {
-        await api.delete(`/communities/${communityId}/favourite`);
-      } else {
-        await api.post(`/communities/${communityId}/favourite`);
-      }
-      queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
-    } catch (err) {
-      // Revert optimistic update
-      setLocalFavouriteIds((prev) => {
-        const next = new Set(prev);
-        if (isFav) { next.add(communityId); } else { next.delete(communityId); }
-        return next;
-      });
-      if (err instanceof Error && err.message === SESSION_EXPIRED) {
-        throw err;
-      }
-      toast({ title: "Failed to update favourite", variant: "destructive" });
-    }
-  };
 
   // ─── Section definitions ──────────────────────────────────────────────────
 
@@ -492,7 +415,7 @@ const ForYou = () => {
         isEmpty: inProgress.length === 0,
         isLoading: false,
         emptyMessage: "No surveys in progress. Find a survey and start answering!",
-        emptyAction: { label: "Browse Surveys", to: ROUTES.forYou },
+        emptyAction: { label: "Browse Surveys", to: ROUTES.allSurveys },
         content: rowList(inProgress.map((entry) => (
           <SurveyListCard
             key={entry.surveyId}
@@ -505,6 +428,7 @@ const ForYou = () => {
             action={
               <Button
                 asChild
+                variant="outline"
                 size="sm"
                 className="shrink-0"
               >
@@ -569,7 +493,7 @@ const ForYou = () => {
         isEmpty: savedSurveys.length === 0,
         isLoading: savedQ.isPending,
         emptyMessage: "No saved surveys. Bookmark any survey to quickly find it here.",
-        emptyAction: { label: "Browse Surveys", to: ROUTES.forYou },
+        emptyAction: { label: "Browse Surveys", to: ROUTES.allSurveys },
         content: surveyGrid(savedSurveys.map((s) => (
           <SurveyCard key={s.id} survey={s} isSaved onToggleSave={handleToggleSave} />
         ))),
@@ -584,7 +508,7 @@ const ForYou = () => {
         isEmpty: completed.length === 0,
         isLoading: completedQ.isPending,
         emptyMessage: "You haven't answered any surveys yet. Take your first one today!",
-        emptyAction: { label: "Find Surveys", to: ROUTES.forYou },
+        emptyAction: { label: "Find Surveys", to: ROUTES.allSurveys },
         content: rowList(completed.slice(0, 6).map((s) => (
           <SurveyListCard
             key={s.id}

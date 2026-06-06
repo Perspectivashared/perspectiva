@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -7,15 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, GripVertical, Copy } from "@/components/icons/simple-icons";
+import { Plus, Trash2, GripVertical, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -23,26 +16,80 @@ import {
   surveyBuilderReducer,
 } from "@/features/survey-builder/domain/reducer";
 import { validateDraftSurvey } from "@/features/survey-builder/domain/validation";
-import {
-  mapDraftSurveyToRawSurveyPayload,
-  mapSurveyDefinitionToDraftSurvey,
-} from "@/features/survey-builder/domain/mappers";
-import {
-  SURVEY_BUILDER_CATEGORY_OPTIONS,
-} from "@/features/survey-builder/domain/question-types";
+import { mapSurveyDefinitionToDraftSurvey } from "@/features/survey-builder/domain/mappers";
+import { CommunitySelector } from "@/features/survey-builder/components/community-selector";
 import {
   hasDraftSurvey,
   loadDraftSurvey,
   saveDraftSurvey,
   clearDraftSurvey,
 } from "@/features/survey-builder/services/draft-storage";
-import {
-  fetchSurveyById,
-  saveSurvey,
-} from "@/features/surveys/services/survey-service";
+import { api } from "@/lib/api";
+import { normalizeSurveyDefinition } from "@/features/surveys/domain/normalizers";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { QuestionTypeSelector } from "@/features/survey-builder/components/question-type-selector";
-import type { RawSurveyPayload } from "@/features/surveys/domain/types";
+import {
+  API_TO_QUESTION_TYPE,
+  QUESTION_TYPE_TO_API,
+} from "@/features/surveys/domain/question-type-mappers";
+
+// --- API types ---
+interface ApiQuestionOption {
+  id: number;
+  order: number;
+  text: string;
+}
+
+interface ApiSurveyQuestion {
+  id: number;
+  order: number;
+  question_type: string;
+  question_text: string;
+  required: boolean;
+  options: ApiQuestionOption[];
+}
+
+interface ApiSurvey {
+  id: number;
+  title: string;
+  description: string;
+  acknowledgement: string;
+  deadline: string | null;
+  time_limit_minutes: number | null;
+  published_at: string | null;
+  created_at: string;
+  questions: ApiSurveyQuestion[];
+}
+
+interface ApiSurveyOut {
+  id: number;
+  status: string;
+}
+
+
+async function fetchSurveyFromApi(surveyId: string) {
+  const raw = await api.get<ApiSurvey>(`/surveys/${surveyId}`);
+  return normalizeSurveyDefinition(
+    {
+      surveyId: String(raw.id),
+      title: raw.title,
+      description: raw.description,
+      acknowledgement: raw.acknowledgement || "",
+      startDate: raw.published_at ?? raw.created_at,
+      endDate: raw.deadline ?? undefined,
+      timeLimitMinutes: raw.time_limit_minutes ?? undefined,
+      questions: raw.questions.map((q) => ({
+        id: String(q.id),
+        order: q.order,
+        type: API_TO_QUESTION_TYPE[q.question_type] ?? "shortText",
+        text: q.question_text,
+        required: q.required,
+        options: q.options.map((o) => ({ label: o.text, value: o.text })),
+      })),
+    },
+    String(raw.id),
+  );
+}
 
 const SURVEY_EDIT_STALE_TIME_MS = 300_000;
 const SURVEY_EDIT_GC_TIME_MS = 1_800_000;
@@ -65,7 +112,7 @@ const SurveyEdit = () => {
       if (!surveyId) {
         throw new Error("Missing survey id");
       }
-      return fetchSurveyById(surveyId);
+      return fetchSurveyFromApi(surveyId);
     },
     enabled: Boolean(surveyId),
     staleTime: SURVEY_EDIT_STALE_TIME_MS,
@@ -73,11 +120,36 @@ const SurveyEdit = () => {
   });
 
   const saveSurveyMutation = useMutation({
-    mutationFn: async (payload: RawSurveyPayload) => saveSurvey(payload),
+    mutationFn: async () => {
+      if (!surveyId) throw new Error("Missing survey id");
+      const payload = {
+        title: state.surveyTitle.trim(),
+        description: state.surveyDescription.trim(),
+        community_id: state.category || null,
+        target_responses: state.targetResponses,
+        deadline: state.deadline ? new Date(state.deadline).toISOString() : null,
+        questions: state.questions.map((q, i) => ({
+          order: i + 1,
+          question_type: QUESTION_TYPE_TO_API[q.type] ?? q.type,
+          question_text: q.question.trim(),
+          required: q.required,
+          options: q.options.map((o) => ({ text: o.text.trim() })).filter((o) => o.text),
+        })),
+      };
+      return api.put<ApiSurveyOut>(`/surveys/${surveyId}`, payload);
+    },
     onSuccess: () => {
       toast({
         title: "Survey saved",
         description: "Your survey has been updated successfully.",
+      });
+    },
+    onError: (err) => {
+      console.error("[SurveyEdit] Save failed:", err);
+      toast({
+        title: "Failed to save",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "destructive",
       });
     },
   });
@@ -125,12 +197,7 @@ const SurveyEdit = () => {
       });
       return;
     }
-
-    const payload: RawSurveyPayload = mapDraftSurveyToRawSurveyPayload(
-      state,
-      surveyId ?? "",
-    );
-    saveSurveyMutation.mutate(payload);
+    saveSurveyMutation.mutate();
   };
 
   const loadDraft = () => {
@@ -198,11 +265,13 @@ const SurveyEdit = () => {
         )}
       </div>
 
-      {isLoading ? (
+      {isLoading && (
         <Card className="border-border/50 bg-card/50 p-8 backdrop-blur">
           <p className="text-muted-foreground">Loading survey details...</p>
         </Card>
-      ) : surveyQuery.isError ? (
+      )}
+
+      {!isLoading && surveyQuery.isError && (
         <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur">
           <h2 className="text-2xl font-semibold">Survey unavailable</h2>
           <p className="text-muted-foreground">{surveyLoadErrorMessage}</p>
@@ -210,9 +279,10 @@ const SurveyEdit = () => {
             Back
           </Button>
         </Card>
-      ) : (
-        <>
-          <Tabs defaultValue="create" className="mb-8">
+      )}
+
+      {!isLoading && !surveyQuery.isError && (
+        <Tabs defaultValue="create" className="mb-8">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="create">Edit</TabsTrigger>
               <TabsTrigger value="import">Import</TabsTrigger>
@@ -266,9 +336,9 @@ const SurveyEdit = () => {
 
                   <div className="grid gap-4 md:grid-cols-3">
                     <div>
-                      <Label>Category</Label>
-                      <Select
-                        value={state.category || undefined}
+                      <Label>Community</Label>
+                      <CommunitySelector
+                        value={state.category}
                         onValueChange={(value) =>
                           dispatch({
                             type: "SET_FIELD",
@@ -276,21 +346,7 @@ const SurveyEdit = () => {
                             value,
                           })
                         }
-                      >
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SURVEY_BUILDER_CATEGORY_OPTIONS.map((category) => (
-                            <SelectItem
-                              key={category.value}
-                              value={category.value}
-                            >
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      />
                     </div>
 
                     <div>
@@ -511,7 +567,6 @@ const SurveyEdit = () => {
               </div>
             </TabsContent>
           </Tabs>
-        </>
       )}
     </AppShell>
   );

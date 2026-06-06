@@ -422,8 +422,9 @@ const Faqs = () => {
             />
             {search && (
               <button
+                type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors px-1 py-0.5"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded text-xs text-muted-foreground hover:text-foreground transition-colors px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 aria-label="Clear search"
               >
                 Clear
@@ -441,12 +442,13 @@ const Faqs = () => {
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
+                  type="button"
                   onClick={() => scrollToCategory(cat.id)}
                   className={cn(
-                    "flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all duration-150 whitespace-nowrap",
+                    "flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border shadow-sm transition-all duration-150 whitespace-nowrap focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30 focus-visible:ring-offset-2",
                     activeId === cat.id
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-transparent border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+                      ? "border-primary/50 bg-gradient-primary text-primary-foreground"
+                      : "border-border/60 bg-transparent text-muted-foreground hover:border-primary/60 hover:bg-primary/8 hover:text-primary"
                   )}
                 >
                   {cat.label}

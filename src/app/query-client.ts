@@ -1,17 +1,17 @@
 import { QueryClient } from "@tanstack/react-query";
+import { ApiError, SESSION_EXPIRED } from "@/lib/api";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
-      refetchOnWindowFocus: false,
-      // Don't retry SESSION_EXPIRED errors — the refresh-token path in api.ts
-      // already handled the retry and signalled expiry via a thrown error.
+      refetchOnWindowFocus: true,
+      // Don't retry SESSION_EXPIRED or rate-limit errors — they are terminal for this request.
       retry: (failureCount, error) => {
-        if (error instanceof Error && error.message === "SESSION_EXPIRED") {
+        if (error instanceof ApiError && error.code === SESSION_EXPIRED) {
           return false;
         }
-        return failureCount < 1;
+        return failureCount < 2;
       },
     },
   },

@@ -2,7 +2,7 @@ import {
   COMMUNITY_SORT_OPTIONS,
   type CommunityCategoryFilter,
   type CommunitySortOption,
-} from "@/lib/community-data";
+} from "@/features/communities/domain/community-data";
 import {
   Select,
   SelectContent,

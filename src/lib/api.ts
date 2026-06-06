@@ -1,11 +1,29 @@
-const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
+const _configuredUrl = import.meta.env.VITE_API_URL as string | undefined;
+
+if (import.meta.env.PROD && !_configuredUrl) {
+  throw new Error("[api] VITE_API_URL is not set. Cannot connect to backend in production.");
+}
+
+const BASE_URL = _configuredUrl ?? "http://localhost:8000";
 
 export const SESSION_EXPIRED = "SESSION_EXPIRED";
+export const RATE_LIMITED = "RATE_LIMITED";
+
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 
 let _refreshing: Promise<boolean> | null = null;
 
 async function tryRefresh(): Promise<boolean> {
-  if (_refreshing) return _refreshing;
+  if (_refreshing !== null) return _refreshing;
   _refreshing = fetch(`${BASE_URL}/auth/refresh`, {
     method: "POST",
     credentials: "include",
@@ -33,14 +51,20 @@ async function request<T>(path: string, options: RequestInit = {}, retry = true)
     if (refreshed) {
       return request<T>(path, options, false);
     }
-    throw new Error(SESSION_EXPIRED);
+    // Notify AuthContext via custom event so unhandledrejection is not needed.
+    globalThis.window?.dispatchEvent(new CustomEvent(SESSION_EXPIRED));
+    throw new ApiError(401, SESSION_EXPIRED, SESSION_EXPIRED);
+  }
+
+  if (res.status === 429) {
+    throw new ApiError(429, RATE_LIMITED, RATE_LIMITED);
   }
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(
-      typeof error.detail === "string" ? error.detail : JSON.stringify(error.detail),
-    );
+    const message =
+      typeof error.detail === "string" ? error.detail : JSON.stringify(error.detail);
+    throw new ApiError(res.status, message);
   }
 
   if (res.status === 204) return undefined as T;
@@ -52,12 +76,12 @@ export const api = {
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "POST",
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : JSON.stringify(body),
     }),
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "PUT",
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : JSON.stringify(body),
     }),
   delete: <T>(path: string) =>
     request<T>(path, { method: "DELETE" }),

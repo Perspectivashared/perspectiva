@@ -1,6 +1,10 @@
 import { normalizeDraftSurvey } from "@/features/survey-builder/domain/reducer";
-import type { DraftSurvey } from "@/features/survey-builder/domain/types";
+import type { DraftSurvey, SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
 import { resolveLocalStorage } from "@/shared/lib/local-storage";
+
+const VALID_QUESTION_TYPES = new Set<string>([
+  "short-text", "long-text", "multiple-choice", "checkboxes", "dropdown", "linear-scale",
+]);
 
 export const SURVEY_DRAFT_STORAGE_KEY = "create-survey-draft";
 
@@ -15,23 +19,15 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 const isDraftSurveyPayload = (value: unknown): value is DraftSurvey => {
-  if (!isRecord(value)) {
-    return false;
-  }
+  if (!isRecord(value)) return false;
+  if (!Array.isArray(value.questions)) return false;
 
-  if (!Array.isArray(value.questions)) {
-    return false;
-  }
-
-  return value.questions.every((question) => {
-    if (!isRecord(question)) {
-      return false;
-    }
-
+  return value.questions.every((question): question is { id: string; question: string; type: SurveyBuilderQuestionType; required: boolean; options: unknown[] } => {
+    if (!isRecord(question)) return false;
     return (
       typeof question.id === "string" &&
       typeof question.question === "string" &&
-      typeof question.type === "string" &&
+      typeof question.type === "string" && VALID_QUESTION_TYPES.has(question.type) &&
       typeof question.required === "boolean" &&
       Array.isArray(question.options)
     );

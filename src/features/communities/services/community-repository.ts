@@ -106,6 +106,3 @@ export const apiCommunityRepository: CommunityRepository = {
     await api.delete(`/communities/${communityId}/join`);
   },
 };
-
-// Keep the old name pointing to the real implementation
-export const localCommunityRepository = apiCommunityRepository;

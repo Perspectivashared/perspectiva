@@ -1,5 +1,6 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,7 +18,6 @@ import {
 import {
   type SurveyAnswerMap,
   type SurveyAnswerValue,
-  type SurveyDefinition,
   type RawSurveyPayload,
   type QuestionType,
 } from "@/features/surveys/domain/types";
@@ -29,6 +29,7 @@ import { renderSurveyQuestionInput } from "@/features/surveys/components/questio
 import { browserSurveySessionStorage } from "@/features/surveys/services/survey-session-storage";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { CalendarClock, CheckCircle2, Clock3, ListChecks, Star } from "lucide-react";
+import { API_TO_QUESTION_TYPE } from "@/features/surveys/domain/question-type-mappers";
 
 // --- API types ---
 interface ApiQuestionOption {
@@ -58,15 +59,14 @@ interface ApiSurvey {
   questions: ApiSurveyQuestion[];
 }
 
-// --- Backend → Frontend type mapping ---
-const QUESTION_TYPE_MAP: Record<string, QuestionType> = {
-  "short-text": "shortText",
-  "long-text": "longText",
-  "multiple-choice": "singleChoice",
-  "checkboxes": "multipleChoice",
-  "dropdown": "dropdown",
-  "linear-scale": "rating",
-};
+function mapQuestionType(backendType: string): QuestionType {
+  const mapped = API_TO_QUESTION_TYPE[backendType];
+  if (!mapped) {
+    console.warn(`[Survey] Unknown question type from backend: "${backendType}". Falling back to shortText.`);
+    return "shortText";
+  }
+  return mapped;
+}
 
 function apiSurveyToRaw(survey: ApiSurvey): RawSurveyPayload {
   return {
@@ -80,7 +80,7 @@ function apiSurveyToRaw(survey: ApiSurvey): RawSurveyPayload {
     questions: survey.questions.map((q) => ({
       id: String(q.id),
       order: q.order,
-      type: QUESTION_TYPE_MAP[q.question_type] ?? "shortText",
+      type: mapQuestionType(q.question_type),
       text: q.question_text,
       required: q.required,
       options: q.options.map((o) => ({ label: o.text, value: o.text })),
@@ -100,16 +100,13 @@ const Survey = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  const requestedSurveyId = useMemo(() => {
+  const requestedSurveyId = (() => {
     const state = location.state as { surveyId?: string } | null;
     const fromState = state?.surveyId?.trim();
     const fromQuery = new URLSearchParams(location.search).get("surveyId")?.trim();
     return fromState || fromQuery || null;
-  }, [location.search, location.state]);
+  })();
 
-  const [isLoadingSurvey, setIsLoadingSurvey] = useState(true);
-  const [survey, setSurvey] = useState<SurveyDefinition | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [hasAcceptedAcknowledgement, setHasAcceptedAcknowledgement] = useState(false);
   const [acknowledgementChecked, setAcknowledgementChecked] = useState(false);
   const [answers, setAnswers] = useState<SurveyAnswerMap>({});
@@ -121,63 +118,46 @@ const Survey = () => {
   const [selectedRating, setSelectedRating] = useState(0);
   const [isRating, setIsRating] = useState(false);
 
-  useEffect(() => {
-    if (!requestedSurveyId) {
-      setLoadError("No survey ID provided.");
-      setIsLoadingSurvey(false);
-      return;
-    }
+  const { data: survey, isPending: isLoadingSurvey, error: surveyError } = useQuery({
+    queryKey: ["survey", requestedSurveyId],
+    queryFn: async () => {
+      if (!requestedSurveyId) throw new Error("No survey ID provided.");
+      const apiSurvey = await api.get<ApiSurvey>(`/surveys/${requestedSurveyId}`);
+      const raw = apiSurveyToRaw(apiSurvey);
+      return normalizeSurveyDefinition(raw, raw.surveyId);
+    },
+    enabled: !!requestedSurveyId,
+    staleTime: 0,
+    retry: false,
+  });
 
-    let isMounted = true;
+  const loadError = !requestedSurveyId
+    ? "No survey ID provided."
+    : surveyError instanceof Error ? surveyError.message : surveyError ? "Failed to load survey." : null;
 
-    const loadSurvey = async () => {
-      setIsLoadingSurvey(true);
-      setLoadError(null);
-      setHasAcceptedAcknowledgement(false);
-      setAcknowledgementChecked(false);
-      setValidationErrors({});
-
-      try {
-        const apiSurvey = await api.get<ApiSurvey>(`/surveys/${requestedSurveyId}`);
-        if (!isMounted) return;
-
-        const raw = apiSurveyToRaw(apiSurvey);
-        const normalized = normalizeSurveyDefinition(raw, raw.surveyId);
-        setSurvey(normalized);
-      } catch (err) {
-        if (!isMounted) return;
-        setLoadError(err instanceof Error ? err.message : "Failed to load survey.");
-      } finally {
-        if (isMounted) setIsLoadingSurvey(false);
-      }
-    };
-
-    void loadSurvey();
-    return () => { isMounted = false; };
-  }, [requestedSurveyId]);
-
+  // Restore saved progress when a new survey loads.
   useEffect(() => {
     if (!survey) return;
+    setHasAcceptedAcknowledgement(false);
+    setAcknowledgementChecked(false);
+    setValidationErrors({});
     const restoredProgress = browserSurveySessionStorage.loadProgress(survey.surveyId);
     if (restoredProgress) {
       setAnswers(restoredProgress.answers);
       toast({ title: "Draft restored", description: "Saved survey progress has been loaded." });
-      return;
+    } else {
+      setAnswers({});
     }
-    setAnswers({});
   }, [survey, toast]);
 
-  const orderedQuestions = useMemo(() => survey?.questions ?? [], [survey]);
+  const orderedQuestions = survey?.questions ?? [];
 
-  const answeredCount = useMemo(
-    () => orderedQuestions.filter((q) => hasSurveyAnswer(q, answers[q.id])).length,
-    [answers, orderedQuestions],
-  );
+  const answeredCount = orderedQuestions.filter((q) => hasSurveyAnswer(q, answers[q.id])).length;
 
   const progressValue =
     orderedQuestions.length === 0 ? 0 : (answeredCount / orderedQuestions.length) * 100;
 
-  const updateAnswer = (questionId: string, value: SurveyAnswerValue) => {
+  const updateAnswer = useCallback((questionId: string, value: SurveyAnswerValue) => {
     setAnswers((current) => ({ ...current, [questionId]: value }));
     setValidationErrors((current) => {
       if (!current[questionId]) return current;
@@ -185,7 +165,7 @@ const Survey = () => {
       delete next[questionId];
       return next;
     });
-  };
+  }, []);
 
   const handleDeclineSurvey = () => navigate(ROUTES.forYou, { replace: true });
 
@@ -218,7 +198,7 @@ const Survey = () => {
     setIsSubmitting(true);
     try {
       const answersPayload = orderedQuestions.map((q) => ({
-        question_id: parseInt(q.id),
+        question_id: Number.parseInt(q.id, 10),
         answer_text: serializeAnswer(answers[q.id] ?? null),
       }));
 
@@ -231,12 +211,13 @@ const Survey = () => {
 
       toast({
         title: "Survey submitted!",
-        description: `You earned ${result.points_earned} point${result.points_earned !== 1 ? "s" : ""}!`,
+        description: `You earned ${result.points_earned} point${result.points_earned === 1 ? "" : "s"}!`,
       });
 
       setPointsEarned(result.points_earned);
       setSubmittedSurveyId(requestedSurveyId);
     } catch (err) {
+      console.error("[Survey] Submission failed:", err);
       toast({
         title: "Submission failed",
         description: err instanceof Error ? err.message : "Something went wrong.",
@@ -248,7 +229,7 @@ const Survey = () => {
   };
 
   const submitRating = async () => {
-    if (!submittedSurveyId || !selectedRating) return;
+    if (submittedSurveyId === null || selectedRating === 0) return;
     setIsRating(true);
     try {
       await api.post(`/surveys/${submittedSurveyId}/rate`, { rating: selectedRating });
@@ -278,6 +259,7 @@ const Survey = () => {
               <button
                 key={star}
                 type="button"
+                aria-label={`Rate ${star} out of 5`}
                 onClick={() => setSelectedRating(star)}
                 onMouseEnter={() => setHoveredRating(star)}
                 onMouseLeave={() => setHoveredRating(0)}

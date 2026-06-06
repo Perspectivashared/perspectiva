@@ -13,13 +13,7 @@ const optionQuestionTypes = new Set<SurveyBuilderQuestionType>([
   "dropdown",
 ]);
 
-const createId = () => {
-  if ("randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-};
+export const createId = () => crypto.randomUUID();
 
 export const isOptionQuestionType = (type: SurveyBuilderQuestionType) =>
   optionQuestionTypes.has(type);

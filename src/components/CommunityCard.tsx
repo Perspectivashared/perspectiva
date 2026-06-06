@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Activity, ArrowUpRight, CalendarDays, FileText, Heart, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -53,9 +54,9 @@ const CommunityCard = ({
           onClick={(e) => { e.stopPropagation(); onExplore(community.id); }}
           aria-label="Explore community"
           className={cn(
-            "flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg px-2 text-white shadow-elegant transition-all duration-[110ms] ease-out focus-visible:w-[5.5rem] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]",
+            "flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg px-2 text-white shadow-elegant transition-all duration-[110ms] ease-out focus-visible:w-[5.5rem] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-[5.5rem] group-focus-within:w-[5.5rem]",
             isJoined
-              ? "bg-emerald-500 hover:bg-emerald-600 hover:shadow-[0_0_12px_-2px_theme(colors.emerald.500/0.6)]"
+              ? "bg-success hover:bg-success/90 hover:shadow-[0_0_12px_-2px_hsl(var(--success)/0.6)]"
               : "bg-gradient-primary hover:shadow-glow",
           )}
         >
@@ -70,7 +71,7 @@ const CommunityCard = ({
             onClick={(e) => { e.stopPropagation(); onFavourite(community.id); }}
             title={isFavourited ? "Remove from favourites" : "Add to favourites"}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 shadow-sm transition-colors",
+              "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30",
               isFavourited
                 ? "border-2 border-rose-400/60 text-rose-500 hover:border-rose-400/80"
                 : "border-border/60 text-muted-foreground hover:border-rose-400/50 hover:text-rose-500",
@@ -141,4 +142,4 @@ const CommunityCard = ({
   );
 };
 
-export default CommunityCard;
+export default memo(CommunityCard);

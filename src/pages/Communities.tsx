@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
@@ -18,9 +18,9 @@ import { getCommunityRoute, ROUTES } from "@/lib/routes";
 import { AsyncStateView } from "@/shared/components/state/AsyncStateView";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { queryToAsyncState } from "@/shared/lib/query-state";
-import { api, SESSION_EXPIRED } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { useFavouriteCommunity } from "@/hooks/use-favourite-community";
 
 
 interface CommunitySectionConfig {
@@ -68,8 +68,6 @@ const SECTION_CONFIGS: CommunitySectionConfig[] = [
 
 const Communities = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
 
   const communitiesQuery = useCommunitiesQuery();
@@ -90,48 +88,34 @@ const Communities = () => {
     enabled: isAuthenticated === true,
   });
 
-  const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
-
-  const favouriteIds = useMemo(
-    () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
-    [localFavouriteIds, favouritesQ.data],
-  );
+  const { favouriteIds, toggleFavourite: handleToggleFavouriteCommunity } =
+    useFavouriteCommunity(favouritesQ.data ?? []);
 
   const joinedIds = useMemo(
     () => new Set((joinedQ.data ?? []).map((c) => c.id)),
     [joinedQ.data],
   );
 
-  const handleExploreCommunity = (communityId: string) => {
-    navigate(getCommunityRoute(communityId));
-  };
+  const handleExploreCommunity = useCallback(
+    (communityId: string) => navigate(getCommunityRoute(communityId)),
+    [navigate],
+  );
 
-  const handleToggleFavouriteCommunity = async (communityId: string) => {
-    const isFav = favouriteIds.has(communityId);
-    setLocalFavouriteIds((prev) => {
-      const next = new Set(prev);
-      if (isFav) { next.delete(communityId); } else { next.add(communityId); }
-      return next;
-    });
-    try {
-      if (isFav) {
-        await api.delete(`/communities/${communityId}/favourite`);
-      } else {
-        await api.post(`/communities/${communityId}/favourite`);
-      }
-      queryClient.invalidateQueries({ queryKey: favouriteCommunitiesKeys.all });
-    } catch (err) {
-      setLocalFavouriteIds((prev) => {
-        const next = new Set(prev);
-        if (isFav) { next.add(communityId); } else { next.delete(communityId); }
-        return next;
-      });
-      if (err instanceof Error && err.message === SESSION_EXPIRED) {
-        throw err;
-      }
-      toast({ title: "Failed to update favourite", variant: "destructive" });
-    }
-  };
+  const handleRefetchError = useCallback(
+    () => { communitiesQuery.refetch(); },
+    [communitiesQuery],
+  );
+
+  const renderCommunitiesError = useCallback(
+    (errorMessage: string) => (
+      <ErrorCard
+        title="Failed to load communities"
+        message={errorMessage}
+        onRetry={handleRefetchError}
+      />
+    ),
+    [handleRefetchError],
+  );
 
   const getSectionHref = (sectionSort: CommunitySortOption) => {
     const params = new URLSearchParams({
@@ -170,18 +154,12 @@ const Communities = () => {
         state={communitiesState}
         loading={
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Skeleton key={index} className="h-[252px] rounded-xl" />
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={`community-skeleton-${i}`} className="h-[252px] rounded-xl" />
             ))}
           </div>
         }
-        error={(errorMessage) => (
-          <ErrorCard
-            title="Failed to load communities"
-            message={errorMessage}
-            onRetry={() => void communitiesQuery.refetch()}
-          />
-        )}
+        error={renderCommunitiesError}
         empty={
           <PaginatedCommunityGrid
             communities={[]}

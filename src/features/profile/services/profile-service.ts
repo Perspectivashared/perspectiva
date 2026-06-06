@@ -62,15 +62,14 @@ const PROFESSION_LABELS: Record<string, string> = {
 };
 
 export const fetchUserProfile = async (): Promise<UserProfile> => {
-  const [user, transactions, surveys] = await Promise.all([
+  const [user, transactions, surveys, completedSurveys] = await Promise.all([
     api.get<ApiUser>("/users/me"),
     api.get<ApiTransaction[]>("/users/me/transactions"),
     api.get<ApiSurveySummary[]>("/surveys/me"),
+    api.get<ApiSurveySummary[]>("/users/me/completed-surveys"),
   ]);
 
-  const surveysCompleted = transactions.filter(
-    (t) => t.type === "earn" && t.description.startsWith("Completed survey"),
-  ).length;
+  const surveysCompleted = completedSurveys.length;
 
   return {
     name: user.name,

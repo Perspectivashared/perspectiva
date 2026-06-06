@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, SESSION_EXPIRED } from "@/lib/api";
+import { api } from "@/lib/api";
 import { Activity, ArrowRight, FileText, Trophy, Users, UserPlus, UserMinus, Check } from "lucide-react";
 import PaginatedCommunityGrid from "@/components/PaginatedCommunityGrid";
 import { SurveyCard, type ApiSurveySummary } from "@/components/SurveyCard";
@@ -31,6 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 import { getCommunityRoute, ROUTES } from "@/lib/routes";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { queryToAsyncState } from "@/shared/lib/query-state";
+import { useSaveSurvey } from "@/hooks/use-save-survey";
+import { useFavouriteCommunity } from "@/hooks/use-favourite-community";
 
 interface LeaderboardEntry {
   username: string;
@@ -142,21 +144,23 @@ const CommunityOverview = ({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="pointer-events-none border-emerald-500 bg-emerald-500/15 text-emerald-500 font-semibold"
+                  className="pointer-events-none border-success bg-success/15 text-success font-semibold"
                   tabIndex={-1}
                 >
                   <Check className="mr-1.5 h-3.5 w-3.5" />
                   Joined
                 </Button>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={onLeave}
                   disabled={isLeaving}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-transparent px-3 py-[7px] text-[13px] font-medium text-red-500/70 transition-all hover:border-red-500/30 hover:text-red-500 disabled:opacity-50"
+                  className="text-destructive/70 hover:bg-destructive/8 hover:text-destructive"
                 >
                   <UserMinus className="h-3.5 w-3.5" />
                   {isLeaving ? "Leaving…" : "Leave"}
-                </button>
+                </Button>
               </>
             ) : (
               <Button size="sm" onClick={onJoin} disabled={isJoining}>
@@ -304,8 +308,6 @@ const CommunityDetails = () => {
   const { isAuthenticated } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
-  const [localSavedIds, setLocalSavedIds] = useState<Set<number>>(new Set());
-  const [localFavouriteIds, setLocalFavouriteIds] = useState<Set<string>>(new Set());
 
   const communityQuery = useCommunityByIdQuery(communityId);
   const communitiesQuery = useCommunitiesQuery();
@@ -325,20 +327,25 @@ const CommunityDetails = () => {
     queryFn: () => api.get<ApiSurveySummary[]>("/users/me/saved-surveys"),
   });
 
-  const favouritesQ = useQuery({
+  const { data: favouritesData } = useQuery({
     queryKey: ["favourite-communities"],
-    queryFn: () => api.get<Array<{ id: number; name: string }>>("/users/me/favourite-communities"),
+    queryFn: () => api.get<Array<{ id: string; name: string }>>("/users/me/favourite-communities"),
     enabled: isAuthenticated === true,
   });
 
-  const savedIds = useMemo(
-    () => new Set([...localSavedIds, ...(savedQ.data ?? []).map((s) => s.id)]),
-    [localSavedIds, savedQ.data],
-  );
+  const joinedQ = useQuery({
+    queryKey: ["joined-communities"],
+    queryFn: () => api.get<Array<{ id: string }>>("/users/me/joined-communities"),
+    enabled: isAuthenticated === true,
+  });
 
-  const favouriteIds = useMemo(
-    () => new Set([...localFavouriteIds, ...(favouritesQ.data ?? []).map((c) => c.id)]),
-    [localFavouriteIds, favouritesQ.data],
+  const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQ.data ?? []);
+  const { favouriteIds, toggleFavourite: handleToggleFavouriteCommunity } =
+    useFavouriteCommunity(favouritesData ?? []);
+
+  const joinedIds = useMemo(
+    () => new Set((joinedQ.data ?? []).map((c) => c.id)),
+    [joinedQ.data],
   );
 
   const handleJoin = async () => {
@@ -367,54 +374,7 @@ const CommunityDetails = () => {
     }
   };
 
-  const handleToggleSave = async (surveyId: number) => {
-    const isSaved = savedIds.has(surveyId);
-    try {
-      if (isSaved) {
-        await api.delete(`/surveys/${surveyId}/save`);
-        setLocalSavedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(surveyId);
-          return next;
-        });
-        toast({ title: "Survey unsaved" });
-      } else {
-        await api.post(`/surveys/${surveyId}/save`);
-        setLocalSavedIds((prev) => new Set(prev).add(surveyId));
-        toast({ title: "Survey saved" });
-      }
-      queryClient.invalidateQueries({ queryKey: ["saved-surveys"] });
-    } catch {
-      toast({ title: "Failed to update saved status", variant: "destructive" });
-    }
-  };
 
-  const handleToggleFavouriteCommunity = async (favCommunityId: string) => {
-    const isFav = favouriteIds.has(favCommunityId);
-    setLocalFavouriteIds((prev) => {
-      const next = new Set(prev);
-      if (isFav) { next.delete(favCommunityId); } else { next.add(favCommunityId); }
-      return next;
-    });
-    try {
-      if (isFav) {
-        await api.delete(`/communities/${favCommunityId}/favourite`);
-      } else {
-        await api.post(`/communities/${favCommunityId}/favourite`);
-      }
-      queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
-    } catch (err) {
-      setLocalFavouriteIds((prev) => {
-        const next = new Set(prev);
-        if (isFav) { next.add(favCommunityId); } else { next.delete(favCommunityId); }
-        return next;
-      });
-      if (err instanceof Error && err.message === SESSION_EXPIRED) {
-        throw err;
-      }
-      toast({ title: "Failed to update favourite", variant: "destructive" });
-    }
-  };
 
   const communityState = useMemo(() => queryToAsyncState(communityQuery), [communityQuery]);
 
@@ -515,6 +475,7 @@ const CommunityDetails = () => {
           onExplore={handleExploreCommunity}
           onFavourite={isAuthenticated ? handleToggleFavouriteCommunity : undefined}
           isFavourited={(id) => favouriteIds.has(id)}
+          isJoined={(id) => joinedIds.has(id)}
           pageSize={6}
           className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
         />

@@ -1,8 +1,10 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
+import { BUTTON_STYLES } from "@/lib/button-styles";
 import { ROUTES } from "@/lib/routes";
-import { Menu, LogOut } from "@/components/icons/simple-icons";
+import { cn } from "@/lib/utils";
+import { Menu, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/context/AuthContext";
@@ -26,15 +28,29 @@ const Navigation = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [scrolled, setScrolled] = useState(() => window.scrollY > 20);
 
-  const handleSignOut = async () => {
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
     await signOut();
     toast({ title: "Signed out", description: "See you next time!" });
     navigate(ROUTES.home);
-  };
+  }, [signOut, toast, navigate]);
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/[0.5] backdrop-blur-lg border-b border-border/50">
+    <nav
+      className={cn(
+        "fixed top-0 w-full z-50 backdrop-blur-lg border-b transition-all duration-300",
+        scrolled
+          ? "bg-background/95 border-border shadow-sm"
+          : "bg-background/50 border-border/50 shadow-none",
+      )}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -52,7 +68,7 @@ const Navigation = () => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `nav-slot-link transition-colors focus-visible:text-foreground ${
+                  `nav-slot-link transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:rounded-sm ${
                     isActive
                       ? "is-active text-foreground font-medium"
                       : "text-foreground/80 hover:text-foreground"
@@ -69,7 +85,8 @@ const Navigation = () => {
             <DarkModeToggle />
             {isAuthenticated ? (
               <Button
-                className="hidden md:inline-flex items-center gap-2"
+                variant="outline"
+                className={cn("hidden md:inline-flex items-center gap-2", BUTTON_STYLES.quietOutline)}
                 onClick={handleSignOut}
               >
                 <LogOut className="w-4 h-4" />
@@ -81,12 +98,13 @@ const Navigation = () => {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="hidden md:inline-flex"
+                  className={cn("hidden md:inline-flex", BUTTON_STYLES.quietOutline)}
                 >
                   <Link to={ROUTES.signIn}>Sign In</Link>
                 </Button>
                 <Button
                   asChild
+                  className={BUTTON_STYLES.primaryAction}
                 >
                   <Link to={ROUTES.signUp}>Get Started</Link>
                 </Button>

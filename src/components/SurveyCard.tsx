@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
@@ -27,19 +28,7 @@ import { ROUTES } from "@/lib/routes";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export interface ApiSurveySummary {
-  id: number;
-  title: string;
-  description: string;
-  category: string | null;
-  community_id: string | null;
-  status: string;
-  target_responses: number | null;
-  deadline: string | null;
-  response_count: number;
-  published_at: string | null;
-  created_at: string;
-}
+export type { ApiSurveySummary } from "@/shared/types/api-survey";
 
 // ─── Category icon map ───────────────────────────────────────────────────────
 
@@ -81,7 +70,7 @@ interface SurveyCardProps {
   urgentDeadline?: boolean;
 }
 
-export const SurveyCard = ({
+const SurveyCardComponent = ({
   survey,
   isSaved,
   onToggleSave,
@@ -114,7 +103,7 @@ export const SurveyCard = ({
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(ROUTES.survey, { state: { surveyId: String(survey.id), source: "for-you" } }); }}
           aria-label="Take survey"
-          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[190ms] ease-out hover:shadow-glow group-hover:w-[7rem]"
+          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[190ms] ease-out hover:shadow-glow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-[7rem]"
         >
           <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[190ms] ease-out group-hover:mr-1.5 group-hover:max-w-[4.5rem] group-hover:opacity-100">
             Take Survey
@@ -126,7 +115,7 @@ export const SurveyCard = ({
           onClick={(e) => { e.stopPropagation(); onToggleSave(survey.id); }}
           title={isSaved ? "Unsave" : "Save"}
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 text-muted-foreground shadow-sm transition-colors",
+            "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 text-muted-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30",
             isSaved
               ? "border-2 border-primary/60 text-primary hover:border-primary/80"
               : "border-border/60 hover:border-primary/50 hover:text-primary",
@@ -192,7 +181,9 @@ interface OwnedSurveyCardProps {
   survey: ApiSurveySummary;
 }
 
-export const OwnedSurveyCard = ({ survey }: OwnedSurveyCardProps) => {
+export const SurveyCard = memo(SurveyCardComponent);
+
+const OwnedSurveyCardComponent = ({ survey }: OwnedSurveyCardProps) => {
   const navigate = useNavigate();
   const Icon = (survey.category ? CATEGORY_ICONS[survey.category] : null) ?? BarChart3;
 
@@ -211,7 +202,7 @@ export const OwnedSurveyCard = ({ survey }: OwnedSurveyCardProps) => {
         type="button"
         onClick={(e) => { e.stopPropagation(); navigate(`/surveys/${survey.id}/analytics`); }}
         aria-label="View analytics"
-        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[150ms] ease-out hover:shadow-glow group-hover:w-[6rem]"
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[150ms] ease-out hover:shadow-glow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-[6rem]"
       >
         <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[150ms] ease-out group-hover:mr-1.5 group-hover:max-w-[3.5rem] group-hover:opacity-100">
           Analytics
@@ -259,3 +250,5 @@ export const OwnedSurveyCard = ({ survey }: OwnedSurveyCardProps) => {
     </Card>
   );
 };
+
+export const OwnedSurveyCard = memo(OwnedSurveyCardComponent);

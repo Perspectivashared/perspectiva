@@ -41,50 +41,47 @@ export interface AppRouteDefinition {
   key: AppRouteKey | "notFound";
   path: AppRoutePath | "*";
   component: RouteComponent;
+  /** When true, the route requires authentication. */
+  protected?: boolean;
 }
 
-const routeComponents: Record<AppRouteKey | "notFound", RouteComponent> = {
-  home: lazy(() => import("@/pages/Index")),
-  forYou: lazy(() => import("@/pages/ForYou")),
-  survey: lazy(() => import("@/pages/Survey")),
-  surveyEdit: lazy(() => import("@/pages/SurveyEdit")),
-  createSurvey: lazy(() => import("@/pages/CreateSurvey")),
-  drafts: lazy(() => import("@/pages/Drafts")),
-  communities: lazy(() => import("@/pages/Communities")),
-  pricing: lazy(() => import("@/pages/Pricing")),
-  converter: lazy(() => import("@/pages/Converter")),
-  communityDetails: lazy(() => import("@/pages/CommunityDetails")),
-  allCommunities: lazy(() => import("@/pages/AllCommunities")),
-  allSurveys: lazy(() => import("@/pages/AllSurveys")),
-  profile: lazy(() => import("@/pages/Profile")),
-  editProfile: lazy(() => import("@/pages/EditProfile")),
-  surveyAnalytics: lazy(() => import("@/pages/SurveyAnalytics")),
-  surveyPublished: lazy(() => import("@/pages/SurveyPublished")),
-  signIn: lazy(() => import("@/pages/SignIn")),
-  signUp: lazy(() => import("@/pages/SignUp")),
-  categorizer: lazy(() => import("@/pages/Categorizer")),
-  privacy: lazy(() => import("@/pages/Privacy")),
-  terms: lazy(() => import("@/pages/Terms")),
-  faqs: lazy(() => import("@/pages/Faqs")),
-  about: lazy(() => import("@/pages/About")),
-  contact: lazy(() => import("@/pages/Contact")),
-  security: lazy(() => import("@/pages/Security")),
-  verifyEmail: lazy(() => import("@/pages/VerifyEmail")),
-  forgotPassword: lazy(() => import("@/pages/ForgotPassword")),
-  resetPassword: lazy(() => import("@/pages/ResetPassword")),
-  buttonShowcase: lazy(() => import("@/pages/ButtonShowcase")),
-  notFound: lazy(() => import("@/pages/NotFound")),
-};
-
-export const APP_ROUTES: readonly AppRouteDefinition[] = [
-  ...Object.entries(APP_ROUTE_PATHS).map(([key, path]) => ({
-    key: key as AppRouteKey,
-    path,
-    component: routeComponents[key as AppRouteKey],
-  })),
-  {
-    key: "notFound",
-    path: "*",
-    component: routeComponents.notFound,
-  },
+const ROUTE_CONFIG: Omit<AppRouteDefinition, "path">[] = [
+  { key: "home",            component: lazy(() => import("@/pages/Index")) },
+  { key: "forYou",         component: lazy(() => import("@/pages/ForYou")),         protected: true },
+  { key: "survey",         component: lazy(() => import("@/pages/Survey")),         protected: true },
+  { key: "surveyEdit",     component: lazy(() => import("@/pages/SurveyEdit")),     protected: true },
+  { key: "createSurvey",   component: lazy(() => import("@/pages/CreateSurvey")),   protected: true },
+  { key: "drafts",         component: lazy(() => import("@/pages/Drafts")),         protected: true },
+  { key: "communities",    component: lazy(() => import("@/pages/Communities")) },
+  { key: "pricing",        component: lazy(() => import("@/pages/Pricing")) },
+  { key: "converter",      component: lazy(() => import("@/pages/Converter")),      protected: true },
+  { key: "communityDetails", component: lazy(() => import("@/pages/CommunityDetails")) },
+  { key: "allCommunities", component: lazy(() => import("@/pages/AllCommunities")) },
+  { key: "allSurveys",     component: lazy(() => import("@/pages/AllSurveys")) },
+  { key: "profile",        component: lazy(() => import("@/pages/Profile")),        protected: true },
+  { key: "editProfile",    component: lazy(() => import("@/pages/EditProfile")),    protected: true },
+  { key: "surveyAnalytics", component: lazy(() => import("@/pages/SurveyAnalytics")), protected: true },
+  { key: "surveyPublished", component: lazy(() => import("@/pages/SurveyPublished")) },
+  { key: "signIn",         component: lazy(() => import("@/pages/SignIn")) },
+  { key: "signUp",         component: lazy(() => import("@/pages/SignUp")) },
+  { key: "categorizer",    component: lazy(() => import("@/pages/Categorizer")) },
+  { key: "privacy",        component: lazy(() => import("@/pages/Privacy")) },
+  { key: "terms",          component: lazy(() => import("@/pages/Terms")) },
+  { key: "faqs",           component: lazy(() => import("@/pages/Faqs")) },
+  { key: "about",          component: lazy(() => import("@/pages/About")) },
+  { key: "contact",        component: lazy(() => import("@/pages/Contact")) },
+  { key: "security",       component: lazy(() => import("@/pages/Security")) },
+  { key: "verifyEmail",    component: lazy(() => import("@/pages/VerifyEmail")) },
+  { key: "forgotPassword", component: lazy(() => import("@/pages/ForgotPassword")) },
+  { key: "resetPassword",  component: lazy(() => import("@/pages/ResetPassword")) },
+  // Only include the dev showcase in development builds.
+  ...(import.meta.env.DEV
+    ? [{ key: "buttonShowcase" as const, component: lazy(() => import("@/pages/ButtonShowcase")) }]
+    : []),
+  { key: "notFound",       component: lazy(() => import("@/pages/NotFound")),       path: "*" as const },
 ];
+
+export const APP_ROUTES: readonly AppRouteDefinition[] = ROUTE_CONFIG.map((cfg) => ({
+  ...cfg,
+  path: (cfg as AppRouteDefinition).path ?? APP_ROUTE_PATHS[cfg.key as AppRouteKey],
+})) as AppRouteDefinition[];

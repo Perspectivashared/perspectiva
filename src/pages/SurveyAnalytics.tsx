@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import * as XLSX from "xlsx";
@@ -20,7 +20,8 @@ import {
   Users, Clock, TrendingUp, ArrowLeft, MessageSquare, HelpCircle,
   Lightbulb, Star, ShieldCheck, Download, Filter, SlidersHorizontal,
   X, FlaskConical, AlertTriangle, Info, Zap, Sparkles, Activity,
-  FileText, Copy, Printer, Table as TableIcon,
+  FileText, Copy, Printer, Table as TableIcon, Zap as ZapIcon,
+  Microscope, Wind, Moon, User,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -161,11 +162,13 @@ const NEGATIVE_WORDS = new Set([
   "wrong","annoying","buggy",
 ]);
 
-const CLUSTER_ICONS: Record<string, string> = {
-  "Fast & Complete": "⚡",
-  "Thorough": "🔬",
-  "Rushed": "💨",
-  "Disengaged": "😴",
+import type { LucideIcon } from "lucide-react";
+
+const CLUSTER_ICONS: Record<string, LucideIcon> = {
+  "Fast & Complete": ZapIcon,
+  "Thorough": Microscope,
+  "Rushed": Wind,
+  "Disengaged": Moon,
 };
 
 // ---------------------------------------------------------------------------
@@ -679,7 +682,9 @@ function exportToCSV(data: SurveyAnalytics) {
   const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
   const a = Object.assign(document.createElement("a"), { href: url, download: `${data.title.replace(/[^a-z0-9]/gi, "_")}_analytics.csv` });
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
 
@@ -755,8 +760,8 @@ const KeyInsightsPanel = ({ data }: { data: SurveyAnalytics }) => {
         <h2 className="font-semibold">Key Insights</h2>
       </div>
       <ul className="space-y-2.5">
-        {insights.map((insight, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm">
+        {insights.map((insight) => (
+          <li key={`${insight.severity}:${insight.text}`} className="flex items-start gap-2 text-sm">
             {SEVERITY_STYLES[insight.severity].icon}
             <span className={SEVERITY_STYLES[insight.severity].text}>{insight.text}</span>
           </li>
@@ -800,9 +805,11 @@ const RespondentClusters = ({ clusters, total }: { clusters: RespondentCluster[]
         <h2 className="font-semibold">Respondent Segments</h2>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {clusters.map(c => (
+        {clusters.map(c => {
+          const ClusterIcon = CLUSTER_ICONS[c.label] ?? User;
+          return (
           <div key={c.label} className="rounded-xl border border-border/40 p-4 text-center">
-            <div className="text-2xl mb-1">{CLUSTER_ICONS[c.label] ?? "👤"}</div>
+            <div className="flex justify-center mb-1"><ClusterIcon className="h-6 w-6 text-primary" /></div>
             <div className="font-semibold text-sm">{c.label}</div>
             <div className="text-2xl font-bold text-primary mt-1">{c.count}</div>
             <div className="text-xs text-muted-foreground">{Math.round((c.count / total) * 100)}% of respondents</div>
@@ -810,8 +817,9 @@ const RespondentClusters = ({ clusters, total }: { clusters: RespondentCluster[]
               <div className="text-xs text-muted-foreground mt-1">Avg: {fmtSeconds(c.avg_completion_seconds)}</div>
             )}
             <div className="text-xs text-muted-foreground">{Math.round(c.avg_question_completion * 100)}% answered</div>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </Card>
   );
@@ -936,7 +944,7 @@ const ChoicePieChart = ({ distribution }: { distribution: Record<string, number>
       <ResponsiveContainer width={200} height={200}>
         <PieChart>
           <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2} dataKey="value">
-            {data.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+            {data.map((entry, i) => <Cell key={entry.name} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
           </Pie>
           <Tooltip formatter={(v: number) => [`${v} (${Math.round((v / total) * 100)}%)`, "Responses"]} />
         </PieChart>
@@ -1163,6 +1171,9 @@ const CorrelationMatrix = ({ correlations, breakdowns }: { correlations: Questio
 
 const AutoResearchSummary = ({ data }: { data: SurveyAnalytics }) => {
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
+
   const parts: string[] = [];
   parts.push(`This survey titled "${data.title}" received ${data.response_count} response${data.response_count !== 1 ? "s" : ""}.`);
   const topProf = Object.entries(data.demographics.profession ?? {}).sort(([, a], [, b]) => b - a)[0];
@@ -1177,7 +1188,12 @@ const AutoResearchSummary = ({ data }: { data: SurveyAnalytics }) => {
   }
   if (data.avg_rating != null) parts.push(`Respondents rated this survey an average of ${data.avg_rating.toFixed(1)} out of 5.`);
   const summary = parts.join(" ");
-  const copy = () => { navigator.clipboard.writeText(summary); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const copy = () => {
+    void navigator.clipboard.writeText(summary);
+    setCopied(true);
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopied(false), 2000);
+  };
   return (
     <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur">
       <div className="flex items-center justify-between mb-3">
@@ -1205,8 +1221,8 @@ const RecommendationsPanel = ({ data }: { data: SurveyAnalytics }) => {
         <h2 className="font-semibold">Recommendations</h2>
       </div>
       <div className="space-y-3">
-        {recs.map((rec, i) => (
-          <div key={i} className="flex items-start gap-3 rounded-lg border border-border/30 p-3">
+        {recs.map((rec) => (
+          <div key={`${rec.priority}:${rec.title}`} className="flex items-start gap-3 rounded-lg border border-border/30 p-3">
             <span className={cn("text-xs font-semibold uppercase mt-0.5 w-14 flex-shrink-0", PRIORITY_COLOR[rec.priority])}>
               {rec.priority}
             </span>
@@ -1303,25 +1319,14 @@ const SurveyAnalytics = () => {
     return qs;
   }, [data, questionSort, questionTypeFilter]);
 
-  if (isPending) return (
-    <AppShell withContainer mainClassName="px-4 pb-12 pt-24">
-      <div className="text-center py-16 text-muted-foreground">Loading analytics...</div>
-    </AppShell>
-  );
-  if (isError || !data) return (
-    <AppShell withContainer mainClassName="px-4 pb-12 pt-24">
-      <div className="text-center py-16 text-destructive">Failed to load analytics. Make sure you are the survey creator.</div>
-    </AppShell>
-  );
-
-  const { score: engScore, label: engLabel } = calcEngagementScore(data);
-  const moe = calcMarginOfError(data.response_count);
-  const proj = calcProjection(data);
-  const professions = Object.keys(data.demographics.profession ?? {});
-  const categories = Object.keys(data.demographics.category ?? {});
-  const availableTypes = [...new Set(data.question_breakdowns.map(q => q.question_type))];
-
-  const featuredQuestion = (() => {
+  const derived = useMemo(() => {
+    if (!data) return null;
+    const { score: engScore, label: engLabel } = calcEngagementScore(data);
+    const moe = calcMarginOfError(data.response_count);
+    const proj = calcProjection(data);
+    const professions = Object.keys(data.demographics.profession ?? {});
+    const categories = Object.keys(data.demographics.category ?? {});
+    const availableTypes = [...new Set(data.question_breakdowns.map(q => q.question_type))];
     const scored = data.question_breakdowns.map(q => {
       const completionPenalty = 1 - (q.question_completion_rate ?? 1);
       let variance = 0;
@@ -1334,30 +1339,38 @@ const SurveyAnalytics = () => {
       return { q, score: completionPenalty * 0.5 + Math.min(variance / 10, 1) * 0.5 };
     });
     scored.sort((a, b) => b.score - a.score);
-    return scored[0]?.score > 0.2 ? scored[0].q : null;
-  })();
+    const featuredQuestion = scored[0]?.score > 0.2 ? scored[0].q : null;
+    const cumulativeData = data.responses_by_day.reduce<Array<{ date: string; daily: number; cumulative: number }>>(
+      (acc, d) => [...acc, { date: d.date, daily: d.count, cumulative: (acc.at(-1)?.cumulative ?? 0) + d.count }], []
+    );
+    const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayCounts = Array<number>(7).fill(0);
+    for (const { date, count } of data.responses_by_day) {
+      dayCounts[new Date(date + "T00:00:00").getDay()] += count;
+    }
+    const dayOfWeek = DAY_NAMES.map((name, i) => ({ name, count: dayCounts[i] }));
+    const spikes = detectSpikes(data.responses_by_day);
+    const accel = detectTrendAcceleration(data.responses_by_day);
+    const demographicWarning = checkDemographicDominance(data.demographics, data.response_count);
+    const professionData = Object.entries(data.demographics.profession ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k.replace(/_/g, " "), value: v }));
+    const categoryData = Object.entries(data.demographics.category ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
+    const institutionData = Object.entries(data.demographics.institution ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
+    const subCatData = Object.entries(data.demographics.sub_category ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
+    return { engScore, engLabel, moe, proj, professions, categories, availableTypes, featuredQuestion, cumulativeData, dayOfWeek, spikes, accel, demographicWarning, professionData, categoryData, institutionData, subCatData };
+  }, [data]);
 
-  const cumulativeData = data.responses_by_day.reduce<Array<{ date: string; daily: number; cumulative: number }>>(
-    (acc, d) => [...acc, { date: d.date, daily: d.count, cumulative: (acc.at(-1)?.cumulative ?? 0) + d.count }], []
+  if (isPending) return (
+    <AppShell withContainer mainClassName="px-4 pb-12 pt-24">
+      <div className="text-center py-16 text-muted-foreground">Loading analytics...</div>
+    </AppShell>
+  );
+  if (isError || !data || !derived) return (
+    <AppShell withContainer mainClassName="px-4 pb-12 pt-24">
+      <div className="text-center py-16 text-destructive">Failed to load analytics. Make sure you are the survey creator.</div>
+    </AppShell>
   );
 
-  const dayOfWeek = (() => {
-    const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const counts = Array(7).fill(0);
-    for (const { date, count } of data.responses_by_day) {
-      counts[new Date(date + "T00:00:00").getDay()] += count;
-    }
-    return DAY_NAMES.map((name, i) => ({ name, count: counts[i] }));
-  })();
-
-  const spikes = detectSpikes(data.responses_by_day);
-  const accel = detectTrendAcceleration(data.responses_by_day);
-  const demographicWarning = checkDemographicDominance(data.demographics, data.response_count);
-
-  const professionData = Object.entries(data.demographics.profession ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k.replace(/_/g, " "), value: v }));
-  const categoryData = Object.entries(data.demographics.category ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
-  const institutionData = Object.entries(data.demographics.institution ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
-  const subCatData = Object.entries(data.demographics.sub_category ?? {}).sort(([, a], [, b]) => b - a).map(([k, v]) => ({ name: k, value: v }));
+  const { engScore, engLabel, moe, proj, professions, categories, availableTypes, featuredQuestion, cumulativeData, dayOfWeek, spikes, accel, demographicWarning, professionData, categoryData, institutionData, subCatData } = derived;
 
   return (
     <AppShell withContainer mainClassName="max-w-5xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">

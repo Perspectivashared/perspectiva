@@ -95,14 +95,14 @@ export const normalizeSurveyDefinition = (
 });
 
 export const formatSurveyDate = (value?: string) => {
-  if (!value) {
-    return "N/A";
-  }
+  if (!value) return "N/A";
 
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "N/A";
-  }
+  // Date-only strings (YYYY-MM-DD) are parsed by `new Date()` as UTC midnight,
+  // which shifts to the previous calendar day in UTC-offset timezones.
+  // Appending T12:00:00 anchors to local noon, avoiding the boundary crossing.
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00` : value;
+  const parsedDate = new Date(normalized);
+  if (Number.isNaN(parsedDate.getTime())) return "N/A";
 
   return parsedDate.toLocaleDateString();
 };

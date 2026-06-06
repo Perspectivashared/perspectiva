@@ -214,7 +214,7 @@ const Footer = () => {
                 />
                 <Button
                   type="submit"
-                  className="h-11 px-6 font-semibold"
+                  className="h-11 bg-none bg-white px-6 font-semibold text-zinc-950 shadow-none hover:bg-zinc-200 hover:shadow-none"
                 >
                   Submit
                 </Button>
@@ -253,7 +253,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-2 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-2 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
           <p>Copyright &copy; {year} Perspectiva. All rights reserved.</p>
           <p>Built for curious teams across global communities.</p>
         </div>

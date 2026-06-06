@@ -1,107 +1,64 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Code2,
-  TrendingUp,
-  Briefcase,
-  Dumbbell,
-  Microscope,
-  BookOpen,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { ROUTES } from "@/lib/routes";
+import { ALL_COMMUNITIES, sortCommunities } from "@/features/communities/domain/community-data";
+import FadeInView from "@/components/FadeInView";
 
-const communities = [
-  {
-    id: "technology",
-    icon: Code2,
-    name: "Technology",
-    members: "3.2K",
-    surveys: 450,
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    id: "economics",
-    icon: TrendingUp,
-    name: "Economics",
-    members: "2.8K",
-    surveys: 380,
-    color: "from-green-500 to-emerald-500",
-  },
-  {
-    id: "business",
-    icon: Briefcase,
-    name: "Business",
-    members: "4.1K",
-    surveys: 520,
-    color: "from-purple-500 to-pink-500",
-  },
-  {
-    id: "sports-science",
-    icon: Dumbbell,
-    name: "Sports Science",
-    members: "1.9K",
-    surveys: 290,
-    color: "from-orange-500 to-red-500",
-  },
-  {
-    id: "research",
-    icon: Microscope,
-    name: "Research",
-    members: "2.5K",
-    surveys: 410,
-    color: "from-indigo-500 to-violet-500",
-  },
-  {
-    id: "education",
-    icon: BookOpen,
-    name: "Education",
-    members: "3.7K",
-    surveys: 480,
-    color: "from-yellow-500 to-amber-500",
-  },
-];
+const formatCount = (n: number) =>
+  new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+
+const TOP_COMMUNITIES = sortCommunities(ALL_COMMUNITIES, "mostActive").slice(0, 6);
 
 const Communities = () => {
   return (
-    <section className="py-24 bg-background">
+    <section className="py-24 bg-muted/30 border-t border-border/50">
       <div className="container mx-auto px-4">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold">
-            Join Thriving{" "}
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
-              Communities
-            </span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Connect with researchers and students in your field of expertise
-          </p>
-        </div>
+        <FadeInView>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+                Communities
+              </p>
+              <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
+                Find your{" "}
+                <span className="bg-gradient-primary bg-clip-text text-transparent">
+                  research tribe
+                </span>
+              </h2>
+            </div>
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <Link to={ROUTES.communities}>View all communities →</Link>
+            </Button>
+          </div>
+        </FadeInView>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {communities.map((community) => {
-            const Icon = community.icon;
-            return (
-              <Card
-                key={community.id}
-                className="p-6 hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur group cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${community.color} flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform`}
-                  >
-                    <Icon className="w-6 h-6 text-white" />
+        <FadeInView delay={0.1}>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {TOP_COMMUNITIES.map((community) => {
+              const Icon = community.icon;
+              return (
+                <Link
+                  key={community.id}
+                  to={`${ROUTES.communities}/${community.id}`}
+                  className="group p-5 rounded-2xl border border-border/60 bg-card hover:border-primary/35 hover:shadow-elegant transition-all duration-300 block"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 transition-colors">
+                      <Icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-foreground">
+                      {community.name}
+                    </h3>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {community.surveys} surveys
-                  </Badge>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{community.name}</h3>
-                <p className="text-muted-foreground text-sm">
-                  {community.members} active members
-                </p>
-              </Card>
-            );
-          })}
-        </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{formatCount(community.members)} members</span>
+                    <span>{community.surveys} surveys</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </FadeInView>
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,12 +14,10 @@ import {
 } from "@/components/ui/select";
 import { SurveyCard, CATEGORY_LIST, type ApiSurveySummary } from "@/components/SurveyCard";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { api, SESSION_EXPIRED } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import { useSaveSurvey } from "@/hooks/use-save-survey";
 
 const AllSurveys = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const communityIdFilter = searchParams.get("community") ?? null;
 
@@ -38,13 +36,8 @@ const AllSurveys = () => {
   });
 
   const published = publishedQ.data ?? [];
-  const savedSurveys = savedQ.data ?? [];
 
-  const [localSavedIds, setLocalSavedIds] = useState<Set<number>>(new Set());
-  const savedIds = useMemo(
-    () => new Set([...localSavedIds, ...savedSurveys.map((s) => s.id)]),
-    [localSavedIds, savedSurveys],
-  );
+  const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQ.data ?? []);
 
   const filtered = useMemo(
     () =>
@@ -71,32 +64,6 @@ const AllSurveys = () => {
     [published, categoryFilter, searchQuery, sortBy],
   );
 
-  const handleToggleSave = async (surveyId: number) => {
-    const isSaved = savedIds.has(surveyId);
-    setLocalSavedIds((prev) => {
-      const next = new Set(prev);
-      if (isSaved) { next.delete(surveyId); } else { next.add(surveyId); }
-      return next;
-    });
-    try {
-      if (isSaved) {
-        await api.delete(`/surveys/${surveyId}/save`);
-      } else {
-        await api.post(`/surveys/${surveyId}/save`);
-      }
-      queryClient.invalidateQueries({ queryKey: ["saved-surveys"] });
-    } catch (err) {
-      setLocalSavedIds((prev) => {
-        const next = new Set(prev);
-        if (isSaved) { next.add(surveyId); } else { next.delete(surveyId); }
-        return next;
-      });
-      if (err instanceof Error && err.message === SESSION_EXPIRED) {
-        throw err;
-      }
-      toast({ title: "Failed to update saved status", variant: "destructive" });
-    }
-  };
 
   return (
     <AppShell withContainer mainClassName="pb-14 pt-24">
@@ -118,9 +85,7 @@ const AllSurveys = () => {
               Browse, search, and filter every published survey on the platform.
             </p>
             <p className="text-sm text-muted-foreground">
-              {filtered.length === 1
-                ? "Showing 1 survey"
-                : `Showing ${filtered.length} survey${filtered.length === 0 ? "s" : "s"}`}
+              {filtered.length === 1 ? "Showing 1 survey" : `Showing ${filtered.length} surveys`}
             </p>
           </>
         )}
@@ -163,23 +128,29 @@ const AllSurveys = () => {
       </section>
 
       {/* Grid */}
-      {publishedQ.isPending ? (
+      {publishedQ.isPending && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <Skeleton key={i} className="h-[200px] rounded-xl" />
+          {Array.from({ length: 9 }, (_, i) => (
+            <Skeleton key={`survey-skeleton-${i}`} className="h-[200px] rounded-xl" />
           ))}
         </div>
-      ) : publishedQ.isError ? (
+      )}
+
+      {!publishedQ.isPending && publishedQ.isError && (
         <ErrorCard
           title="Failed to load surveys"
           message="Something went wrong. Please try again."
           onRetry={() => void publishedQ.refetch()}
         />
-      ) : filtered.length === 0 ? (
+      )}
+
+      {!publishedQ.isPending && !publishedQ.isError && filtered.length === 0 && (
         <p className="py-12 text-center text-sm text-muted-foreground">
           No surveys match your current filters.
         </p>
-      ) : (
+      )}
+
+      {!publishedQ.isPending && !publishedQ.isError && filtered.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 px-2 py-1">
           {filtered.map((s) => (
             <SurveyCard

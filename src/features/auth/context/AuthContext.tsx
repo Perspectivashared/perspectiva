@@ -27,13 +27,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   useEffect(() => {
-    const handler = (event: PromiseRejectionEvent) => {
-      if (event.reason?.message === SESSION_EXPIRED) {
-        setIsAuthenticated(false);
-      }
-    };
-    window.addEventListener("unhandledrejection", handler);
-    return () => window.removeEventListener("unhandledrejection", handler);
+    const handler = () => setIsAuthenticated(false);
+    globalThis.window?.addEventListener(SESSION_EXPIRED, handler);
+    return () => globalThis.window?.removeEventListener(SESSION_EXPIRED, handler);
   }, []);
 
   const signIn = useCallback(() => setIsAuthenticated(true), []);

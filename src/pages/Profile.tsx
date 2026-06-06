@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Trophy,
@@ -30,6 +29,9 @@ import {
   Dumbbell,
   Microscope,
   BookOpen,
+  Trash2,
+  FolderOpen,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -43,12 +45,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Trash2, FolderOpen, Loader2 } from "lucide-react";
-import type { SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
 import {
   defaultProfile,
   fetchUserProfile,
@@ -56,17 +55,11 @@ import {
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES, getCommunityRoute } from "@/lib/routes";
-
-interface ApiSurveySummary {
-  id: number;
-  title: string;
-  category: string | null;
-  status: string;
-  response_count: number;
-  target_responses: number | null;
-  published_at: string | null;
-  created_at: string;
-}
+import { BUTTON_STYLES } from "@/lib/button-styles";
+import { useSaveSurvey } from "@/hooks/use-save-survey";
+import { useFavouriteCommunity } from "@/hooks/use-favourite-community";
+import { useDraftActions } from "@/hooks/use-draft-actions";
+import type { ApiSurveySummary } from "@/components/SurveyCard";
 
 interface ApiCommunitySummary {
   id: string;
@@ -125,76 +118,239 @@ const COMMUNITY_ICONS: Record<string, LucideIcon> = {
 };
 
 
+// ─── Tab sub-components ───────────────────────────────────────────────────────
+
+interface CreatedSurveysTabProps {
+  surveys: ApiSurveySummary[];
+  isOpen: (id: string, isEmpty: boolean) => boolean;
+  onToggle: (id: string, isEmpty: boolean) => void;
+  loadingId: number | null;
+  deletingId: number | null;
+  onLoadDraft: (id: number) => void;
+  onDeleteDraft: (id: number) => void;
+}
+
+const CreatedSurveysTab = ({ surveys, isOpen, onToggle, loadingId, deletingId, onLoadDraft, onDeleteDraft }: CreatedSurveysTabProps) => {
+  const active  = surveys.filter((s) => s.status === "published");
+  const closed  = surveys.filter((s) => s.status === "closed");
+  const drafts  = surveys.filter((s) => s.status === "draft");
+
+  const renderSurveyCard = (survey: ApiSurveySummary) => {
+    const cardStatus = survey.status === "published" ? "active" as const : survey.status === "closed" ? "closed" as const : "draft" as const;
+    const action = survey.status === "draft" ? (
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" disabled={loadingId === survey.id} onClick={() => onLoadDraft(survey.id)}>
+          {loadingId === survey.id ? <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Loading...</> : <><FolderOpen className="h-3.5 w-3.5 mr-1" />Load</>}
+        </Button>
+        <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10" disabled={deletingId === survey.id} onClick={() => onDeleteDraft(survey.id)}>
+          {deletingId === survey.id ? <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Deleting...</> : <><Trash2 className="h-3.5 w-3.5 mr-1" />Delete</>}
+        </Button>
+      </div>
+    ) : (
+      <Button asChild variant="outline" size="sm">
+        <Link to={`/surveys/${survey.id}/analytics`}>View Results</Link>
+      </Button>
+    );
+    return <SurveyListCard key={survey.id} title={survey.title || "Untitled Survey"} status={cardStatus} category={survey.category} date={survey.created_at} responseCount={survey.response_count} targetResponses={survey.target_responses} action={action} />;
+  };
+
+  const sections = [
+    { id: "active", label: "Active Surveys",  icon: <FileText className="w-4 h-4" />, items: active },
+    { id: "closed", label: "Closed Surveys",  icon: <Trophy   className="w-4 h-4" />, items: closed },
+    { id: "drafts", label: "Drafts",          icon: <FolderOpen className="w-4 h-4" />, items: drafts },
+  ];
+
+  return (
+    <>
+      {sections.map(({ id, label, icon, items }) => {
+        const isEmpty = items.length === 0;
+        return (
+          <Collapsible key={id} open={isOpen(id, isEmpty)} onOpenChange={() => onToggle(id, isEmpty)}>
+            <CollapsibleTrigger asChild>
+              <button className={`${BUTTON_STYLES.disclosure} group flex items-center justify-between`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-primary">{icon}</span>
+                  <h2 className="text-base font-semibold">{label}</h2>
+                  {isEmpty ? <Badge variant="outline" className="text-xs text-muted-foreground/50">empty</Badge> : <Badge variant="secondary" className="text-xs tabular-nums">{items.length}</Badge>}
+                </div>
+                <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="collapsible-animate">
+              <div className="px-2 pt-3 pb-1">
+                {isEmpty ? <p className="text-sm text-muted-foreground py-5 pl-1">No {label.toLowerCase()} yet.</p> : <div className="space-y-4">{items.map(renderSurveyCard)}</div>}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+    </>
+  );
+};
+
+interface CompletedSurveysTabProps {
+  completed: ApiSurveySummary[];
+  inProgress: ApiSurveySummary[];
+  savedIds: Set<number>;
+  onToggleSave: (id: number) => void;
+  isOpen: (id: string, isEmpty: boolean) => boolean;
+  onToggle: (id: string, isEmpty: boolean) => void;
+}
+
+const CompletedSurveysTab = ({ completed, inProgress, savedIds, onToggleSave, isOpen, onToggle }: CompletedSurveysTabProps) => {
+  const renderCompletedCard = (survey: ApiSurveySummary) => (
+    <SurveyListCard key={survey.id} title={survey.title || "Untitled Survey"} status="completed" category={survey.category} date={survey.published_at ?? survey.created_at} dateLabel="Published" responseCount={survey.response_count} metricLabel="Total responses" />
+  );
+
+  const renderInProgressCard = (survey: ApiSurveySummary) => (
+    <SurveyListCard key={survey.id} title={survey.title || "Untitled Survey"} status="in-progress" category={survey.category} date={survey.published_at ?? survey.created_at} dateLabel="Published" responseCount={survey.response_count} targetResponses={survey.target_responses}
+      action={
+        <>
+          <button type="button" onClick={() => onToggleSave(survey.id)} aria-label={savedIds.has(survey.id) ? "Unsave survey" : "Save survey"} className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30">
+            {savedIds.has(survey.id) ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" /> : <Bookmark className="h-4 w-4" />}
+          </button>
+          <Button asChild variant="outline" size="sm"><Link to={`/surveys/${survey.id}`}>Take Survey</Link></Button>
+        </>
+      }
+    />
+  );
+
+  const sections: Array<{ id: string; label: string; icon: React.ReactNode; items: ApiSurveySummary[]; renderCard: (s: ApiSurveySummary) => React.ReactNode }> = [
+    { id: "completed", label: "Completed Surveys", icon: <Trophy className="w-4 h-4" />, items: completed, renderCard: renderCompletedCard },
+    { id: "in-progress", label: "Surveys In Progress", icon: <Zap className="w-4 h-4" />, items: inProgress, renderCard: renderInProgressCard },
+  ];
+
+  return (
+    <>
+      {sections.map(({ id, label, icon, items, renderCard }) => {
+        const isEmpty = items.length === 0;
+        return (
+          <Collapsible key={id} open={isOpen(id, isEmpty)} onOpenChange={() => onToggle(id, isEmpty)}>
+            <CollapsibleTrigger asChild>
+              <button className={`${BUTTON_STYLES.disclosure} group flex items-center justify-between`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-primary">{icon}</span>
+                  <h2 className="text-base font-semibold">{label}</h2>
+                  {isEmpty ? <Badge variant="outline" className="text-xs text-muted-foreground/50">empty</Badge> : <Badge variant="secondary" className="text-xs tabular-nums">{items.length}</Badge>}
+                </div>
+                <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="collapsible-animate">
+              <div className="px-2 pt-3 pb-1">
+                {isEmpty ? <p className="text-sm text-muted-foreground py-5 pl-1">No {label.toLowerCase()} yet.</p> : <div className="space-y-4">{items.map(renderCard)}</div>}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+      <div className="pt-1 text-center">
+        <Link to={ROUTES.forYou} className="primary-nav-link text-sm font-bold text-primary">Let's explore surveys →</Link>
+      </div>
+    </>
+  );
+};
+
+interface BookmarksTabProps {
+  savedSurveys: ApiSurveySummary[];
+  savedLoading: boolean;
+  favouriteCommunities: ApiCommunitySummary[];
+  favouriteLoading: boolean;
+  joinedCommunities: ApiCommunitySummary[];
+  joinedLoading: boolean;
+  savedIds: Set<number>;
+  onToggleSave: (id: number) => void;
+  favouriteIds: Set<string>;
+  onToggleFavourite: (id: string) => void;
+  isOpen: (id: string, isEmpty: boolean) => boolean;
+  onToggle: (id: string, isEmpty: boolean) => void;
+  onNavigate: (path: string) => void;
+}
+
+const BookmarksTab = ({ savedSurveys, savedLoading, favouriteCommunities, favouriteLoading, joinedCommunities, joinedLoading, savedIds, onToggleSave, favouriteIds, onToggleFavourite, isOpen, onToggle, onNavigate }: BookmarksTabProps) => {
+  const toCommunityCardData = (community: ApiCommunitySummary) => ({
+    id: community.id,
+    name: community.name,
+    description: community.description,
+    icon: COMMUNITY_ICONS[community.icon_name] ?? Users,
+    members: community.member_count,
+    surveys: community.survey_count,
+    activeSurveys: community.active_survey_count,
+    category: community.category,
+  });
+
+  const renderSavedSurveyCard = (survey: ApiSurveySummary) => {
+    const cardStatus = survey.status === "published" ? "active" as const : survey.status === "closed" ? "closed" as const : "draft" as const;
+    return (
+      <SurveyListCard key={survey.id} title={survey.title || "Untitled Survey"} status={cardStatus} category={survey.category} date={survey.created_at} responseCount={survey.response_count} targetResponses={survey.target_responses}
+        action={
+          <button type="button" onClick={() => onToggleSave(survey.id)} aria-label={savedIds.has(survey.id) ? "Unsave survey" : "Save survey"} className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30">
+            {savedIds.has(survey.id) ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" /> : <Bookmark className="h-4 w-4" />}
+          </button>
+        }
+      />
+    );
+  };
+
+  const sections = [
+    { id: "saved-surveys", label: "Saved Surveys", icon: <Bookmark className="w-4 h-4" />, count: savedSurveys.length, isLoading: savedLoading, content: savedSurveys.map(renderSavedSurveyCard), containerClassName: undefined as string | undefined },
+    { id: "favourite-communities", label: "Favourited Communities", icon: <Heart className="w-4 h-4" />, count: favouriteCommunities.length, isLoading: favouriteLoading, content: favouriteCommunities.map((c) => <CommunityCard key={c.id} community={toCommunityCardData(c)} onExplore={onNavigate} onFavourite={onToggleFavourite} isFavourited={favouriteIds.has(c.id)} />), containerClassName: "grid grid-cols-1 gap-6" as string | undefined },
+    { id: "joined-communities", label: "Joined Communities", icon: <Users className="w-4 h-4" />, count: joinedCommunities.length, isLoading: joinedLoading, content: joinedCommunities.map((c) => <CommunityCard key={c.id} community={toCommunityCardData(c)} onExplore={onNavigate} buttonLabel="Joined" />), containerClassName: "grid grid-cols-1 gap-6" as string | undefined },
+  ];
+
+  return (
+    <>
+      {sections.map(({ id, label, icon, count, isLoading, content, containerClassName }) => {
+        const isEmpty = !isLoading && count === 0;
+        return (
+          <Collapsible key={id} open={isOpen(id, isEmpty)} onOpenChange={() => onToggle(id, isEmpty)}>
+            <CollapsibleTrigger asChild>
+              <button className={`${BUTTON_STYLES.disclosure} group flex items-center justify-between`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-primary">{icon}</span>
+                  <h2 className="text-base font-semibold">{label}</h2>
+                  {isLoading ? <Badge variant="outline" className="text-xs text-muted-foreground/50">loading</Badge> : isEmpty ? <Badge variant="outline" className="text-xs text-muted-foreground/50">empty</Badge> : <Badge variant="secondary" className="text-xs tabular-nums">{count}</Badge>}
+                </div>
+                <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="collapsible-animate">
+              <div className="px-2 pt-3 pb-1">
+                {isLoading ? <p className="text-sm text-muted-foreground py-5 pl-1">Loading...</p> : isEmpty ? <p className="text-sm text-muted-foreground py-5 pl-1">No {label.toLowerCase()} yet.</p> : <div className={containerClassName ?? "space-y-4"}>{content}</div>}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+    </>
+  );
+};
+
+// ─── Profile page ─────────────────────────────────────────────────────────────
+
 const Profile = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const { loadDraft, deleteDraft, loadingId, deletingId } = useDraftActions();
   const [achievementsOpen, setAchievementsOpen] = useState(false);
-  const [createdOpenMap, setCreatedOpenMap] = useState<Record<string, boolean>>({});
-  const isCreatedOpen = (id: string, isEmpty: boolean) =>
-    id in createdOpenMap ? createdOpenMap[id] : !isEmpty;
-  const toggleCreated = (id: string, isEmpty: boolean) =>
-    setCreatedOpenMap((prev) => ({ ...prev, [id]: !isCreatedOpen(id, isEmpty) }));
+  const [sectionOpenMap, setSectionOpenMap] = useState<Record<string, boolean>>({});
 
-  const [completedOpenMap, setCompletedOpenMap] = useState<Record<string, boolean>>({});
-  const isCompletedOpen = (id: string, isEmpty: boolean) =>
-    id in completedOpenMap ? completedOpenMap[id] : !isEmpty;
-  const toggleCompleted = (id: string, isEmpty: boolean) =>
-    setCompletedOpenMap((prev) => ({ ...prev, [id]: !isCompletedOpen(id, isEmpty) }));
-
-  const [bookmarksOpenMap, setBookmarksOpenMap] = useState<Record<string, boolean>>({});
-  const isBookmarksOpen = (id: string, isEmpty: boolean) =>
-    id in bookmarksOpenMap ? bookmarksOpenMap[id] : !isEmpty;
-  const toggleBookmarks = (id: string, isEmpty: boolean) =>
-    setBookmarksOpenMap((prev) => ({ ...prev, [id]: !isBookmarksOpen(id, isEmpty) }));
-
-  const loadDraft = async (surveyId: number) => {
-    setLoadingId(surveyId);
-    try {
-      const survey = await api.get<any>(`/surveys/${surveyId}`);
-      navigate("/create-survey", {
-        state: {
-          draftId: survey.id,
-          surveyTitle: survey.title,
-          surveyDescription: survey.description,
-          category: survey.category,
-          targetResponses: survey.target_responses,
-          deadline: survey.deadline ? survey.deadline.split("T")[0] : "",
-          questions: survey.questions
-            .sort((a: any, b: any) => a.order - b.order)
-            .map((q: any) => ({
-              question: q.question_text,
-              type: q.question_type as SurveyBuilderQuestionType,
-              required: q.required,
-              options: q.options.map((o: any) => ({ text: o.text })),
-            })),
-        },
-      });
-    } catch {
-      toast({ title: "Failed to load draft", variant: "destructive" });
-    } finally {
-      setLoadingId(null);
-    }
+  const isSectionOpen = (ns: string, id: string, isEmpty: boolean) => {
+    const key = `${ns}:${id}`;
+    return key in sectionOpenMap ? sectionOpenMap[key] : !isEmpty;
   };
+  const toggleSection = (ns: string, id: string, isEmpty: boolean) =>
+    setSectionOpenMap((prev) => {
+      const key = `${ns}:${id}`;
+      return { ...prev, [key]: !isSectionOpen(ns, id, isEmpty) };
+    });
 
-  const deleteDraft = async (surveyId: number) => {
-    setDeletingId(surveyId);
-    try {
-      await api.delete(`/surveys/${surveyId}`);
-      await queryClient.invalidateQueries({ queryKey: ["my-surveys"] });
-      toast({ title: "Draft deleted" });
-    } catch (err) {
-      toast({
-        title: "Failed to delete draft",
-        description: err instanceof Error ? err.message : "Something went wrong.",
-        variant: "destructive",
-      });
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  const isCreatedOpen = (id: string, isEmpty: boolean) => isSectionOpen("created", id, isEmpty);
+  const toggleCreated = (id: string, isEmpty: boolean) => toggleSection("created", id, isEmpty);
+  const isCompletedOpen = (id: string, isEmpty: boolean) => isSectionOpen("completed", id, isEmpty);
+  const toggleCompleted = (id: string, isEmpty: boolean) => toggleSection("completed", id, isEmpty);
+  const isBookmarksOpen = (id: string, isEmpty: boolean) => isSectionOpen("bookmarks", id, isEmpty);
+  const toggleBookmarks = (id: string, isEmpty: boolean) => toggleSection("bookmarks", id, isEmpty);
+
 
   const profileQuery = useQuery({
     queryKey: ["profile"],
@@ -230,22 +386,9 @@ const Profile = () => {
   });
   const user = profileQuery.data ?? defaultProfile;
 
-  const savedIds = new Set((savedQuery.data ?? []).map((s) => s.id));
-
-  const handleToggleSave = async (surveyId: number) => {
-    const isSaved = savedIds.has(surveyId);
-    try {
-      if (isSaved) {
-        await api.delete(`/surveys/${surveyId}/save`);
-      } else {
-        await api.post(`/surveys/${surveyId}/save`);
-      }
-      await queryClient.invalidateQueries({ queryKey: ["saved-surveys"] });
-      toast({ title: isSaved ? "Survey unsaved" : "Survey saved" });
-    } catch {
-      toast({ title: "Failed to update saved status", variant: "destructive" });
-    }
-  };
+  const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQuery.data ?? []);
+  const { favouriteIds: profileFavouriteIds, toggleFavourite: handleToggleFavouriteCommunity } =
+    useFavouriteCommunity(favouriteCommunitiesQuery.data ?? []);
 
   if (profileQuery.isPending) {
     return (
@@ -306,17 +449,17 @@ const Profile = () => {
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {user.isAdmin && (
-                      <Badge className="bg-primary/10 text-primary border-primary/20 transition-all hover:bg-primary/10 hover:text-[hsl(195_85%_28%)] hover:border-primary/50 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.2)]">
+                      <Badge className="bg-primary/10 text-primary border-primary/20">
                         Admin
                       </Badge>
                     )}
                     {user.category && (
-                      <Badge className="bg-primary/10 text-primary border-primary/20 transition-all hover:bg-primary/10 hover:text-[hsl(195_85%_28%)] hover:border-primary/50 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.2)]">
+                      <Badge className="bg-primary/10 text-primary border-primary/20">
                         {user.category}
                       </Badge>
                     )}
                     {user.subCategory && (
-                      <Badge className="bg-accent/10 text-accent border-accent/20 transition-all hover:bg-accent/10 hover:text-[hsl(185_75%_32%)] hover:border-accent/50 hover:shadow-[0_0_0_3px_hsl(var(--accent)/0.2)]">
+                      <Badge className="bg-accent/10 text-accent border-accent/20">
                         {user.subCategory}
                       </Badge>
                     )}
@@ -400,347 +543,50 @@ const Profile = () => {
               <TabsContent value="created" className="space-y-3 mt-6">
                 {surveysQuery.isPending ? (
                   <p className="text-muted-foreground text-sm">Loading surveys...</p>
-                ) : (() => {
-                  const active  = surveysQuery.data?.filter((s) => s.status === "published") ?? [];
-                  const closed  = surveysQuery.data?.filter((s) => s.status === "closed")    ?? [];
-                  const drafts  = surveysQuery.data?.filter((s) => s.status === "draft")     ?? [];
-
-                  const renderSurveyCard = (survey: ApiSurveySummary) => {
-                    const cardStatus = survey.status === "published" ? "active" : survey.status === "closed" ? "closed" : "draft";
-                    const action = survey.status === "draft" ? (
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={loadingId === survey.id}
-                          onClick={() => loadDraft(survey.id)}
-                        >
-                          {loadingId === survey.id ? (
-                            <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Loading...</>
-                          ) : (
-                            <><FolderOpen className="h-3.5 w-3.5 mr-1" />Load</>
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                          disabled={deletingId === survey.id}
-                          onClick={() => deleteDraft(survey.id)}
-                        >
-                          {deletingId === survey.id ? (
-                            <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Deleting...</>
-                          ) : (
-                            <><Trash2 className="h-3.5 w-3.5 mr-1" />Delete</>
-                          )}
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button asChild variant="outline" size="sm">
-                        <Link to={`/surveys/${survey.id}/analytics`}>View Results</Link>
-                      </Button>
-                    );
-                    return (
-                      <SurveyListCard
-                        key={survey.id}
-                        title={survey.title || "Untitled Survey"}
-                        status={cardStatus}
-                        category={survey.category}
-                        date={survey.created_at}
-                        responseCount={survey.response_count}
-                        targetResponses={survey.target_responses}
-                        action={action}
-                      />
-                    );
-                  };
-
-                  const sections = [
-                    { id: "active", label: "Active Surveys",  icon: <FileText className="w-4 h-4" />, items: active },
-                    { id: "closed", label: "Closed Surveys",  icon: <Trophy   className="w-4 h-4" />, items: closed },
-                    { id: "drafts", label: "Drafts",          icon: <FolderOpen className="w-4 h-4" />, items: drafts },
-                  ];
-
-                  return sections.map(({ id, label, icon, items }) => {
-                    const isEmpty = items.length === 0;
-                    const open = isCreatedOpen(id, isEmpty);
-                    return (
-                      <Collapsible key={id} open={open} onOpenChange={() => toggleCreated(id, isEmpty)}>
-                        <CollapsibleTrigger asChild>
-                          <button className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl border border-border/60 bg-card/60 backdrop-blur shadow-sm hover:bg-card/90 hover:border-border hover:shadow-elegant transition-all duration-200 group">
-                            <div className="flex items-center gap-3">
-                              <span className="text-primary">{icon}</span>
-                              <h2 className="text-base font-semibold">{label}</h2>
-                              {isEmpty ? (
-                                <Badge variant="outline" className="text-xs text-muted-foreground/50">empty</Badge>
-                              ) : (
-                                <Badge variant="secondary" className="text-xs tabular-nums">{items.length}</Badge>
-                              )}
-                            </div>
-                            <ChevronDown
-                              className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180"
-                            />
-                          </button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="collapsible-animate">
-                          <div className="px-2 pt-3 pb-1">
-                            {isEmpty ? (
-                              <p className="text-sm text-muted-foreground py-5 pl-1">No {label.toLowerCase()} yet.</p>
-                            ) : (
-                              <div className="space-y-4">{items.map(renderSurveyCard)}</div>
-                            )}
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
-                  });
-                })()}
+                ) : (
+                  <CreatedSurveysTab
+                    surveys={surveysQuery.data ?? []}
+                    isOpen={isCreatedOpen}
+                    onToggle={toggleCreated}
+                    loadingId={loadingId}
+                    deletingId={deletingId}
+                    onLoadDraft={loadDraft}
+                    onDeleteDraft={deleteDraft}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="completed" className="space-y-3 mt-6">
                 {(completedQuery.isPending || inProgressQuery.isPending) ? (
                   <p className="text-muted-foreground text-sm">Loading surveys...</p>
-                ) : (() => {
-                  const completed = completedQuery.data ?? [];
-                  const inProgress = inProgressQuery.data ?? [];
-
-                  const renderCompletedCard = (survey: ApiSurveySummary) => (
-                    <SurveyListCard
-                      key={survey.id}
-                      title={survey.title || "Untitled Survey"}
-                      status="completed"
-                      category={survey.category}
-                      date={survey.published_at ?? survey.created_at}
-                      dateLabel="Published"
-                      responseCount={survey.response_count}
-                      metricLabel="Total responses"
-                    />
-                  );
-
-                  const renderInProgressCard = (survey: ApiSurveySummary) => (
-                    <SurveyListCard
-                      key={survey.id}
-                      title={survey.title || "Untitled Survey"}
-                      status="in-progress"
-                      category={survey.category}
-                      date={survey.published_at ?? survey.created_at}
-                      dateLabel="Published"
-                      responseCount={survey.response_count}
-                      targetResponses={survey.target_responses}
-                      action={
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSave(survey.id)}
-                            title={savedIds.has(survey.id) ? "Unsave" : "Save"}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                          >
-                            {savedIds.has(survey.id)
-                              ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" />
-                              : <Bookmark className="h-4 w-4" />
-                            }
-                          </button>
-                          <Button asChild variant="outline" size="sm">
-                            <Link to={`/surveys/${survey.id}`}>Take Survey</Link>
-                          </Button>
-                        </>
-                      }
-                    />
-                  );
-
-                  const sections = [
-                    { id: "completed", label: "Completed Surveys", icon: <Trophy className="w-4 h-4" />, items: completed, renderCard: renderCompletedCard },
-                    { id: "in-progress", label: "Surveys In Progress", icon: <Zap className="w-4 h-4" />, items: inProgress, renderCard: renderInProgressCard },
-                  ];
-
-                  return (
-                    <>
-                      {sections.map(({ id, label, icon, items, renderCard }) => {
-                        const isEmpty = items.length === 0;
-                        const open = isCompletedOpen(id, isEmpty);
-                        return (
-                          <Collapsible key={id} open={open} onOpenChange={() => toggleCompleted(id, isEmpty)}>
-                            <CollapsibleTrigger asChild>
-                              <button className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl border border-border/60 bg-card/60 backdrop-blur shadow-sm hover:bg-card/90 hover:border-border hover:shadow-elegant transition-all duration-200 group">
-                                <div className="flex items-center gap-3">
-                                  <span className="text-primary">{icon}</span>
-                                  <h2 className="text-base font-semibold">{label}</h2>
-                                  {isEmpty ? (
-                                    <Badge variant="outline" className="text-xs text-muted-foreground/50">empty</Badge>
-                                  ) : (
-                                    <Badge variant="secondary" className="text-xs tabular-nums">{items.length}</Badge>
-                                  )}
-                                </div>
-                                <ChevronDown
-                                  className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180"
-                                />
-                              </button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="collapsible-animate">
-                              <div className="px-2 pt-3 pb-1">
-                                {isEmpty ? (
-                                  <p className="text-sm text-muted-foreground py-5 pl-1">No {label.toLowerCase()} yet.</p>
-                                ) : (
-                                  <div className="space-y-4">{items.map(renderCard)}</div>
-                                )}
-                              </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        );
-                      })}
-                      <div className="pt-1 text-center">
-                        <Link
-                          to={ROUTES.forYou}
-                          className="primary-nav-link text-sm font-bold text-primary"
-                        >
-                          Let's explore surveys →
-                        </Link>
-                      </div>
-                    </>
-                  );
-                })()}
+                ) : (
+                  <CompletedSurveysTab
+                    completed={completedQuery.data ?? []}
+                    inProgress={inProgressQuery.data ?? []}
+                    savedIds={savedIds}
+                    onToggleSave={handleToggleSave}
+                    isOpen={isCompletedOpen}
+                    onToggle={toggleCompleted}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="saved" className="space-y-3 mt-6">
-                {(() => {
-                  const savedSurveys = savedQuery.data ?? [];
-                  const favouriteCommunities = favouriteCommunitiesQuery.data ?? [];
-                  const joinedCommunities = joinedCommunitiesQuery.data ?? [];
-
-                  const renderSavedSurveyCard = (survey: ApiSurveySummary) => {
-                    const cardStatus = survey.status === "published" ? "active" : survey.status === "closed" ? "closed" : "draft";
-                    return (
-                      <SurveyListCard
-                        key={survey.id}
-                        title={survey.title || "Untitled Survey"}
-                        status={cardStatus}
-                        category={survey.category}
-                        date={survey.created_at}
-                        responseCount={survey.response_count}
-                        targetResponses={survey.target_responses}
-                        action={
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSave(survey.id)}
-                            title={savedIds.has(survey.id) ? "Unsave" : "Save"}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                          >
-                            {savedIds.has(survey.id)
-                              ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" />
-                              : <Bookmark className="h-4 w-4" />
-                            }
-                          </button>
-                        }
-                      />
-                    );
-                  };
-
-                  const handleUnfavouriteCommunity = async (communityId: string) => {
-                    try {
-                      await api.delete(`/communities/${communityId}/favourite`);
-                      await queryClient.invalidateQueries({ queryKey: ["favourite-communities"] });
-                      toast({ title: "Removed from favourites" });
-                    } catch {
-                      toast({ title: "Failed to update favourite", variant: "destructive" });
-                    }
-                  };
-
-                  const toCommunityCardData = (community: ApiCommunitySummary) => ({
-                    id: community.id,
-                    name: community.name,
-                    description: community.description,
-                    icon: COMMUNITY_ICONS[community.icon_name] ?? Users,
-                    members: community.member_count,
-                    surveys: community.survey_count,
-                    activeSurveys: community.active_survey_count,
-                    category: community.category,
-                  });
-
-                  const renderFavouriteCommunityCard = (community: ApiCommunitySummary) => (
-                    <CommunityCard
-                      key={community.id}
-                      community={toCommunityCardData(community)}
-                      onExplore={(id) => navigate(getCommunityRoute(id))}
-                      onFavourite={handleUnfavouriteCommunity}
-                      isFavourited
-                    />
-                  );
-
-                  const renderJoinedCommunityCard = (community: ApiCommunitySummary) => (
-                    <CommunityCard
-                      key={community.id}
-                      community={toCommunityCardData(community)}
-                      onExplore={(id) => navigate(getCommunityRoute(id))}
-                      buttonLabel="Joined"
-                    />
-                  );
-
-                  const sections = [
-                    {
-                      id: "saved-surveys",
-                      label: "Saved Surveys",
-                      icon: <Bookmark className="w-4 h-4" />,
-                      items: savedSurveys,
-                      isLoading: savedQuery.isPending,
-                      renderCard: renderSavedSurveyCard,
-                    },
-                    {
-                      id: "favourite-communities",
-                      label: "Favourited Communities",
-                      icon: <Heart className="w-4 h-4" />,
-                      items: favouriteCommunities,
-                      isLoading: favouriteCommunitiesQuery.isPending,
-                      renderCard: renderFavouriteCommunityCard,
-                      containerClassName: "grid grid-cols-1 gap-6",
-                    },
-                    {
-                      id: "joined-communities",
-                      label: "Joined Communities",
-                      icon: <Users className="w-4 h-4" />,
-                      items: joinedCommunities,
-                      isLoading: joinedCommunitiesQuery.isPending,
-                      renderCard: renderJoinedCommunityCard,
-                      containerClassName: "grid grid-cols-1 gap-6",
-                    },
-                  ];
-
-                  return sections.map(({ id, label, icon, items, isLoading, renderCard, containerClassName }) => {
-                    const isEmpty = !isLoading && items.length === 0;
-                    const open = isBookmarksOpen(id, isEmpty);
-                    return (
-                      <Collapsible key={id} open={open} onOpenChange={() => toggleBookmarks(id, isEmpty)}>
-                        <CollapsibleTrigger asChild>
-                          <button className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl border border-border/60 bg-card/60 backdrop-blur shadow-sm hover:bg-card/90 hover:border-border hover:shadow-elegant transition-all duration-200 group">
-                            <div className="flex items-center gap-3">
-                              <span className="text-primary">{icon}</span>
-                              <h2 className="text-base font-semibold">{label}</h2>
-                              {isLoading ? (
-                                <Badge variant="outline" className="text-xs text-muted-foreground/50">loading</Badge>
-                              ) : isEmpty ? (
-                                <Badge variant="outline" className="text-xs text-muted-foreground/50">empty</Badge>
-                              ) : (
-                                <Badge variant="secondary" className="text-xs tabular-nums">{items.length}</Badge>
-                              )}
-                            </div>
-                            <ChevronDown
-                              className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-transform duration-300 group-data-[state=open]:rotate-180"
-                            />
-                          </button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="collapsible-animate">
-                          <div className="px-2 pt-3 pb-1">
-                            {isLoading ? (
-                              <p className="text-sm text-muted-foreground py-5 pl-1">Loading...</p>
-                            ) : isEmpty ? (
-                              <p className="text-sm text-muted-foreground py-5 pl-1">No {label.toLowerCase()} yet.</p>
-                            ) : (
-                              <div className={containerClassName ?? "space-y-4"}>{items.map((item: any) => renderCard(item))}</div>
-                            )}
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
-                  });
-                })()}
+                <BookmarksTab
+                  savedSurveys={savedQuery.data ?? []}
+                  savedLoading={savedQuery.isPending}
+                  favouriteCommunities={favouriteCommunitiesQuery.data ?? []}
+                  favouriteLoading={favouriteCommunitiesQuery.isPending}
+                  joinedCommunities={joinedCommunitiesQuery.data ?? []}
+                  joinedLoading={joinedCommunitiesQuery.isPending}
+                  savedIds={savedIds}
+                  onToggleSave={handleToggleSave}
+                  favouriteIds={profileFavouriteIds}
+                  onToggleFavourite={handleToggleFavouriteCommunity}
+                  isOpen={isBookmarksOpen}
+                  onToggle={toggleBookmarks}
+                  onNavigate={(id) => navigate(getCommunityRoute(id))}
+                />
               </TabsContent>
 
               <TabsContent value="wallet" className="mt-6">
@@ -758,13 +604,6 @@ const Profile = () => {
                       <div className="p-3 bg-primary/10 rounded-xl">
                         <Sparkles className="w-6 h-6 text-primary" />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <ArrowUpRight className="w-4 h-4 text-green-500" />
-                      <span className="text-green-500 font-medium">
-                        +12%
-                      </span>{" "}
-                      from last month
                     </div>
                   </Card>
 
@@ -784,13 +623,6 @@ const Profile = () => {
                         </div>
                         <BuyCoinsIconLink className="absolute -right-2 -top-2 h-6 w-6 border-yellow-500/40 bg-background p-0" />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <ArrowUpRight className="w-4 h-4 text-green-500" />
-                      <span className="text-green-500 font-medium">
-                        +5%
-                      </span>{" "}
-                      from last month
                     </div>
                   </Card>
                 </div>
@@ -841,7 +673,7 @@ const Profile = () => {
                       asChild
                       variant="outline"
                       size="sm"
-                      className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:text-[hsl(195_85%_28%)] hover:border-primary/50 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.2)] transition-all"
+                      className={BUTTON_STYLES.quietOutline}
                     >
                       <Link to={ROUTES.pricing}>View Pricing Plans</Link>
                     </Button>
@@ -900,7 +732,8 @@ const Profile = () => {
                   </div>
                   {achievementsQuery.data.length > 3 && (
                     <button
-                      className="mt-4 w-full text-sm text-muted-foreground hover:text-primary focus:text-primary transition-colors duration-300 outline-none"
+                      type="button"
+                      className="mt-4 w-full rounded text-sm text-muted-foreground hover:text-primary focus-visible:text-primary transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                       onClick={() => setAchievementsOpen(true)}
                     >
                       View all {achievementsQuery.data.length} achievements
@@ -948,41 +781,6 @@ const Profile = () => {
               </DialogContent>
             </Dialog>
 
-            {/* Aggregation Rating */}
-            <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-success" />
-                Aggregation Rating
-              </h3>
-              <div className="text-center mb-4">
-                <div className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                  92%
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Your responses align well with community consensus
-                </p>
-              </div>
-              <Progress value={92} className="h-3" />
-            </Card>
-
-            {/* Leaderboard */}
-            <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-primary" />
-                Weekly Leaderboard
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Your rank
-                  </span>
-                  <Badge className="bg-gradient-primary">#24</Badge>
-                </div>
-                <div className="text-xs text-muted-foreground text-center py-2">
-                  Top 5% of contributors this week
-                </div>
-              </div>
-            </Card>
           </div>
         </div>
     </AppShell>

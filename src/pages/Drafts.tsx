@@ -1,14 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import SurveyListCard from "@/components/SurveyListCard";
 import { api } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { Loader2, Trash2, FolderOpen, Plus } from "lucide-react";
-import type { SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
+import { useDraftActions } from "@/hooks/use-draft-actions";
 
 interface DraftSummary {
   id: number;
@@ -18,31 +16,9 @@ interface DraftSummary {
   created_at: string;
 }
 
-interface QuestionOut {
-  id: number;
-  order: number;
-  question_type: string;
-  question_text: string;
-  required: boolean;
-  options: Array<{ id: number; text: string }>;
-}
-
-interface SurveyOut {
-  id: number;
-  title: string;
-  description: string;
-  category: string | null;
-  target_responses: number | null;
-  deadline: string | null;
-  questions: QuestionOut[];
-}
-
 const Drafts = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const { loadDraft: handleLoad, deleteDraft: handleDelete, loadingId, deletingId } = useDraftActions();
 
   const { data: allSurveys, isPending } = useQuery({
     queryKey: ["my-surveys"],
@@ -50,52 +26,6 @@ const Drafts = () => {
   });
 
   const drafts = allSurveys?.filter((s) => s.status === "draft") ?? [];
-
-  const handleLoad = async (draftId: number) => {
-    setLoadingId(draftId);
-    try {
-      const survey = await api.get<SurveyOut>(`/surveys/${draftId}`);
-      navigate("/create-survey", {
-        state: {
-          draftId: survey.id,
-          surveyTitle: survey.title,
-          surveyDescription: survey.description,
-          category: survey.category,
-          targetResponses: survey.target_responses,
-          deadline: survey.deadline ? survey.deadline.split("T")[0] : "",
-          questions: survey.questions
-            .sort((a, b) => a.order - b.order)
-            .map((q) => ({
-              question: q.question_text,
-              type: q.question_type as SurveyBuilderQuestionType,
-              required: q.required,
-              options: q.options.map((o) => ({ text: o.text })),
-            })),
-        },
-      });
-    } catch {
-      toast({ title: "Failed to load draft", variant: "destructive" });
-    } finally {
-      setLoadingId(null);
-    }
-  };
-
-  const handleDelete = async (draftId: number) => {
-    setDeletingId(draftId);
-    try {
-      await api.delete(`/surveys/${draftId}`);
-      await queryClient.invalidateQueries({ queryKey: ["my-surveys"] });
-      toast({ title: "Draft deleted" });
-    } catch (err) {
-      toast({
-        title: "Failed to delete draft",
-        description: err instanceof Error ? err.message : "Something went wrong.",
-        variant: "destructive",
-      });
-    } finally {
-      setDeletingId(null);
-    }
-  };
 
   return (
     <AppShell withContainer mainClassName="max-w-4xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">

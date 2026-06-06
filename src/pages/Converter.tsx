@@ -7,7 +7,7 @@ import {
   POINTS_TO_COINS_RATE,
   convertCoinsToPoints,
   convertPointsToCoins,
-} from "@/lib/pricing-data";
+} from "@/features/pricing/domain/pricing-data";
 import { ArrowRightLeft, Coins, Sparkles, Trophy } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
 

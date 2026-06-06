@@ -10,8 +10,8 @@ import { ThemeProvider } from "@/context/ThemeContext";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
   <ThemeProvider>
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
         <TooltipProvider>
           <SmoothScrollProvider>
             <Toaster />
@@ -19,7 +19,7 @@ export const AppProviders = ({ children }: PropsWithChildren) => (
             {children}
           </SmoothScrollProvider>
         </TooltipProvider>
-      </QueryClientProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   </ThemeProvider>
 );

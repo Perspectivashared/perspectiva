@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "@/components/icons/simple-icons";
+import { Loader2 } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 import {
   PROFESSION_OPTIONS,
@@ -27,6 +27,7 @@ import {
   type SignUpFormValues,
 } from "@/features/auth/domain/schemas";
 import { signUp } from "@/features/auth/services/auth-service";
+import { ApiError, RATE_LIMITED } from "@/lib/api";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import AuthPageCard from "@/features/auth/components/AuthPageCard";
 import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
@@ -60,14 +61,14 @@ const SignUp = () => {
 
       navigate(ROUTES.categorizer);
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to create account. Please try again.",
-        variant: "destructive",
-      });
+      const isRateLimited = error instanceof ApiError && error.message === RATE_LIMITED;
+      let description = "Failed to create account. Please try again.";
+      if (isRateLimited) {
+        description = "Too many sign-up attempts. Please wait a moment and try again.";
+      } else if (error instanceof Error) {
+        description = error.message;
+      }
+      toast({ title: isRateLimited ? "Too many attempts" : "Error", description, variant: "destructive" });
     }
   };
 

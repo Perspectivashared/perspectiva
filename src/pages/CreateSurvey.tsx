@@ -12,6 +12,7 @@ import { Plus, Trash2, GripVertical, Copy, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
+  createId,
   createInitialSurveyBuilderState,
   surveyBuilderReducer,
 } from "@/features/survey-builder/domain/reducer";
@@ -41,24 +42,23 @@ interface LocationState {
   }>;
 }
 
-const QUESTION_TYPE_MAP: Record<SurveyBuilderQuestionType, string> = {
-  "short-text": "short-text",
-  "long-text": "long-text",
-  "multiple-choice": "multiple-choice",
-  "checkboxes": "checkboxes",
-  "dropdown": "dropdown",
-  "linear-scale": "linear-scale",
-};
+function parseDeadlineIso(deadline: string): string | null {
+  if (!deadline) return null;
+  const d = new Date(deadline);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
 
 const buildSurveyPayload = (state: ReturnType<typeof createInitialSurveyBuilderState>) => ({
   title: state.surveyTitle.trim(),
   description: state.surveyDescription.trim(),
+  // state.category holds the selected community ID (named "category" for historical reasons).
   community_id: state.category || null,
   target_responses: state.targetResponses,
-  deadline: state.deadline ? new Date(state.deadline).toISOString() : null,
+  deadline: parseDeadlineIso(state.deadline),
   questions: state.questions.map((q, i) => ({
     order: i + 1,
-    question_type: QUESTION_TYPE_MAP[q.type],
+    question_type: q.type,
     question_text: q.question.trim(),
     required: q.required,
     options: q.options.map((o) => ({ text: o.text.trim() })).filter((o) => o.text),
@@ -86,11 +86,11 @@ const CreateSurvey = () => {
           targetResponses: locationState.targetResponses ?? null,
           deadline: locationState.deadline ?? "",
           questions: locationState.questions?.map((q) => ({
-            id: crypto.randomUUID(),
+            id: createId(),
             type: q.type,
             question: q.question,
             required: q.required,
-            options: q.options.map((o) => ({ id: crypto.randomUUID(), text: o.text })),
+            options: q.options.map((o) => ({ id: createId(), text: o.text })),
           })) ?? initial.questions,
         };
       }
@@ -258,6 +258,7 @@ const CreateSurvey = () => {
                     type="date"
                     className="mt-2"
                     value={state.deadline}
+                    min={new Date().toISOString().split("T")[0]}
                     onChange={(event) =>
                       dispatch({ type: "SET_FIELD", field: "deadline", value: event.target.value })
                     }
@@ -409,7 +410,7 @@ const CreateSurvey = () => {
                 {Boolean(draftId) && <span className="ml-2 text-xs text-success">• Draft #{draftId}</span>}
               </div>
               <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={saveDraft} disabled={isSaving}>
+                <Button type="button" variant="outline" onClick={saveDraft} disabled={isSaving || isPublishing}>
                   {isSaving ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>
                   ) : (
@@ -419,7 +420,7 @@ const CreateSurvey = () => {
                 <Button
                   onClick={() => { void publishSurvey(); }}
                   type="button"
-                  disabled={isPublishing}
+                  disabled={isPublishing || isSaving}
                 >
                   {isPublishing ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Publishing...</>

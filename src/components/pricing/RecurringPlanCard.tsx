@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BillingCycle, RecurringPlan } from "@/lib/pricing-data";
+import { BillingCycle, RecurringPlan } from "@/features/pricing/domain/pricing-data";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 

@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
-import { Mail, ShieldCheck, HelpCircle } from "@/components/icons/simple-icons";
+import { Mail, ShieldCheck, HelpCircle } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -200,7 +200,8 @@ const Contact = () => {
 
               <Button
                 type="submit"
-                className="contact-submit"
+                size="lg"
+                className="self-start"
                 disabled={form.formState.isSubmitting}
               >
                 Send message →

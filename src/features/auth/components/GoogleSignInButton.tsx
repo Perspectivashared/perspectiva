@@ -28,6 +28,10 @@ interface GoogleSignInButtonProps {
 
 const CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) ?? "";
 
+if (!CLIENT_ID) {
+  console.warn("[GoogleSignInButton] VITE_GOOGLE_CLIENT_ID is not set. Google sign-in will be disabled.");
+}
+
 const GoogleSignInButton = ({ label = "Sign in with Google" }: GoogleSignInButtonProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { signIn: storeToken } = useAuth();

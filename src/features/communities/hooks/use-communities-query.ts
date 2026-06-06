@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  localCommunityRepository,
+  apiCommunityRepository,
   type CommunityRepository,
 } from "@/features/communities/services/community-repository";
 
-const defaultRepository = localCommunityRepository;
+const defaultRepository = apiCommunityRepository;
 
 export const communitiesKeys = {
   all: ["communities"] as const,
