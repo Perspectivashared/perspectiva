@@ -32,6 +32,7 @@ import {
   Trash2,
   FolderOpen,
   Loader2,
+  CheckCircle2,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -98,11 +99,35 @@ const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
 };
 
 const CATEGORY_GRADIENT: Record<ApiAchievement["category"], string> = {
-  survey:       "from-yellow-500 to-amber-500",
-  engagement:   "from-purple-500 to-pink-500",
-  community:    "from-blue-500 to-cyan-500",
-  milestone:    "from-green-500 to-emerald-500",
-  gamification: "from-orange-500 to-red-500",
+  survey:       "from-amber-500 to-orange-500",
+  engagement:   "from-violet-600 to-pink-600",
+  community:    "from-blue-600 to-cyan-500",
+  milestone:    "from-emerald-600 to-teal-500",
+  gamification: "from-orange-600 to-red-500",
+};
+
+const CATEGORY_LABELS: Record<ApiAchievement["category"], string> = {
+  survey:       "Survey",
+  engagement:   "Engagement",
+  community:    "Community",
+  milestone:    "Milestone",
+  gamification: "Gamification",
+};
+
+const CATEGORY_BG: Record<ApiAchievement["category"], string> = {
+  survey:       "bg-amber-100 dark:bg-amber-900/40",
+  engagement:   "bg-violet-100 dark:bg-violet-900/40",
+  community:    "bg-sky-100 dark:bg-sky-900/40",
+  milestone:    "bg-emerald-100 dark:bg-emerald-900/40",
+  gamification: "bg-orange-100 dark:bg-orange-900/40",
+};
+
+const CATEGORY_ICON_COLOR: Record<ApiAchievement["category"], string> = {
+  survey:       "text-amber-600 dark:text-amber-400",
+  engagement:   "text-violet-600 dark:text-violet-400",
+  community:    "text-sky-600 dark:text-sky-400",
+  milestone:    "text-emerald-600 dark:text-emerald-400",
+  gamification: "text-orange-600 dark:text-orange-400",
 };
 
 const COMMUNITY_ICONS: Record<string, LucideIcon> = {
@@ -332,6 +357,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { loadDraft, deleteDraft, loadingId, deletingId } = useDraftActions();
   const [achievementsOpen, setAchievementsOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<ApiAchievement["category"] | "all">("all");
   const [sectionOpenMap, setSectionOpenMap] = useState<Record<string, boolean>>({});
 
   const isSectionOpen = (ns: string, id: string, isEmpty: boolean) => {
@@ -687,19 +713,23 @@ const Profile = () => {
           <div className="space-y-6">
             {/* Achievements */}
             <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-primary" />
-                Achievements
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-primary" />
+                  Achievements
+                </h3>
+                {!achievementsQuery.isPending && !!achievementsQuery.data?.length && (
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary tabular-nums">
+                    {achievementsQuery.data.length} earned
+                  </span>
+                )}
+              </div>
               {achievementsQuery.isPending ? (
-                <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
                   {[0, 1, 2].map((i) => (
-                    <div key={i} className="flex items-center gap-3 animate-pulse">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-3 w-24 rounded bg-primary/10" />
-                        <div className="h-2 w-36 rounded bg-primary/10" />
-                      </div>
+                    <div key={i} className="flex flex-col items-center gap-2 animate-pulse">
+                      <div className="w-12 h-12 rounded-full bg-primary/10" />
+                      <div className="h-2.5 w-14 rounded bg-primary/10" />
                     </div>
                   ))}
                 </div>
@@ -711,72 +741,154 @@ const Profile = () => {
                 </div>
               ) : (
                 <>
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
                     {achievementsQuery.data.slice(0, 3).map((achievement) => {
                       const Icon = ACHIEVEMENT_ICONS[achievement.icon_name] ?? Award;
-                      const gradient = CATEGORY_GRADIENT[achievement.category];
+                      const iconColor = CATEGORY_ICON_COLOR[achievement.category];
+                      const iconBg = CATEGORY_BG[achievement.category];
                       return (
-                        <div key={achievement.id} className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-glow flex-shrink-0`}>
-                            <Icon className="w-6 h-6 text-white" />
+                        <button
+                          key={achievement.id}
+                          type="button"
+                          onClick={() => setAchievementsOpen(true)}
+                          className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-muted/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                        >
+                          <div className={`w-14 h-14 rounded-full ${iconBg} flex items-center justify-center flex-shrink-0`}>
+                            <Icon className={`w-7 h-7 ${iconColor}`} />
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-medium text-sm">{achievement.name}</div>
-                            <div className="text-xs text-muted-foreground truncate">
-                              {achievement.description}
-                            </div>
-                          </div>
-                        </div>
+                          <span className="text-xs font-medium text-center leading-tight line-clamp-2">{achievement.name}</span>
+                        </button>
                       );
                     })}
                   </div>
-                  {achievementsQuery.data.length > 3 && (
-                    <button
-                      type="button"
-                      className="mt-4 w-full rounded text-sm text-muted-foreground hover:text-primary focus-visible:text-primary transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                      onClick={() => setAchievementsOpen(true)}
-                    >
-                      View all {achievementsQuery.data.length} achievements
-                    </button>
-                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 w-full"
+                    onClick={() => setAchievementsOpen(true)}
+                  >
+                    View all {achievementsQuery.data.length} achievement{achievementsQuery.data.length !== 1 ? "s" : ""}
+                  </Button>
                 </>
               )}
             </Card>
 
             {/* All Achievements Modal */}
-            <Dialog open={achievementsOpen} onOpenChange={setAchievementsOpen}>
-              <DialogContent className="max-w-2xl flex flex-col max-h-[80vh]">
-                <DialogHeader className="pb-2">
-                  <DialogTitle className="flex items-center gap-2 text-xl">
-                    <Award className="w-5 h-5 text-primary" />
-                    All Achievements
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain" data-lenis-prevent>
-                  <div className="space-y-1 py-2">
-                    {achievementsQuery.data?.map((achievement) => {
-                      const Icon = ACHIEVEMENT_ICONS[achievement.icon_name] ?? Award;
-                      const gradient = CATEGORY_GRADIENT[achievement.category];
-                      return (
-                        <div key={achievement.id} className="flex items-center gap-5 px-1 py-3 rounded-xl hover:bg-muted/40 transition-colors">
-                          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-glow flex-shrink-0`}>
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-medium">{achievement.name}</div>
-                            <div className="text-sm text-muted-foreground mt-0.5">
-                              {achievement.description}
-                            </div>
-                            {achievement.unlocked_at && (
-                              <div className="text-xs text-muted-foreground/50 mt-1">
-                                {new Date(achievement.unlocked_at).toLocaleDateString()}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+            <Dialog
+              open={achievementsOpen}
+              onOpenChange={(open) => {
+                setAchievementsOpen(open);
+                if (!open) setActiveCategory("all");
+              }}
+            >
+              <DialogContent className="max-w-2xl flex flex-col max-h-[85vh] gap-0 p-0 overflow-hidden">
+                {/* Decorative header */}
+                <div className="flex items-center gap-4 px-6 py-5 border-b border-border/50 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent flex-shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/25 to-primary/8 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Trophy className="w-5 h-5 text-primary" />
                   </div>
+                  <div>
+                    <DialogTitle className="text-xl font-bold">Achievements</DialogTitle>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {achievementsQuery.data?.length ?? 0} earned
+                    </p>
+                  </div>
+                </div>
+
+                {/* Category filter */}
+                {(() => {
+                  const data = achievementsQuery.data;
+                  if (!data || data.length === 0) return null;
+                  const categories = [...new Set(data.map((a) => a.category))];
+                  if (categories.length <= 1) return null;
+                  return (
+                    <div className="flex items-center gap-2 px-6 py-3 border-b border-border/50 flex-wrap flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setActiveCategory("all")}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                          activeCategory === "all"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        All
+                      </button>
+                      {categories.map((cat) => {
+                        const count = data.filter((a) => a.category === cat).length;
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setActiveCategory(cat)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                              activeCategory === cat
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                            }`}
+                          >
+                            {CATEGORY_LABELS[cat]}
+                            <span className={`ml-1 ${activeCategory === cat ? "opacity-70" : "opacity-50"}`}>({count})</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* Achievement list */}
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4 space-y-2.5" data-lenis-prevent>
+                  {(activeCategory === "all"
+                    ? achievementsQuery.data
+                    : achievementsQuery.data?.filter((a) => a.category === activeCategory)
+                  )?.map((achievement) => {
+                    const Icon = ACHIEVEMENT_ICONS[achievement.icon_name] ?? Award;
+                    const gradient = CATEGORY_GRADIENT[achievement.category];
+                    const iconColor = CATEGORY_ICON_COLOR[achievement.category];
+                    const iconBg = CATEGORY_BG[achievement.category];
+                    return (
+                      <div
+                        key={achievement.id}
+                        className="relative flex items-start gap-4 p-4 rounded-xl border border-border bg-muted/50 shadow-sm hover:bg-muted/80 transition-colors overflow-hidden"
+                      >
+                        {/* Left category accent strip */}
+                        <div className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${gradient}`} />
+                        {/* Icon */}
+                        <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                          <Icon className={`w-6 h-6 ${iconColor}`} />
+                        </div>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 flex-wrap">
+                            <span className="font-semibold text-sm">{achievement.name}</span>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {achievement.points_reward > 0 && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/12 text-primary font-semibold">
+                                  +{achievement.points_reward} pts
+                                </span>
+                              )}
+                              {achievement.coins_reward > 0 && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 font-semibold">
+                                  +{achievement.coins_reward} coins
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1 leading-snug">{achievement.description}</p>
+                          {achievement.unlocked_at && (
+                            <p className="text-xs text-muted-foreground/50 mt-2 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-success" />
+                              {new Date(achievement.unlocked_at).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </DialogContent>
             </Dialog>
