@@ -54,6 +54,7 @@ import {
   fetchUserProfile,
 } from "@/features/profile/services/profile-service";
 import { AppShell } from "@/shared/components/layout/AppShell";
+import { EmailVerificationBanner } from "@/shared/components/EmailVerificationBanner";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES, getCommunityRoute } from "@/lib/routes";
 import { BUTTON_STYLES } from "@/lib/button-styles";
@@ -412,6 +413,13 @@ const Profile = () => {
   });
   const user = profileQuery.data ?? defaultProfile;
 
+  // Derive counts from already-fetched separate queries (avoids duplicate calls
+  // that were previously inside fetchUserProfile).
+  const surveysCreated = (surveysQuery.data ?? []).filter(
+    (s) => s.status === "published" || s.status === "closed",
+  ).length;
+  const surveysCompleted = (completedQuery.data ?? []).length;
+
   const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQuery.data ?? []);
   const { favouriteIds: profileFavouriteIds, toggleFavourite: handleToggleFavouriteCommunity } =
     useFavouriteCommunity(favouriteCommunitiesQuery.data ?? []);
@@ -453,6 +461,11 @@ const Profile = () => {
       mainClassName="max-w-6xl px-4 pb-12 pt-24"
       backgroundClassName="bg-gradient-subtle"
     >
+        {/* Email verification banner */}
+        {!user.emailVerified && (
+          <EmailVerificationBanner email={user.email} />
+        )}
+
         {/* Profile Header */}
         <Card className="p-8 mb-8 border-border/50 bg-card/50 backdrop-blur">
           <div className="flex flex-col md:flex-row items-start gap-6">
@@ -519,7 +532,7 @@ const Profile = () => {
                     <FileText className="w-5 h-5 text-accent" />
                   </div>
                   <div className="text-2xl font-bold text-accent">
-                    {user.surveysCompleted}
+                    {completedQuery.isPending ? "…" : surveysCompleted}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Surveys Completed
@@ -531,10 +544,10 @@ const Profile = () => {
                     <Users className="w-5 h-5 text-success" />
                   </div>
                   <div className="text-2xl font-bold text-success">
-                    {user.surveysCreated}
+                    {surveysQuery.isPending ? "…" : surveysCreated}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Surveys Created
+                    Surveys Published
                   </div>
                 </div>
 

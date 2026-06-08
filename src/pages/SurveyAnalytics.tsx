@@ -1384,6 +1384,11 @@ const SurveyAnalytics = () => {
             <Link to={ROUTES.profile}><ArrowLeft className="mr-2 h-4 w-4" />Back to Profile</Link>
           </Button>
           <div className="ml-auto flex gap-2">
+            <Button variant="outline" asChild className="gap-2">
+              <Link to={`/surveys/compare?ids=${surveyId ?? ""}`}>
+                <Copy className="h-4 w-4" />Compare
+              </Link>
+            </Button>
             <Button variant="outline" onClick={() => exportToCSV(data)} className="gap-2">
               <Download className="h-4 w-4" />CSV
             </Button>

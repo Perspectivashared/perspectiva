@@ -34,7 +34,10 @@ export const createEmptyQuestion = (): DraftQuestion => ({
 export const createInitialSurveyBuilderState = (): SurveyBuilderState => ({
   surveyTitle: "",
   surveyDescription: "",
+  acknowledgement: "",
   category: "",
+  surveyCategory: "",
+  timeLimitMinutes: null,
   targetResponses: null,
   deadline: "",
   questions: [createEmptyQuestion()],

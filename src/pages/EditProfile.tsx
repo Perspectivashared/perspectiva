@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
+import { queryKeys, invalidateUserProfile } from "@/lib/query-keys";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ const EditProfile = () => {
   const { toast } = useToast();
 
   const { data: user, isPending } = useQuery({
-    queryKey: ["me-raw"],
+    queryKey: queryKeys.meRaw(),
     queryFn: () => api.get<ApiUser>("/users/me"),
   });
 
@@ -63,10 +64,20 @@ const EditProfile = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormValues) => api.put("/users/me", data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      queryClient.invalidateQueries({ queryKey: ["me-raw"] });
+    mutationFn: (data: FormValues) => {
+      // Convert empty strings to undefined so the backend excludes them
+      // from model_dump(exclude_none=True) and avoids overwriting with "".
+      const payload: Record<string, unknown> = {
+        name: data.name,
+        profession: data.profession,
+        institution: data.institution || undefined,
+        category: data.category || undefined,
+        sub_category: data.sub_category || undefined,
+      };
+      return api.put("/users/me", payload);
+    },
+    onSuccess: async () => {
+      await invalidateUserProfile(queryClient);
       toast({ title: "Profile updated" });
       navigate(ROUTES.profile);
     },

@@ -24,7 +24,7 @@ import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { ROUTES } from "@/lib/routes";
+import { getSurveyRoute } from "@/lib/routes";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -94,14 +94,14 @@ const SurveyCardComponent = ({
   return (
     // No focus-within ring — it leaks from child buttons and causes the blue-ring artifact
     <Card
-      onClick={() => navigate(ROUTES.survey, { state: { surveyId: String(survey.id), source: "for-you" } })}
+      onClick={() => navigate(getSurveyRoute(survey.id))}
       className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
     >
       {/* Top-right: Take Survey button + Save button */}
       <div className="absolute right-4 top-4 z-10 flex items-center gap-1.5">
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); navigate(ROUTES.survey, { state: { surveyId: String(survey.id), source: "for-you" } }); }}
+          onClick={(e) => { e.stopPropagation(); navigate(getSurveyRoute(survey.id)); }}
           aria-label="Take survey"
           className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[190ms] ease-out hover:shadow-glow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-[7rem]"
         >

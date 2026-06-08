@@ -24,8 +24,12 @@ export interface AddOn {
   includedIn?: string;
 }
 
+/** backendKey must match the COIN_BUNDLES dict keys in app/payments/router.py */
+export type CoinBundleKey = "starter" | "basic" | "pro" | "enterprise";
+
 export interface CoinBundle {
   id: string;
+  backendKey: CoinBundleKey;
   coins: number;
   bonusCoins?: number;
   price: number;
@@ -178,33 +182,40 @@ export const ADD_ONS: readonly AddOn[] = [
   },
 ];
 
+/**
+ * Coin bundles — amounts and keys must stay in sync with COIN_BUNDLES in
+ * insight-forge-api/app/payments/router.py.
+ *   starter: 100  basic: 300  pro: 750  enterprise: 2000
+ */
 export const COIN_BUNDLES: readonly CoinBundle[] = [
   {
-    id: "bundle-100",
+    id: "starter",
+    backendKey: "starter",
     coins: 100,
     price: 12,
   },
   {
-    id: "bundle-250",
-    coins: 250,
-    bonusCoins: 25,
-    price: 28,
-    discountPercent: 6,
+    id: "basic",
+    backendKey: "basic",
+    coins: 300,
+    price: 30,
     recommended: true,
   },
   {
-    id: "bundle-500",
-    coins: 500,
-    bonusCoins: 70,
-    price: 54,
+    id: "pro",
+    backendKey: "pro",
+    coins: 750,
+    bonusCoins: 50,
+    price: 68,
     discountPercent: 10,
   },
   {
-    id: "bundle-1200",
-    coins: 1200,
-    bonusCoins: 220,
-    price: 118,
-    discountPercent: 16,
+    id: "enterprise",
+    backendKey: "enterprise",
+    coins: 2000,
+    bonusCoins: 200,
+    price: 160,
+    discountPercent: 18,
   },
 ];
 

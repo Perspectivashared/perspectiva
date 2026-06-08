@@ -3,15 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { queryKeys } from "@/lib/query-keys";
 import type { SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
 
 interface ApiDraftSurvey {
   id: number;
   title: string;
   description: string;
+  acknowledgement: string;
+  /** Survey subject category (e.g. "Technology"). Maps to surveyCategory in the builder. */
   category: string | null;
+  /** Community this survey belongs to. Maps to category (community selector) in the builder. */
+  community_id: string | null;
   target_responses: number | null;
   deadline: string | null;
+  time_limit_minutes: number | null;
   questions: Array<{
     order: number;
     question_type: string;
@@ -23,8 +29,7 @@ interface ApiDraftSurvey {
 
 /**
  * Provides stable `loadDraft` and `deleteDraft` actions used on both the
- * Profile and Drafts pages. Eliminates the identical implementation that
- * previously lived in each page independently.
+ * Profile and Drafts pages.
  */
 export function useDraftActions() {
   const navigate = useNavigate();
@@ -42,7 +47,12 @@ export function useDraftActions() {
           draftId: survey.id,
           surveyTitle: survey.title,
           surveyDescription: survey.description,
-          category: survey.category,
+          acknowledgement: survey.acknowledgement,
+          // category field in the builder holds the community ID
+          category: survey.community_id,
+          // surveyCategory holds the survey's subject category
+          surveyCategory: survey.category,
+          timeLimitMinutes: survey.time_limit_minutes,
           targetResponses: survey.target_responses,
           deadline: survey.deadline ? survey.deadline.split("T")[0] : "",
           questions: survey.questions
@@ -70,7 +80,7 @@ export function useDraftActions() {
     setDeletingId(surveyId);
     try {
       await api.delete(`/surveys/${surveyId}`);
-      await queryClient.invalidateQueries({ queryKey: ["my-surveys"] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.mySurveys() });
       toast({ title: "Draft deleted" });
     } catch (err) {
       toast({

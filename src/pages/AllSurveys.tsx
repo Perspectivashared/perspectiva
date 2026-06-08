@@ -27,7 +27,7 @@ const AllSurveys = () => {
 
   const publishedQ = useQuery({
     queryKey: ["published-surveys"],
-    queryFn: () => api.get<ApiSurveySummary[]>("/surveys/published"),
+    queryFn: () => api.get<ApiSurveySummary[]>("/surveys/published?limit=100"),
   });
 
   const savedQ = useQuery({

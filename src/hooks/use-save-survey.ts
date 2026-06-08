@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { api, SESSION_EXPIRED } from "@/lib/api";
+import { api, ApiError, SESSION_EXPIRED } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 /**

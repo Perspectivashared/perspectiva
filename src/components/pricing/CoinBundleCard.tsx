@@ -2,12 +2,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BUTTON_STYLES } from "@/lib/button-styles";
-import { CoinBundle, getTotalCoinsForBundle } from "@/features/pricing/domain/pricing-data";
+import { type CoinBundle, getTotalCoinsForBundle } from "@/features/pricing/domain/pricing-data";
+import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { Coins, Loader2, Sparkles } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+
+interface CoinPurchaseResponse {
+  coins_added: number;
+  new_balance: number;
+}
 
 interface CoinBundleCardProps {
   bundle: CoinBundle;
@@ -27,13 +33,13 @@ const CoinBundleCard = ({ bundle }: CoinBundleCardProps) => {
 
   const mutation = useMutation({
     mutationFn: () =>
-      api.post("/payments/coins/purchase", {
-        coins: totalCoins,
-        bundle_name: `${bundle.coins} Coins`,
+      api.post<CoinPurchaseResponse>("/payments/coins/purchase", {
+        bundle_name: bundle.backendKey,
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast({ title: `Coins purchased! ${totalCoins} coins added to your balance.` });
+    onSuccess: (data) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.userProfile() });
+      toast({ title: `${data.coins_added.toLocaleString()} coins added to your balance!` });
     },
     onError: () => {
       toast({ title: "Failed to purchase coins", variant: "destructive" });

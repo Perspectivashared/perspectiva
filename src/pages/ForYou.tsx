@@ -9,7 +9,8 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
-import { ROUTES, getCommunityRoute, getSurveyEditRoute } from "@/lib/routes";
+import { ROUTES, getCommunityRoute, getSurveyEditRoute, getSurveyRoute } from "@/lib/routes";
+import type { ApiCommunitySummary } from "@/shared/types/api-community";
 import { BUTTON_STYLES } from "@/lib/button-styles";
 import {
   Search,
@@ -30,6 +31,7 @@ import {
   Users,
 } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
+import { EmailVerificationBanner } from "@/shared/components/EmailVerificationBanner";
 import { api } from "@/lib/api";
 import { useSaveSurvey } from "@/hooks/use-save-survey";
 import { useFavouriteCommunity } from "@/hooks/use-favourite-community";
@@ -53,6 +55,7 @@ interface InProgressEntry {
 interface ApiUserProfile {
   category: string | null;
   sub_category: string | null;
+  email_verified: boolean;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -156,7 +159,7 @@ const ForYou = () => {
 
   const publishedQ = useQuery({
     queryKey: ["published-surveys"],
-    queryFn: () => api.get<ApiSurveySummary[]>("/surveys/published"),
+    queryFn: () => api.get<ApiSurveySummary[]>("/surveys/published?limit=100"),
   });
 
   const mySurveysQ = useQuery({
@@ -183,12 +186,12 @@ const ForYou = () => {
 
   const favouritesQ = useQuery({
     queryKey: ["favourite-communities"],
-    queryFn: () => api.get<Array<{ id: string }>>("/users/me/favourite-communities"),
+    queryFn: () => api.get<ApiCommunitySummary[]>("/users/me/favourite-communities"),
   });
 
   const joinedQ = useQuery({
     queryKey: ["joined-communities"],
-    queryFn: () => api.get<Array<{ id: string }>>("/users/me/joined-communities"),
+    queryFn: () => api.get<ApiCommunitySummary[]>("/users/me/joined-communities"),
   });
 
   const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQ.data ?? []);
@@ -322,7 +325,7 @@ const ForYou = () => {
 
   // Joined community IDs
   const joinedIds = useMemo(
-    () => new Set((joinedQ.data ?? []).map((c) => c.id)),
+    () => new Set<string>((joinedQ.data ?? []).map((c) => c.id)),
     [joinedQ.data],
   );
 
@@ -432,7 +435,7 @@ const ForYou = () => {
                 size="sm"
                 className="shrink-0"
               >
-                <Link to={ROUTES.survey} state={{ surveyId: entry.surveyId, source: "for-you" }}>
+                <Link to={getSurveyRoute(entry.surveyId)}>
                   Continue
                 </Link>
               </Button>
@@ -693,12 +696,18 @@ const ForYou = () => {
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
+  const showVerificationBanner =
+    profileQ.data !== undefined && profileQ.data.email_verified === false;
+
   return (
     <AppShell
       withContainer
       mainClassName="px-4 pb-16 pt-24"
       backgroundClassName="bg-background"
     >
+      {/* Email verification banner */}
+      {showVerificationBanner && <EmailVerificationBanner />}
+
       {/* Page header */}
       <div className="mb-10">
         <h1 className="text-4xl font-bold mb-2">

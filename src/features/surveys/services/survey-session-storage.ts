@@ -6,11 +6,16 @@ import {
 
 const getProgressStorageKey = (surveyId: string) => `survey-progress:${surveyId}`;
 
-const saveProgress = (surveyId: string, answers: SurveyAnswerMap) => {
+const saveProgress = (
+  surveyId: string,
+  answers: SurveyAnswerMap,
+  startedAt?: string,
+) => {
   const payload: StoredSurveyProgress = {
     surveyId,
     answers,
     updatedAt: new Date().toISOString(),
+    startedAt,
   };
 
   globalThis.localStorage.setItem(

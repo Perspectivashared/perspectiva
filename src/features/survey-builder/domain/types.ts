@@ -6,7 +6,20 @@ export type SurveyBuilderQuestionType =
   | "dropdown"
   | "linear-scale";
 
-export type SurveyCategory = "tech" | "business" | "economics" | "sports";
+/** Must stay in sync with CATEGORY_LIST in SurveyCard.tsx */
+export type SurveyCategory =
+  | "Technology"
+  | "Economics"
+  | "Business"
+  | "Sports Science"
+  | "Research"
+  | "Education"
+  | "Health Sciences"
+  | "Climate Policy"
+  | "Design Thinking"
+  | "Public Policy"
+  | "Psychology"
+  | "Media Studies";
 
 export interface QuestionOption {
   id: string;
@@ -24,7 +37,13 @@ export interface DraftQuestion {
 export interface DraftSurvey {
   surveyTitle: string;
   surveyDescription: string;
-  category: SurveyCategory | "";
+  acknowledgement: string;
+  /** Holds the selected community ID (field intentionally named "category" in the reducer
+   *  for historical reasons — maps to community_id in the API payload). */
+  category: string;
+  /** The survey's subject category (e.g. "Technology", "Economics"). Maps to category in the API. */
+  surveyCategory: string;
+  timeLimitMinutes: number | null;
   targetResponses: number | null;
   deadline: string;
   questions: DraftQuestion[];

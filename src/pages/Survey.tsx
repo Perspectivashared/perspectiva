@@ -1,6 +1,6 @@
-import { type FormEvent, useCallback, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { ROUTES } from "@/lib/routes";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 import {
   formatSurveyDate,
   normalizeSurveyDefinition,
@@ -28,7 +29,7 @@ import {
 import { renderSurveyQuestionInput } from "@/features/surveys/components/question-inputs";
 import { browserSurveySessionStorage } from "@/features/surveys/services/survey-session-storage";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { CalendarClock, CheckCircle2, Clock3, ListChecks, Star } from "lucide-react";
+import { CalendarClock, CheckCircle2, Clock, Clock3, ListChecks, Star } from "lucide-react";
 import { API_TO_QUESTION_TYPE } from "@/features/surveys/domain/question-type-mappers";
 
 // --- API types ---
@@ -52,6 +53,7 @@ interface ApiSurvey {
   title: string;
   description: string;
   acknowledgement: string;
+  status: string;
   deadline: string | null;
   time_limit_minutes: number | null;
   published_at: string | null;
@@ -59,10 +61,24 @@ interface ApiSurvey {
   questions: ApiSurveyQuestion[];
 }
 
+interface ApiAchievement {
+  id: number;
+  name: string;
+  description: string;
+  points_reward: number;
+  coins_reward: number;
+}
+
+interface SubmitResponseOut {
+  response_id: number;
+  points_earned: number;
+  newly_unlocked_achievements?: ApiAchievement[];
+}
+
 function mapQuestionType(backendType: string): QuestionType {
   const mapped = API_TO_QUESTION_TYPE[backendType];
   if (!mapped) {
-    console.warn(`[Survey] Unknown question type from backend: "${backendType}". Falling back to shortText.`);
+    console.warn(`[Survey] Unknown question type: "${backendType}". Falling back to shortText.`);
     return "shortText";
   }
   return mapped;
@@ -88,24 +104,25 @@ function apiSurveyToRaw(survey: ApiSurvey): RawSurveyPayload {
   };
 }
 
-// --- Answer serialization ---
 function serializeAnswer(value: SurveyAnswerValue): string {
   if (value === null || value === undefined) return "";
   if (Array.isArray(value)) return value.join(",");
   return String(value);
 }
 
-const Survey = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
+function formatCountdown(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
-  const requestedSurveyId = (() => {
-    const state = location.state as { surveyId?: string } | null;
-    const fromState = state?.surveyId?.trim();
-    const fromQuery = new URLSearchParams(location.search).get("surveyId")?.trim();
-    return fromState || fromQuery || null;
-  })();
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const Survey = () => {
+  const { surveyId } = useParams<{ surveyId: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [hasAcceptedAcknowledgement, setHasAcceptedAcknowledgement] = useState(false);
   const [acknowledgementChecked, setAcknowledgementChecked] = useState(false);
@@ -118,44 +135,97 @@ const Survey = () => {
   const [selectedRating, setSelectedRating] = useState(0);
   const [isRating, setIsRating] = useState(false);
 
+  // Completion time tracking
+  const startedAtRef = useRef<number | null>(null);
+
+  // Time limit countdown
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState<number | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const { data: survey, isPending: isLoadingSurvey, error: surveyError } = useQuery({
-    queryKey: ["survey", requestedSurveyId],
+    queryKey: queryKeys.survey(surveyId ?? ""),
     queryFn: async () => {
-      if (!requestedSurveyId) throw new Error("No survey ID provided.");
-      const apiSurvey = await api.get<ApiSurvey>(`/surveys/${requestedSurveyId}`);
+      if (!surveyId) throw new Error("No survey ID provided.");
+      const apiSurvey = await api.get<ApiSurvey>(`/surveys/${surveyId}`);
+      if (apiSurvey.status === "closed") {
+        throw new ApiError(410, "This survey has closed.");
+      }
       const raw = apiSurveyToRaw(apiSurvey);
-      return normalizeSurveyDefinition(raw, raw.surveyId);
+      return { normalized: normalizeSurveyDefinition(raw, raw.surveyId), raw: apiSurvey };
     },
-    enabled: !!requestedSurveyId,
+    enabled: !!surveyId,
     staleTime: 0,
     retry: false,
   });
 
-  const loadError = !requestedSurveyId
+  const normalizedSurvey = survey?.normalized;
+  const isClosed = surveyError instanceof ApiError && surveyError.status === 410;
+  const loadError = !surveyId
     ? "No survey ID provided."
-    : surveyError instanceof Error ? surveyError.message : surveyError ? "Failed to load survey." : null;
+    : isClosed
+    ? null // handled separately
+    : surveyError instanceof Error ? surveyError.message
+    : surveyError ? "Failed to load survey."
+    : null;
 
-  // Restore saved progress when a new survey loads.
+  // Restore saved progress when survey loads
   useEffect(() => {
-    if (!survey) return;
+    if (!normalizedSurvey) return;
     setHasAcceptedAcknowledgement(false);
     setAcknowledgementChecked(false);
     setValidationErrors({});
-    const restoredProgress = browserSurveySessionStorage.loadProgress(survey.surveyId);
+    const restoredProgress = browserSurveySessionStorage.loadProgress(normalizedSurvey.surveyId);
     if (restoredProgress) {
       setAnswers(restoredProgress.answers);
+      if (restoredProgress.startedAt) {
+        startedAtRef.current = new Date(restoredProgress.startedAt).getTime();
+      }
       toast({ title: "Draft restored", description: "Saved survey progress has been loaded." });
     } else {
       setAnswers({});
     }
-  }, [survey, toast]);
+  }, [normalizedSurvey, toast]);
 
-  const orderedQuestions = survey?.questions ?? [];
+  // Start time limit countdown when the user begins the survey
+  useEffect(() => {
+    if (!hasAcceptedAcknowledgement || !normalizedSurvey?.timeLimitMinutes) {
+      return;
+    }
 
+    const totalSeconds = normalizedSurvey.timeLimitMinutes * 60;
+    const elapsed = startedAtRef.current
+      ? Math.floor((Date.now() - startedAtRef.current) / 1000)
+      : 0;
+    const remaining = Math.max(0, totalSeconds - elapsed);
+    setTimeRemainingSeconds(remaining);
+
+    countdownRef.current = setInterval(() => {
+      setTimeRemainingSeconds((prev) => {
+        if (prev === null || prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [hasAcceptedAcknowledgement, normalizedSurvey?.timeLimitMinutes]);
+
+  // Auto-submit when time runs out
+  useEffect(() => {
+    if (timeRemainingSeconds === 0 && hasAcceptedAcknowledgement && !isSubmitting && !submittedSurveyId) {
+      toast({ title: "Time's up!", description: "Submitting your responses automatically.", variant: "destructive" });
+      void submitAnswers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeRemainingSeconds]);
+
+  const orderedQuestions = normalizedSurvey?.questions ?? [];
   const answeredCount = orderedQuestions.filter((q) => hasSurveyAnswer(q, answers[q.id])).length;
-
-  const progressValue =
-    orderedQuestions.length === 0 ? 0 : (answeredCount / orderedQuestions.length) * 100;
+  const progressValue = orderedQuestions.length === 0 ? 0 : (answeredCount / orderedQuestions.length) * 100;
 
   const updateAnswer = useCallback((questionId: string, value: SurveyAnswerValue) => {
     setAnswers((current) => ({ ...current, [questionId]: value }));
@@ -167,32 +237,51 @@ const Survey = () => {
     });
   }, []);
 
+  const handleAcceptAcknowledgement = () => {
+    const now = Date.now();
+    startedAtRef.current = now;
+    // Persist startedAt so a resumed session can calculate elapsed time
+    if (normalizedSurvey) {
+      browserSurveySessionStorage.saveProgress(
+        normalizedSurvey.surveyId,
+        answers,
+        new Date(now).toISOString(),
+      );
+    }
+    setHasAcceptedAcknowledgement(true);
+  };
+
   const handleDeclineSurvey = () => navigate(ROUTES.forYou, { replace: true });
 
   const handleContinueLater = () => {
-    if (!survey) return;
-    browserSurveySessionStorage.saveProgress(survey.surveyId, answers);
+    if (!normalizedSurvey) return;
+    browserSurveySessionStorage.saveProgress(
+      normalizedSurvey.surveyId,
+      answers,
+      startedAtRef.current ? new Date(startedAtRef.current).toISOString() : undefined,
+    );
     toast({ title: "Progress saved", description: "You can continue this survey later." });
     navigate(ROUTES.forYou);
   };
 
   const handleExitSurvey = () => {
-    if (survey) browserSurveySessionStorage.clearProgress(survey.surveyId);
+    if (normalizedSurvey) browserSurveySessionStorage.clearProgress(normalizedSurvey.surveyId);
     setAnswers({});
     setValidationErrors({});
-    toast({ title: "Survey exited", description: "You have opted out of this survey.", variant: "destructive" });
+    toast({ title: "Survey exited", variant: "destructive" });
     navigate(ROUTES.forYou);
   };
 
-  const handleSubmitSurvey = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!survey || !requestedSurveyId) return;
+  const submitAnswers = async (skipValidation = false) => {
+    if (!normalizedSurvey || !surveyId) return;
 
-    const requiredErrors = getSurveyRequiredErrors(orderedQuestions, answers);
-    if (Object.keys(requiredErrors).length > 0) {
-      setValidationErrors(requiredErrors);
-      toast({ title: "Missing required responses", description: "Please complete all required questions.", variant: "destructive" });
-      return;
+    if (!skipValidation) {
+      const requiredErrors = getSurveyRequiredErrors(orderedQuestions, answers);
+      if (Object.keys(requiredErrors).length > 0) {
+        setValidationErrors(requiredErrors);
+        toast({ title: "Missing required responses", description: "Please complete all required questions.", variant: "destructive" });
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -202,20 +291,37 @@ const Survey = () => {
         answer_text: serializeAnswer(answers[q.id] ?? null),
       }));
 
-      const result = await api.post<{ response_id: number; points_earned: number }>(
-        `/surveys/${requestedSurveyId}/submit`,
-        { answers: answersPayload },
+      const completionSeconds = startedAtRef.current
+        ? Math.round((Date.now() - startedAtRef.current) / 1000)
+        : undefined;
+
+      const result = await api.post<SubmitResponseOut>(
+        `/surveys/${surveyId}/submit`,
+        { answers: answersPayload, completion_seconds: completionSeconds },
       );
 
-      browserSurveySessionStorage.clearProgress(survey.surveyId);
+      browserSurveySessionStorage.clearProgress(normalizedSurvey.surveyId);
 
       toast({
         title: "Survey submitted!",
         description: `You earned ${result.points_earned} point${result.points_earned === 1 ? "" : "s"}!`,
       });
 
+      // Show achievement unlock toasts
+      if (result.newly_unlocked_achievements?.length) {
+        for (const achievement of result.newly_unlocked_achievements) {
+          toast({
+            title: `Achievement unlocked: ${achievement.name}`,
+            description: `${achievement.description}${achievement.points_reward > 0 ? ` (+${achievement.points_reward} pts)` : ""}`,
+          });
+        }
+      }
+
+      // Invalidate achievements so Profile shows the new ones
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myAchievements() });
+
       setPointsEarned(result.points_earned);
-      setSubmittedSurveyId(requestedSurveyId);
+      setSubmittedSurveyId(surveyId);
     } catch (err) {
       console.error("[Survey] Submission failed:", err);
       toast({
@@ -226,6 +332,11 @@ const Survey = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSubmitSurvey = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await submitAnswers(false);
   };
 
   const submitRating = async () => {
@@ -240,6 +351,8 @@ const Survey = () => {
       navigate(ROUTES.forYou);
     }
   };
+
+  // ─── Render states ────────────────────────────────────────────────────────
 
   if (submittedSurveyId) {
     return (
@@ -276,9 +389,7 @@ const Survey = () => {
             ))}
           </div>
           <div className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={() => navigate(ROUTES.forYou)}>
-              Skip
-            </Button>
+            <Button variant="outline" onClick={() => navigate(ROUTES.forYou)}>Skip</Button>
             <Button
               disabled={!selectedRating || isRating}
               onClick={() => { void submitRating(); }}
@@ -301,7 +412,22 @@ const Survey = () => {
     );
   }
 
-  if (loadError || !survey) {
+  if (isClosed) {
+    return (
+      <AppShell withContainer mainClassName="max-w-4xl pb-12 pt-24">
+        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur text-center">
+          <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mx-auto">
+            <Clock className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h1 className="text-2xl font-semibold">Survey Closed</h1>
+          <p className="text-muted-foreground">This survey is no longer accepting responses.</p>
+          <Button onClick={() => navigate(ROUTES.forYou)}>Browse Open Surveys</Button>
+        </Card>
+      </AppShell>
+    );
+  }
+
+  if (loadError || !normalizedSurvey) {
     return (
       <AppShell withContainer mainClassName="max-w-4xl pb-12 pt-24">
         <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur">
@@ -313,26 +439,51 @@ const Survey = () => {
     );
   }
 
+  const timeLimitWarning =
+    timeRemainingSeconds !== null && timeRemainingSeconds <= 120 && timeRemainingSeconds > 0;
+  const timeLimitCritical =
+    timeRemainingSeconds !== null && timeRemainingSeconds <= 30 && timeRemainingSeconds > 0;
+
   return (
     <AppShell withContainer mainClassName="max-w-4xl space-y-6 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
+      {/* Survey info card */}
       <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur">
         <div>
-          <h1 className="mb-2 text-3xl font-bold">{survey.title}</h1>
-          <p className="text-muted-foreground">{survey.description}</p>
+          <h1 className="mb-2 text-3xl font-bold">{normalizedSurvey.title}</h1>
+          <p className="text-muted-foreground">{normalizedSurvey.description}</p>
         </div>
 
         <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
           <div className="flex items-center gap-2">
             <CalendarClock className="h-4 w-4" />
-            <span>Start: {formatSurveyDate(survey.startDate)}</span>
+            <span>Start: {formatSurveyDate(normalizedSurvey.startDate)}</span>
           </div>
           <div className="flex items-center gap-2">
             <CalendarClock className="h-4 w-4" />
-            <span>End: {formatSurveyDate(survey.endDate)}</span>
+            <span>End: {formatSurveyDate(normalizedSurvey.endDate)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock3 className="h-4 w-4" />
-            <span>Time limit: {survey.timeLimitMinutes ?? "N/A"} mins</span>
+            <span>
+              Time limit:{" "}
+              {timeRemainingSeconds !== null ? (
+                <span
+                  className={`font-semibold tabular-nums ${
+                    timeLimitCritical
+                      ? "text-destructive"
+                      : timeLimitWarning
+                      ? "text-amber-500"
+                      : ""
+                  }`}
+                >
+                  {formatCountdown(timeRemainingSeconds)} remaining
+                </span>
+              ) : normalizedSurvey.timeLimitMinutes ? (
+                `${normalizedSurvey.timeLimitMinutes} mins`
+              ) : (
+                "N/A"
+              )}
+            </span>
           </div>
         </div>
       </Card>
@@ -381,10 +532,7 @@ const Survey = () => {
                 Continue Later
               </Button>
             </div>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit Survey"}
             </Button>
           </div>
@@ -392,7 +540,7 @@ const Survey = () => {
       ) : (
         <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur">
           <h2 className="mb-4 text-2xl font-semibold">Acknowledgement</h2>
-          <p className="mb-4 text-muted-foreground">{survey.acknowledgement}</p>
+          <p className="mb-4 text-muted-foreground">{normalizedSurvey.acknowledgement}</p>
           <div className="flex items-center space-x-2">
             <Checkbox
               id="acknowledge"
@@ -404,7 +552,7 @@ const Survey = () => {
           <div className="mt-6 flex gap-3">
             <Button variant="outline" onClick={handleDeclineSurvey}>Decline</Button>
             <Button
-              onClick={() => setHasAcceptedAcknowledgement(true)}
+              onClick={handleAcceptAcknowledgement}
               disabled={!acknowledgementChecked}
             >
               Accept and Start

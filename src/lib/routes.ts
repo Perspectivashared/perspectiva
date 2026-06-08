@@ -5,11 +5,17 @@ export const ROUTES = APP_ROUTE_PATHS;
 export const getCommunityRoute = (communityId: string) =>
   `/communities/${communityId}`;
 
-export const getSurveyEditRoute = (surveyId: string) =>
-  `/survey/${surveyId}/edit`;
+export const getSurveyRoute = (surveyId: string | number) =>
+  `/surveys/${surveyId}`;
 
-export const getSurveyResultsRoute = (surveyId: string) =>
-  `/survey/${surveyId}/results`;
+export const getSurveyEditRoute = (surveyId: string | number) =>
+  `/surveys/${surveyId}/edit`;
+
+export const getSurveyAnalyticsRoute = (surveyId: string | number) =>
+  `/surveys/${surveyId}/analytics`;
+
+export const getSurveyResultsRoute = (surveyId: string | number) =>
+  `/surveys/${surveyId}/analytics`;
 
 export const LANDING_SECTION_IDS = {
   howItWorks: "how-it-works",

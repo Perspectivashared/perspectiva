@@ -46,7 +46,7 @@ const GoogleSignInButton = ({ label = "Sign in with Google" }: GoogleSignInButto
         await api.post("/auth/google", { id_token: credential });
         storeToken();
         toast({ title: "Signed in with Google" });
-        navigate(ROUTES.home);
+        navigate(ROUTES.forYou);
       } catch {
         toast({ title: "Google sign-in failed", variant: "destructive" });
       }

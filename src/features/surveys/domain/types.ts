@@ -82,11 +82,13 @@ export type StoredSurveyProgress = {
   surveyId: string;
   answers: SurveyAnswerMap;
   updatedAt: string;
+  /** ISO timestamp when the user first accepted the acknowledgement (for completion time tracking). */
+  startedAt?: string;
 };
 
 export interface SurveySessionStorage {
   getProgressKey: (surveyId: string) => string;
-  saveProgress: (surveyId: string, answers: SurveyAnswerMap) => void;
+  saveProgress: (surveyId: string, answers: SurveyAnswerMap, startedAt?: string) => void;
   loadProgress: (surveyId: string) => StoredSurveyProgress | null;
   clearProgress: (surveyId: string) => void;
 }

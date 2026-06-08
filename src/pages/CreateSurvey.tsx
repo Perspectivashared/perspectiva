@@ -10,6 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2, GripVertical, Copy, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   createId,
@@ -20,6 +27,7 @@ import { validateDraftSurvey } from "@/features/survey-builder/domain/validation
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { QuestionTypeSelector } from "@/features/survey-builder/components/question-type-selector";
 import { CommunitySelector } from "@/features/survey-builder/components/community-selector";
+import { CATEGORY_LIST } from "@/components/SurveyCard";
 import type { SurveyBuilderQuestionType } from "@/features/survey-builder/domain/types";
 
 interface ApiSurveyOut {
@@ -31,7 +39,10 @@ interface LocationState {
   draftId?: number;
   surveyTitle?: string;
   surveyDescription?: string;
+  acknowledgement?: string;
   category?: string | null;
+  surveyCategory?: string;
+  timeLimitMinutes?: number | null;
   targetResponses?: number | null;
   deadline?: string;
   questions?: Array<{
@@ -52,10 +63,13 @@ function parseDeadlineIso(deadline: string): string | null {
 const buildSurveyPayload = (state: ReturnType<typeof createInitialSurveyBuilderState>) => ({
   title: state.surveyTitle.trim(),
   description: state.surveyDescription.trim(),
-  // state.category holds the selected community ID (named "category" for historical reasons).
+  acknowledgement: state.acknowledgement.trim(),
+  // state.category holds the selected community ID
   community_id: state.category || null,
+  category: state.surveyCategory || null,
   target_responses: state.targetResponses,
   deadline: parseDeadlineIso(state.deadline),
+  time_limit_minutes: state.timeLimitMinutes || null,
   questions: state.questions.map((q, i) => ({
     order: i + 1,
     question_type: q.type,
@@ -71,7 +85,6 @@ const CreateSurvey = () => {
   const location = useLocation();
   const locationState = (location.state ?? {}) as LocationState;
 
-  // If navigated from Drafts with pre-loaded data, initialise from that
   const [state, dispatch] = useReducer(
     surveyBuilderReducer,
     undefined,
@@ -82,7 +95,10 @@ const CreateSurvey = () => {
           ...initial,
           surveyTitle: locationState.surveyTitle ?? "",
           surveyDescription: locationState.surveyDescription ?? "",
-          category: locationState.category ?? null,
+          acknowledgement: locationState.acknowledgement ?? "",
+          category: locationState.category ?? "",
+          surveyCategory: locationState.surveyCategory ?? "",
+          timeLimitMinutes: locationState.timeLimitMinutes ?? null,
           targetResponses: locationState.targetResponses ?? null,
           deadline: locationState.deadline ?? "",
           questions: locationState.questions?.map((q) => ({
@@ -98,7 +114,6 @@ const CreateSurvey = () => {
     },
   );
 
-  // Track whether this builder is editing an existing backend draft
   const [draftId, setDraftId] = useState<number | null>(locationState.draftId ?? null);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -142,10 +157,8 @@ const CreateSurvey = () => {
       let surveyId = draftId;
 
       if (surveyId) {
-        // Update existing draft with latest changes before publishing
         await api.put<ApiSurveyOut>(`/surveys/${surveyId}`, buildSurveyPayload(state));
       } else {
-        // No draft saved yet — create one first
         const created = await api.post<ApiSurveyOut>("/surveys", buildSurveyPayload(state));
         surveyId = created.id;
       }
@@ -196,6 +209,7 @@ const CreateSurvey = () => {
         </TabsContent>
 
         <TabsContent value="create" className="mt-6 space-y-6">
+          {/* Survey metadata */}
           <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
             <div className="space-y-4">
               <div>
@@ -203,8 +217,8 @@ const CreateSurvey = () => {
                 <Input
                   placeholder="Enter survey title"
                   value={state.surveyTitle}
-                  onChange={(event) =>
-                    dispatch({ type: "SET_FIELD", field: "surveyTitle", value: event.target.value })
+                  onChange={(e) =>
+                    dispatch({ type: "SET_FIELD", field: "surveyTitle", value: e.target.value })
                   }
                   className="mt-2"
                 />
@@ -215,8 +229,8 @@ const CreateSurvey = () => {
                 <Textarea
                   placeholder="What is this survey about?"
                   value={state.surveyDescription}
-                  onChange={(event) =>
-                    dispatch({ type: "SET_FIELD", field: "surveyDescription", value: event.target.value })
+                  onChange={(e) =>
+                    dispatch({ type: "SET_FIELD", field: "surveyDescription", value: e.target.value })
                   }
                   className="mt-2"
                   rows={3}
@@ -235,23 +249,44 @@ const CreateSurvey = () => {
                 </div>
 
                 <div>
+                  <Label>Category</Label>
+                  <Select
+                    value={state.surveyCategory}
+                    onValueChange={(value) =>
+                      dispatch({ type: "SET_FIELD", field: "surveyCategory", value })
+                    }
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_LIST.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <Label>Target Responses</Label>
                   <Input
                     type="number"
                     placeholder="100"
                     className="mt-2"
                     value={state.targetResponses ?? ""}
-                    onChange={(event) =>
+                    onChange={(e) =>
                       dispatch({
                         type: "SET_FIELD",
                         field: "targetResponses",
-                        value: event.target.value ? Number(event.target.value) : null,
+                        value: e.target.value ? Number(e.target.value) : null,
                       })
                     }
                     min={1}
                   />
                 </div>
+              </div>
 
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label>Deadline</Label>
                   <Input
@@ -259,15 +294,48 @@ const CreateSurvey = () => {
                     className="mt-2"
                     value={state.deadline}
                     min={new Date().toISOString().split("T")[0]}
-                    onChange={(event) =>
-                      dispatch({ type: "SET_FIELD", field: "deadline", value: event.target.value })
+                    onChange={(e) =>
+                      dispatch({ type: "SET_FIELD", field: "deadline", value: e.target.value })
                     }
                   />
                 </div>
+
+                <div>
+                  <Label>Time Limit (minutes)</Label>
+                  <Input
+                    type="number"
+                    placeholder="No limit"
+                    className="mt-2"
+                    value={state.timeLimitMinutes ?? ""}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_FIELD",
+                        field: "timeLimitMinutes",
+                        value: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                    min={1}
+                    max={180}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Participant Consent Statement</Label>
+                <Textarea
+                  placeholder="e.g. By proceeding, you agree that your responses will be used anonymously for research purposes. Leave blank for the default statement."
+                  value={state.acknowledgement}
+                  onChange={(e) =>
+                    dispatch({ type: "SET_FIELD", field: "acknowledgement", value: e.target.value })
+                  }
+                  className="mt-2"
+                  rows={2}
+                />
               </div>
             </div>
           </Card>
 
+          {/* Questions */}
           {state.questions.map((question, index) => (
             <Card key={question.id} className="border-border/50 bg-card/50 p-6 backdrop-blur">
               <div className="flex items-start gap-4">
@@ -303,11 +371,11 @@ const CreateSurvey = () => {
                   <Input
                     placeholder="Question"
                     value={question.question}
-                    onChange={(event) =>
+                    onChange={(e) =>
                       dispatch({
                         type: "UPDATE_QUESTION",
                         questionId: question.id,
-                        updates: { question: event.target.value },
+                        updates: { question: e.target.value },
                       })
                     }
                   />
@@ -328,11 +396,11 @@ const CreateSurvey = () => {
                       <input
                         type="checkbox"
                         checked={question.required}
-                        onChange={(event) =>
+                        onChange={(e) =>
                           dispatch({
                             type: "UPDATE_QUESTION",
                             questionId: question.id,
-                            updates: { required: event.target.checked },
+                            updates: { required: e.target.checked },
                           })
                         }
                         className="h-4 w-4"
@@ -349,12 +417,12 @@ const CreateSurvey = () => {
                         <div key={option.id} className="flex items-center gap-2">
                           <Input
                             value={option.text}
-                            onChange={(event) =>
+                            onChange={(e) =>
                               dispatch({
                                 type: "UPDATE_OPTION",
                                 questionId: question.id,
                                 optionId: option.id,
-                                value: event.target.value,
+                                value: e.target.value,
                               })
                             }
                             placeholder={`Option ${optionIndex + 1}`}
@@ -403,6 +471,7 @@ const CreateSurvey = () => {
             Add Question
           </Button>
 
+          {/* Action bar */}
           <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">

@@ -22,7 +22,10 @@ export const mapSurveyDefinitionToDraftSurvey = (
 ): DraftSurvey => ({
   surveyTitle: survey.title,
   surveyDescription: survey.description,
+  acknowledgement: survey.acknowledgement ?? "",
   category: "",
+  surveyCategory: "",
+  timeLimitMinutes: survey.timeLimitMinutes ?? null,
   targetResponses: null,
   deadline: survey.endDate ? survey.endDate.slice(0, 10) : "",
   questions: survey.questions.map((question) => ({
