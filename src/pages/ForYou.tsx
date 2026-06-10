@@ -9,7 +9,8 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
-import { ROUTES, getCommunityRoute, getSurveyEditRoute, getSurveyRoute } from "@/lib/routes";
+import { ROUTES, getCommunityRoute, getSurveyEditRoute, getSurveyRoute, getUserProfileRoute } from "@/lib/routes";
+import { queryKeys } from "@/lib/query-keys";
 import type { ApiCommunitySummary } from "@/shared/types/api-community";
 import { BUTTON_STYLES } from "@/lib/button-styles";
 import {
@@ -28,6 +29,7 @@ import {
   AlertCircle,
   Telescope,
   ArrowRight,
+  Trophy,
   Users,
 } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
@@ -41,7 +43,6 @@ import { useCommunitiesQuery } from "@/features/communities/hooks/use-communitie
 import CommunityCard from "@/components/CommunityCard";
 import { SurveyCard, OwnedSurveyCard } from "@/components/SurveyCard";
 import type { ApiSurveySummary } from "@/components/SurveyCard";
-import type { Community } from "@/features/communities/domain/community-data";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,14 @@ interface ApiUserProfile {
   category: string | null;
   sub_category: string | null;
   email_verified: boolean;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  name: string;
+  points_balance: number;
+  avg_rating: number | null;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -178,7 +187,7 @@ const ForYou = () => {
   });
 
   const profileQ = useQuery({
-    queryKey: ["user-profile"],
+    queryKey: queryKeys.me(),
     queryFn: () => api.get<ApiUserProfile>("/users/me"),
   });
 
@@ -194,6 +203,12 @@ const ForYou = () => {
     queryFn: () => api.get<ApiCommunitySummary[]>("/users/me/joined-communities"),
   });
 
+  const leaderboardQ = useQuery({
+    queryKey: ["leaderboard"],
+    queryFn: () => api.get<LeaderboardEntry[]>("/users/leaderboard?limit=5"),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQ.data ?? []);
   const { favouriteIds, toggleFavourite: handleToggleFavouriteCommunity } =
     useFavouriteCommunity(favouritesQ.data ?? []);
@@ -206,6 +221,7 @@ const ForYou = () => {
   const savedSurveys = savedQ.data ?? [];
   const userCategory = profileQ.data?.category ?? null;
   const communities = communitiesQ.data ?? [];
+  const leaderboard = leaderboardQ.data ?? [];
 
 
 
@@ -654,7 +670,44 @@ const ForYou = () => {
         ))),
       },
 
-      // ── 14. Browse All Surveys ─────────────────────────────────────────────
+      // ── 14. Points Leaderboard ────────────────────────────────────────────
+      {
+        id: "leaderboard",
+        icon: <Trophy className="w-5 h-5" />,
+        title: "Points Leaderboard",
+        count: leaderboard.length,
+        isEmpty: leaderboard.length === 0 && !leaderboardQ.isPending,
+        isLoading: leaderboardQ.isPending,
+        emptyMessage: "No leaderboard data yet.",
+        content: (
+          <div className="space-y-1">
+            {leaderboard.map((entry) => (
+              <Link
+                key={entry.username}
+                to={getUserProfileRoute(entry.username)}
+                className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-muted/40 transition-colors"
+              >
+                <span
+                  className={`w-6 shrink-0 text-center text-sm font-bold tabular-nums ${
+                    entry.rank <= 3 ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  {entry.rank}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{entry.name}</p>
+                  <p className="text-xs text-muted-foreground">@{entry.username}</p>
+                </div>
+                <span className="text-sm font-semibold tabular-nums text-primary">
+                  {entry.points_balance.toLocaleString()} pts
+                </span>
+              </Link>
+            ))}
+          </div>
+        ),
+      },
+
+      // ── 15. Browse All Surveys ─────────────────────────────────────────────
       {
         id: "browse-all",
         icon: <Search className="w-5 h-5" />,
@@ -691,13 +744,19 @@ const ForYou = () => {
     published, newestPublished, savedIds, favouriteIds, joinedIds,
     userCategory, publishedQ.isPending, mySurveysQ.isPending,
     completedQ.isPending, savedQ.isPending, communitiesQ.isPending, profileQ.isPending,
-    favouritesQ.isPending, joinedQ.isPending, handleToggleSave, handleToggleFavouriteCommunity, navigate,
+    favouritesQ.isPending, joinedQ.isPending, leaderboard, leaderboardQ.isPending,
+    handleToggleSave, handleToggleFavouriteCommunity, navigate,
   ]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
   const showVerificationBanner =
     profileQ.data !== undefined && profileQ.data.email_verified === false;
+
+  const showCompletenessBanner =
+    profileQ.data !== undefined &&
+    profileQ.data.email_verified !== false &&
+    !profileQ.data.category;
 
   return (
     <AppShell
@@ -707,6 +766,22 @@ const ForYou = () => {
     >
       {/* Email verification banner */}
       {showVerificationBanner && <EmailVerificationBanner />}
+
+      {/* Profile completeness nudge */}
+      {showCompletenessBanner && (
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+            <p className="text-sm text-foreground/80">
+              <span className="font-semibold">Boost your recommendations.</span>{" "}
+              Complete your profile to unlock personalised survey matching.
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline" className="shrink-0 border-primary/30">
+            <Link to={ROUTES.categorizer}>Complete profile</Link>
+          </Button>
+        </div>
+      )}
 
       {/* Page header */}
       <div className="mb-10">

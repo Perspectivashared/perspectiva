@@ -8,6 +8,7 @@ export interface ApiSurveySummary {
   status: string;
   target_responses: number | null;
   deadline: string | null;
+  scheduled_at: string | null;
   response_count: number;
   published_at: string | null;
   created_at: string;

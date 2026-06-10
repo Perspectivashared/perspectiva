@@ -29,6 +29,7 @@ import { normalizeSurveyDefinition } from "@/features/surveys/domain/normalizers
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { QuestionTypeSelector } from "@/features/survey-builder/components/question-type-selector";
 import { ROUTES, getSurveyAnalyticsRoute } from "@/lib/routes";
+import { Calendar } from "lucide-react";
 import { CATEGORY_LIST } from "@/components/SurveyCard";
 import { queryKeys } from "@/lib/query-keys";
 import {
@@ -62,6 +63,7 @@ interface ApiSurvey {
   community_id: string | null;
   deadline: string | null;
   time_limit_minutes: number | null;
+  scheduled_at: string | null;
   published_at: string | null;
   created_at: string;
   questions: ApiSurveyQuestion[];
@@ -134,6 +136,9 @@ const SurveyEdit = () => {
         category: raw.community_id || "",
         surveyCategory: raw.category || "",
         timeLimitMinutes: raw.time_limit_minutes ?? null,
+        scheduledAt: raw.scheduled_at
+          ? new Date(raw.scheduled_at).toISOString().slice(0, 16)
+          : "",
       },
     });
   }, [surveyQuery.data]);
@@ -150,6 +155,9 @@ const SurveyEdit = () => {
         target_responses: state.targetResponses,
         deadline: state.deadline ? new Date(state.deadline).toISOString() : null,
         time_limit_minutes: state.timeLimitMinutes || null,
+        scheduled_at: state.scheduledAt
+          ? new Date(state.scheduledAt).toISOString()
+          : null,
         questions: state.questions.map((q, i) => ({
           order: i + 1,
           question_type: QUESTION_TYPE_TO_API[q.type] ?? q.type,
@@ -340,7 +348,7 @@ const SurveyEdit = () => {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <Label>Deadline</Label>
                   <Input
@@ -368,6 +376,23 @@ const SurveyEdit = () => {
                     min={1}
                     max={180}
                   />
+                </div>
+
+                <div>
+                  <Label className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Schedule Publishing
+                  </Label>
+                  <Input
+                    type="datetime-local"
+                    className="mt-2"
+                    value={state.scheduledAt}
+                    min={new Date().toISOString().slice(0, 16)}
+                    onChange={(e) =>
+                      dispatch({ type: "SET_FIELD", field: "scheduledAt", value: e.target.value })
+                    }
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Leave blank to publish immediately</p>
                 </div>
               </div>
 

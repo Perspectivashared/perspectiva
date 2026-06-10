@@ -16,9 +16,17 @@ describe("pricing utilities", () => {
   });
 
   it("computes bundle totals with bonus", () => {
-    const bundle = COIN_BUNDLES.find((item) => item.id === "bundle-250");
+    const bundle = COIN_BUNDLES.find((item) => item.id === "pro");
 
     expect(bundle).toBeDefined();
-    expect(getTotalCoinsForBundle(bundle!)).toBe(275);
+    expect(getTotalCoinsForBundle(bundle!)).toBe(bundle!.coins + (bundle!.bonusCoins ?? 0));
+    expect(getTotalCoinsForBundle(bundle!)).toBe(800); // 750 + 50 bonus
+  });
+
+  it("bundles without a bonus total their base coins", () => {
+    const bundle = COIN_BUNDLES.find((item) => item.id === "starter");
+
+    expect(bundle).toBeDefined();
+    expect(getTotalCoinsForBundle(bundle!)).toBe(bundle!.coins);
   });
 });

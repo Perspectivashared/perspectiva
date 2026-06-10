@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import {
   Trophy,
   Star,
@@ -24,15 +25,11 @@ import {
   Bookmark,
   BookmarkCheck,
   Heart,
-  Code2,
-  Briefcase,
-  Dumbbell,
-  Microscope,
-  BookOpen,
   Trash2,
   FolderOpen,
   Loader2,
   CheckCircle2,
+  LayoutDashboard,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -43,7 +40,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
@@ -62,6 +58,10 @@ import { useSaveSurvey } from "@/hooks/use-save-survey";
 import { useFavouriteCommunity } from "@/hooks/use-favourite-community";
 import { useDraftActions } from "@/hooks/use-draft-actions";
 import type { ApiSurveySummary } from "@/components/SurveyCard";
+// The API sends PascalCase lucide icon names ("Code2", "TrendingUp", …) — use
+// the shared map so every community resolves to its real icon instead of
+// silently falling back to the generic Users icon.
+import { ICON_MAP as COMMUNITY_ICONS } from "@/features/communities/services/community-repository";
 
 interface ApiCommunitySummary {
   id: string;
@@ -131,17 +131,6 @@ const CATEGORY_ICON_COLOR: Record<ApiAchievement["category"], string> = {
   gamification: "text-orange-600 dark:text-orange-400",
 };
 
-const COMMUNITY_ICONS: Record<string, LucideIcon> = {
-  code2: Code2,
-  "trending-up": TrendingUp,
-  briefcase: Briefcase,
-  dumbbell: Dumbbell,
-  microscope: Microscope,
-  "book-open": BookOpen,
-  users: Users,
-  star: Star,
-  zap: Zap,
-};
 
 
 // ─── Tab sub-components ───────────────────────────────────────────────────────
@@ -162,7 +151,11 @@ const CreatedSurveysTab = ({ surveys, isOpen, onToggle, loadingId, deletingId, o
   const drafts  = surveys.filter((s) => s.status === "draft");
 
   const renderSurveyCard = (survey: ApiSurveySummary) => {
-    const cardStatus = survey.status === "published" ? "active" as const : survey.status === "closed" ? "closed" as const : "draft" as const;
+    const cardStatus =
+      survey.status === "published" ? "active" as const
+      : survey.status === "closed"  ? "closed" as const
+      : survey.scheduled_at         ? "scheduled" as const
+      : "draft" as const;
     const action = survey.status === "draft" ? (
       <div className="flex gap-2">
         <Button variant="outline" size="sm" disabled={loadingId === survey.id} onClick={() => onLoadDraft(survey.id)}>
@@ -243,7 +236,7 @@ const CompletedSurveysTab = ({ completed, inProgress, savedIds, onToggleSave, is
 
   const sections: Array<{ id: string; label: string; icon: React.ReactNode; items: ApiSurveySummary[]; renderCard: (s: ApiSurveySummary) => React.ReactNode }> = [
     { id: "completed", label: "Completed Surveys", icon: <Trophy className="w-4 h-4" />, items: completed, renderCard: renderCompletedCard },
-    { id: "in-progress", label: "Surveys In Progress", icon: <Zap className="w-4 h-4" />, items: inProgress, renderCard: renderInProgressCard },
+    { id: "saved-for-later", label: "Saved for Later", icon: <Zap className="w-4 h-4" />, items: inProgress, renderCard: renderInProgressCard },
   ];
 
   return (
@@ -396,8 +389,8 @@ const Profile = () => {
     queryFn: () => api.get<ApiSurveySummary[]>("/users/me/completed-surveys"),
   });
   const inProgressQuery = useQuery({
-    queryKey: ["in-progress-surveys"],
-    queryFn: () => api.get<ApiSurveySummary[]>("/users/me/in-progress-surveys"),
+    queryKey: ["saved-for-later"],
+    queryFn: () => api.get<ApiSurveySummary[]>("/users/me/saved-for-later"),
   });
   const favouriteCommunitiesQuery = useQuery({
     queryKey: ["favourite-communities"],
@@ -419,6 +412,20 @@ const Profile = () => {
     (s) => s.status === "published" || s.status === "closed",
   ).length;
   const surveysCompleted = (completedQuery.data ?? []).length;
+
+  // Profile completeness score (0–100)
+  const completenessItems = [
+    { label: "Name set",            done: Boolean(user.name && user.name !== "Loading...") },
+    { label: "Email verified",       done: user.emailVerified },
+    { label: "Institution filled",   done: Boolean(user.institution) },
+    { label: "Category set",         done: Boolean(user.category) },
+    { label: "Sub-category set",     done: Boolean(user.subCategory) },
+    { label: "First survey taken",   done: surveysCompleted > 0 },
+  ];
+  const completenessScore = Math.round(
+    (completenessItems.filter((i) => i.done).length / completenessItems.length) * 100,
+  );
+  const missingItems = completenessItems.filter((i) => !i.done);
 
   const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQuery.data ?? []);
   const { favouriteIds: profileFavouriteIds, toggleFavourite: handleToggleFavouriteCommunity } =
@@ -519,11 +526,47 @@ const Profile = () => {
                     showBuyAction
                     className="h-9 border-yellow-500/30 bg-yellow-500/10 py-1"
                   />
+                  {user.isAdmin && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={ROUTES.admin}>
+                        <LayoutDashboard className="w-3.5 h-3.5 mr-1.5" />
+                        Admin Dashboard
+                      </Link>
+                    </Button>
+                  )}
                   <Button asChild variant="outline" size="sm">
                     <Link to={ROUTES.editProfile}>Edit Profile</Link>
                   </Button>
                 </div>
               </div>
+
+              {/* Profile completeness */}
+              {completenessScore < 100 && (
+                <div className="mt-5 rounded-xl border border-primary/15 bg-primary/5 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold">Profile Completeness</p>
+                    <span className="text-sm font-bold text-primary">{completenessScore}%</span>
+                  </div>
+                  <Progress value={completenessScore} className="h-2 mb-3" />
+                  <p className="text-xs text-muted-foreground mb-2">Complete your profile for better survey recommendations:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {missingItems.map((item) => (
+                      <Badge key={item.label} variant="outline" className="text-[11px] text-muted-foreground border-border/60">
+                        {item.label}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button asChild size="sm" variant="link" className="mt-2 h-auto p-0 text-xs">
+                    <Link to={ROUTES.categorizer}>Complete profile →</Link>
+                  </Button>
+                </div>
+              )}
+              {completenessScore === 100 && (
+                <div className="mt-5 flex items-center gap-2 text-sm text-success">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Profile complete — you&apos;re getting the best survey matches!
+                </div>
+              )}
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">

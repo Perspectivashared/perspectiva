@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorCard } from "@/shared/components/state/ErrorCard";
 import {
@@ -17,6 +18,8 @@ import { AppShell } from "@/shared/components/layout/AppShell";
 import { api } from "@/lib/api";
 import { useSaveSurvey } from "@/hooks/use-save-survey";
 
+const PAGE_SIZE = 50;
+
 const AllSurveys = () => {
   const [searchParams] = useSearchParams();
   const communityIdFilter = searchParams.get("community") ?? null;
@@ -25,9 +28,15 @@ const AllSurveys = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
-  const publishedQ = useQuery({
-    queryKey: ["published-surveys"],
-    queryFn: () => api.get<ApiSurveySummary[]>("/surveys/published?limit=100"),
+  // Server-driven pagination: pages of PAGE_SIZE are appended as the user
+  // loads more, instead of a hard one-shot limit=100 cap.
+  const publishedQ = useInfiniteQuery({
+    queryKey: ["published-surveys", "infinite"],
+    queryFn: ({ pageParam }) =>
+      api.get<ApiSurveySummary[]>(`/surveys/published?limit=${PAGE_SIZE}&offset=${pageParam}`),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined,
   });
 
   const savedQ = useQuery({
@@ -35,7 +44,10 @@ const AllSurveys = () => {
     queryFn: () => api.get<ApiSurveySummary[]>("/users/me/saved-surveys"),
   });
 
-  const published = publishedQ.data ?? [];
+  const published = useMemo(
+    () => (publishedQ.data?.pages ?? []).flat(),
+    [publishedQ.data],
+  );
 
   const { savedIds, toggleSave: handleToggleSave } = useSaveSurvey(savedQ.data ?? []);
 
@@ -61,7 +73,7 @@ const AllSurveys = () => {
             new Date(a.published_at ?? a.created_at).getTime()
           );
         }),
-    [published, categoryFilter, searchQuery, sortBy],
+    [published, communityIdFilter, categoryFilter, searchQuery, sortBy],
   );
 
 
@@ -151,16 +163,29 @@ const AllSurveys = () => {
       )}
 
       {!publishedQ.isPending && !publishedQ.isError && filtered.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 px-2 py-1">
-          {filtered.map((s) => (
-            <SurveyCard
-              key={s.id}
-              survey={s}
-              isSaved={savedIds.has(s.id)}
-              onToggleSave={handleToggleSave}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 px-2 py-1">
+            {filtered.map((s) => (
+              <SurveyCard
+                key={s.id}
+                survey={s}
+                isSaved={savedIds.has(s.id)}
+                onToggleSave={handleToggleSave}
+              />
+            ))}
+          </div>
+          {publishedQ.hasNextPage && (
+            <div className="flex justify-center pt-6">
+              <Button
+                variant="outline"
+                disabled={publishedQ.isFetchingNextPage}
+                onClick={() => void publishedQ.fetchNextPage()}
+              >
+                {publishedQ.isFetchingNextPage ? "Loading…" : "Load more surveys"}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </AppShell>
   );

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, GripVertical, Copy, Loader2, Save } from "lucide-react";
+import { Plus, Trash2, GripVertical, Copy, Loader2, Save, Calendar, Zap, FileText, Users, Star, ClipboardList } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -45,6 +45,8 @@ interface LocationState {
   timeLimitMinutes?: number | null;
   targetResponses?: number | null;
   deadline?: string;
+  scheduledAt?: string;
+  communityId?: string | null;
   questions?: Array<{
     question: string;
     type: SurveyBuilderQuestionType;
@@ -52,6 +54,98 @@ interface LocationState {
     options: Array<{ text: string }>;
   }>;
 }
+
+// ─── Survey templates ─────────────────────────────────────────────────────────
+
+const SURVEY_TEMPLATES = [
+  {
+    id: "nps",
+    name: "Net Promoter Score",
+    description: "Measure customer loyalty with the industry-standard NPS question plus a follow-up.",
+    icon: Star,
+    draft: {
+      surveyTitle: "Net Promoter Score Survey",
+      surveyDescription: "Help us understand how likely you are to recommend us.",
+      surveyCategory: "Research",
+      questions: [
+        { id: "t1", type: "linear-scale" as const, question: "How likely are you to recommend us to a friend or colleague? (0 = Not at all, 10 = Extremely likely)", required: true, options: [] },
+        { id: "t2", type: "long-text" as const, question: "What's the primary reason for your score?", required: false, options: [] },
+        { id: "t3", type: "long-text" as const, question: "What could we do to improve your experience?", required: false, options: [] },
+      ],
+    },
+  },
+  {
+    id: "product-feedback",
+    name: "Product Feedback",
+    description: "Gather structured feedback on a product's usability, features, and value.",
+    icon: FileText,
+    draft: {
+      surveyTitle: "Product Feedback Survey",
+      surveyDescription: "We'd love your feedback on your experience with our product.",
+      surveyCategory: "Research",
+      questions: [
+        { id: "t1", type: "linear-scale" as const, question: "Overall, how satisfied are you with the product? (1 = Very unsatisfied, 5 = Very satisfied)", required: true, options: [] },
+        { id: "t2", type: "multiple-choice" as const, question: "Which feature do you use most?", required: true, options: [{ id: "o1", text: "Core functionality" }, { id: "o2", text: "Analytics / reporting" }, { id: "o3", text: "Integrations" }, { id: "o4", text: "Mobile app" }] },
+        { id: "t3", type: "long-text" as const, question: "What feature would you most like us to add or improve?", required: false, options: [] },
+        { id: "t4", type: "multiple-choice" as const, question: "How would you describe the pricing?", required: true, options: [{ id: "o1", text: "Very affordable" }, { id: "o2", text: "Fair value" }, { id: "o3", text: "Slightly expensive" }, { id: "o4", text: "Too expensive" }] },
+      ],
+    },
+  },
+  {
+    id: "event-feedback",
+    name: "Event Feedback",
+    description: "Collect post-event satisfaction scores, speaker ratings, and improvement suggestions.",
+    icon: Zap,
+    draft: {
+      surveyTitle: "Event Feedback Survey",
+      surveyDescription: "Thank you for attending! Please share your experience.",
+      surveyCategory: "Research",
+      questions: [
+        { id: "t1", type: "linear-scale" as const, question: "Overall, how would you rate the event? (1 = Poor, 5 = Excellent)", required: true, options: [] },
+        { id: "t2", type: "multiple-choice" as const, question: "How did you hear about this event?", required: false, options: [{ id: "o1", text: "Social media" }, { id: "o2", text: "Email newsletter" }, { id: "o3", text: "Friend / colleague" }, { id: "o4", text: "Online search" }] },
+        { id: "t3", type: "linear-scale" as const, question: "How relevant was the content to your needs? (1 = Not relevant, 5 = Highly relevant)", required: true, options: [] },
+        { id: "t4", type: "checkboxes" as const, question: "What did you enjoy most?", required: false, options: [{ id: "o1", text: "Keynote speakers" }, { id: "o2", text: "Networking" }, { id: "o3", text: "Workshop sessions" }, { id: "o4", text: "Exhibition / demos" }] },
+        { id: "t5", type: "long-text" as const, question: "What would make the next event even better?", required: false, options: [] },
+      ],
+    },
+  },
+  {
+    id: "demographic",
+    name: "Demographic Study",
+    description: "Collect standard demographic data for academic or market research studies.",
+    icon: Users,
+    draft: {
+      surveyTitle: "Demographic Survey",
+      surveyDescription: "This survey collects anonymous demographic information for research purposes.",
+      surveyCategory: "Research",
+      questions: [
+        { id: "t1", type: "multiple-choice" as const, question: "What is your age group?", required: true, options: [{ id: "o1", text: "Under 18" }, { id: "o2", text: "18–24" }, { id: "o3", text: "25–34" }, { id: "o4", text: "35–44" }, { id: "o5", text: "45–54" }, { id: "o6", text: "55+" }] },
+        { id: "t2", type: "multiple-choice" as const, question: "What is your highest level of education?", required: true, options: [{ id: "o1", text: "Secondary school" }, { id: "o2", text: "Diploma / A-Levels" }, { id: "o3", text: "Bachelor's degree" }, { id: "o4", text: "Postgraduate degree" }, { id: "o5", text: "Prefer not to say" }] },
+        { id: "t3", type: "multiple-choice" as const, question: "What is your employment status?", required: true, options: [{ id: "o1", text: "Employed full-time" }, { id: "o2", text: "Employed part-time" }, { id: "o3", text: "Self-employed" }, { id: "o4", text: "Student" }, { id: "o5", text: "Unemployed" }, { id: "o6", text: "Retired" }] },
+        { id: "t4", type: "multiple-choice" as const, question: "What is your annual household income range (SGD)?", required: false, options: [{ id: "o1", text: "Under $30,000" }, { id: "o2", text: "$30,000–$60,000" }, { id: "o3", text: "$60,000–$100,000" }, { id: "o4", text: "Over $100,000" }, { id: "o5", text: "Prefer not to say" }] },
+      ],
+    },
+  },
+  {
+    id: "course-eval",
+    name: "Course Evaluation",
+    description: "Standard end-of-course evaluation for students to rate instructors and content.",
+    icon: ClipboardList,
+    draft: {
+      surveyTitle: "Course Evaluation",
+      surveyDescription: "Please rate your experience with this course. Your feedback is anonymous.",
+      surveyCategory: "Education",
+      questions: [
+        { id: "t1", type: "linear-scale" as const, question: "Overall course quality (1 = Poor, 5 = Excellent)", required: true, options: [] },
+        { id: "t2", type: "linear-scale" as const, question: "Instructor's clarity of explanation (1 = Very unclear, 5 = Very clear)", required: true, options: [] },
+        { id: "t3", type: "linear-scale" as const, question: "Relevance of course content to your goals (1 = Not relevant, 5 = Highly relevant)", required: true, options: [] },
+        { id: "t4", type: "multiple-choice" as const, question: "The pace of the course was:", required: true, options: [{ id: "o1", text: "Too slow" }, { id: "o2", text: "About right" }, { id: "o3", text: "Too fast" }] },
+        { id: "t5", type: "long-text" as const, question: "What aspect of the course did you find most valuable?", required: false, options: [] },
+        { id: "t6", type: "long-text" as const, question: "What would you change to improve this course?", required: false, options: [] },
+      ],
+    },
+  },
+] as const;
 
 function parseDeadlineIso(deadline: string): string | null {
   if (!deadline) return null;
@@ -64,12 +158,12 @@ const buildSurveyPayload = (state: ReturnType<typeof createInitialSurveyBuilderS
   title: state.surveyTitle.trim(),
   description: state.surveyDescription.trim(),
   acknowledgement: state.acknowledgement.trim(),
-  // state.category holds the selected community ID
   community_id: state.category || null,
   category: state.surveyCategory || null,
   target_responses: state.targetResponses,
   deadline: parseDeadlineIso(state.deadline),
   time_limit_minutes: state.timeLimitMinutes || null,
+  scheduled_at: parseDeadlineIso(state.scheduledAt),
   questions: state.questions.map((q, i) => ({
     order: i + 1,
     question_type: q.type,
@@ -96,11 +190,13 @@ const CreateSurvey = () => {
           surveyTitle: locationState.surveyTitle ?? "",
           surveyDescription: locationState.surveyDescription ?? "",
           acknowledgement: locationState.acknowledgement ?? "",
-          category: locationState.category ?? "",
+          // communityId takes priority (from community creator flow); fallback to category
+          category: locationState.communityId ?? locationState.category ?? "",
           surveyCategory: locationState.surveyCategory ?? "",
           timeLimitMinutes: locationState.timeLimitMinutes ?? null,
           targetResponses: locationState.targetResponses ?? null,
           deadline: locationState.deadline ?? "",
+          scheduledAt: locationState.scheduledAt ?? "",
           questions: locationState.questions?.map((q) => ({
             id: createId(),
             type: q.type,
@@ -193,10 +289,51 @@ const CreateSurvey = () => {
       </div>
 
       <Tabs defaultValue="create" className="mb-8">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="create">Create New</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="import">Import</TabsTrigger>
         </TabsList>
+
+        {/* ── Templates tab ───────────────────────────────────────────── */}
+        <TabsContent value="templates" className="mt-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {SURVEY_TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.id}
+                type="button"
+                onClick={() => {
+                  const freshQuestions = tpl.draft.questions.map((q) => ({
+                    ...q,
+                    id: createId(),
+                    options: q.options.map((o) => ({ ...o, id: createId() })),
+                  }));
+                  dispatch({
+                    type: "LOAD_DRAFT",
+                    payload: {
+                      ...createInitialSurveyBuilderState(),
+                      ...tpl.draft,
+                      questions: freshQuestions,
+                    },
+                  });
+                  toast({ title: `Template loaded: ${tpl.name}`, description: "Customise and publish when ready." });
+                }}
+                className="text-left p-5 rounded-xl border-2 border-border/60 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <tpl.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">{tpl.name}</p>
+                    <p className="text-xs text-muted-foreground">{tpl.draft.questions.length} questions</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{tpl.description}</p>
+              </button>
+            ))}
+          </div>
+        </TabsContent>
 
         <TabsContent value="import" className="mt-6">
           <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
@@ -286,7 +423,7 @@ const CreateSurvey = () => {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <Label>Deadline</Label>
                   <Input
@@ -317,6 +454,23 @@ const CreateSurvey = () => {
                     min={1}
                     max={180}
                   />
+                </div>
+
+                <div>
+                  <Label className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Schedule Publishing
+                  </Label>
+                  <Input
+                    type="datetime-local"
+                    className="mt-2"
+                    value={state.scheduledAt}
+                    min={new Date().toISOString().slice(0, 16)}
+                    onChange={(e) =>
+                      dispatch({ type: "SET_FIELD", field: "scheduledAt", value: e.target.value })
+                    }
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Leave blank to publish immediately</p>
                 </div>
               </div>
 

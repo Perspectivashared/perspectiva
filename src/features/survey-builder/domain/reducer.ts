@@ -40,6 +40,7 @@ export const createInitialSurveyBuilderState = (): SurveyBuilderState => ({
   timeLimitMinutes: null,
   targetResponses: null,
   deadline: "",
+  scheduledAt: "",
   questions: [createEmptyQuestion()],
 });
 

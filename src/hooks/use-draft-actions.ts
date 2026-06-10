@@ -11,13 +11,12 @@ interface ApiDraftSurvey {
   title: string;
   description: string;
   acknowledgement: string;
-  /** Survey subject category (e.g. "Technology"). Maps to surveyCategory in the builder. */
   category: string | null;
-  /** Community this survey belongs to. Maps to category (community selector) in the builder. */
   community_id: string | null;
   target_responses: number | null;
   deadline: string | null;
   time_limit_minutes: number | null;
+  scheduled_at: string | null;
   questions: Array<{
     order: number;
     question_type: string;
@@ -53,6 +52,9 @@ export function useDraftActions() {
           // surveyCategory holds the survey's subject category
           surveyCategory: survey.category,
           timeLimitMinutes: survey.time_limit_minutes,
+          scheduledAt: survey.scheduled_at
+            ? new Date(survey.scheduled_at).toISOString().slice(0, 16)
+            : "",
           targetResponses: survey.target_responses,
           deadline: survey.deadline ? survey.deadline.split("T")[0] : "",
           questions: survey.questions

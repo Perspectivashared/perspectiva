@@ -16,7 +16,8 @@ import {
 import { api } from "@/lib/api";
 import type { Community, CommunityCategory } from "@/features/communities/domain/community-data";
 
-const ICON_MAP: Record<string, LucideIcon> = {
+/** Maps the API's `icon_name` (PascalCase lucide names, e.g. "Code2") to components. */
+export const ICON_MAP: Record<string, LucideIcon> = {
   Brain,
   BookOpen,
   Briefcase,

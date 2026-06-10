@@ -12,12 +12,12 @@ import { Progress } from "@/components/ui/progress";
 import { ROUTES } from "@/lib/routes";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, Line, CartesianGrid, PieChart, Pie, Cell,
+  CartesianGrid, PieChart, Pie, Cell,
   ReferenceLine, Legend, ComposedChart, Area,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
 import {
-  Users, Clock, TrendingUp, ArrowLeft, MessageSquare, HelpCircle,
+  Users, Clock, TrendingUp, ArrowLeft, HelpCircle,
   Lightbulb, Star, ShieldCheck, Download, Filter, SlidersHorizontal,
   X, FlaskConical, AlertTriangle, Info, Zap, Sparkles, Activity,
   FileText, Copy, Printer, Table as TableIcon, Zap as ZapIcon,
@@ -1341,7 +1341,7 @@ const SurveyAnalytics = () => {
     scored.sort((a, b) => b.score - a.score);
     const featuredQuestion = scored[0]?.score > 0.2 ? scored[0].q : null;
     const cumulativeData = data.responses_by_day.reduce<Array<{ date: string; daily: number; cumulative: number }>>(
-      (acc, d) => [...acc, { date: d.date, daily: d.count, cumulative: (acc.at(-1)?.cumulative ?? 0) + d.count }], []
+      (acc, d) => [...acc, { date: d.date, daily: d.count, cumulative: (acc[acc.length - 1]?.cumulative ?? 0) + d.count }], []
     );
     const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const dayCounts = Array<number>(7).fill(0);

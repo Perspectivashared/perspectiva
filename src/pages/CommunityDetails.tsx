@@ -30,6 +30,7 @@ import { apiCommunityRepository } from "@/features/communities/services/communit
 import { useToast } from "@/hooks/use-toast";
 import { getCommunityRoute, ROUTES } from "@/lib/routes";
 import { AppShell } from "@/shared/components/layout/AppShell";
+import { Plus } from "lucide-react";
 import { queryToAsyncState } from "@/shared/lib/query-state";
 import { useSaveSurvey } from "@/hooks/use-save-survey";
 import { useFavouriteCommunity } from "@/hooks/use-favourite-community";
@@ -181,11 +182,15 @@ const SurveysSection = ({
   isSaved,
   onToggleSave,
   communityId,
+  isMember,
+  onNavigateCreate,
 }: {
   surveys: ApiSurveySummary[];
   isSaved: (id: number) => boolean;
   onToggleSave: (id: number) => void;
   communityId: string;
+  isMember: boolean;
+  onNavigateCreate: () => void;
 }) => (
   <section className="mb-12 space-y-6">
     <div className="space-y-2">
@@ -197,13 +202,21 @@ const SurveysSection = ({
             community&apos;s active research stream.
           </p>
         </div>
-        {surveys.length > 0 && (
-          <Button asChild size="sm" variant="outline" className="shrink-0">
-            <Link to={`${ROUTES.allSurveys}?community=${communityId}`}>
-              View all <ArrowRight className="ml-1 h-3.5 w-3.5" />
-            </Link>
-          </Button>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {isMember && (
+            <Button size="sm" onClick={onNavigateCreate} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" />
+              Create Survey
+            </Button>
+          )}
+          {surveys.length > 0 && (
+            <Button asChild size="sm" variant="outline">
+              <Link to={`${ROUTES.allSurveys}?community=${communityId}`}>
+                View all <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
 
@@ -401,6 +414,15 @@ const CommunityDetails = () => {
     navigate(getCommunityRoute(nextCommunityId));
   };
 
+  const handleCreateSurveyForCommunity = () => {
+    navigate(ROUTES.createSurvey, {
+      state: {
+        communityId: communityId ?? "",
+        surveyTitle: "",
+      },
+    });
+  };
+
   if (communityState.status === "loading") {
     return (
       <AppShell withContainer mainClassName="pb-14 pt-24">
@@ -457,6 +479,8 @@ const CommunityDetails = () => {
         isSaved={(id) => savedIds.has(id)}
         onToggleSave={handleToggleSave}
         communityId={communityId ?? ""}
+        isMember={communityQuery.data?.isMember ?? false}
+        onNavigateCreate={handleCreateSurveyForCommunity}
       />
       <LeaderboardSection entries={leaderboardQuery.data ?? []} />
 

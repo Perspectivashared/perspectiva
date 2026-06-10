@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -275,8 +275,8 @@ const SurveyComparison = () => {
             />
             <MetricCard
               label="Completion Rate"
-              a={a.completion_rate !== null ? `${a.completion_rate.toFixed(1)}%` : "N/A"}
-              b={b.completion_rate !== null ? `${b.completion_rate.toFixed(1)}%` : "N/A"}
+              a={a.completion_rate !== null ? `${Math.round(a.completion_rate * 100)}%` : "N/A"}
+              b={b.completion_rate !== null ? `${Math.round(b.completion_rate * 100)}%` : "N/A"}
               icon={TrendingUp}
             />
             <MetricCard
@@ -303,8 +303,8 @@ const SurveyComparison = () => {
             />
             <MetricCard
               label="Weekly Velocity"
-              a={a.weekly_velocity !== null ? `${a.weekly_velocity >= 0 ? "+" : ""}${a.weekly_velocity.toFixed(0)}%` : "N/A"}
-              b={b.weekly_velocity !== null ? `${b.weekly_velocity >= 0 ? "+" : ""}${b.weekly_velocity.toFixed(0)}%` : "N/A"}
+              a={a.weekly_velocity !== null ? `${a.weekly_velocity >= 0 ? "+" : ""}${a.weekly_velocity} this week` : "N/A"}
+              b={b.weekly_velocity !== null ? `${b.weekly_velocity >= 0 ? "+" : ""}${b.weekly_velocity} this week` : "N/A"}
               icon={TrendingUp}
             />
           </div>

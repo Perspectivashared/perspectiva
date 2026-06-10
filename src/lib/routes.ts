@@ -17,6 +17,8 @@ export const getSurveyAnalyticsRoute = (surveyId: string | number) =>
 export const getSurveyResultsRoute = (surveyId: string | number) =>
   `/surveys/${surveyId}/analytics`;
 
+export const getUserProfileRoute = (username: string) => `/u/${username}`;
+
 export const LANDING_SECTION_IDS = {
   howItWorks: "how-it-works",
   communities: "communities",

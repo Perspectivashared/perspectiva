@@ -26,6 +26,7 @@ export const mapSurveyDefinitionToDraftSurvey = (
   category: "",
   surveyCategory: "",
   timeLimitMinutes: survey.timeLimitMinutes ?? null,
+  scheduledAt: "",
   targetResponses: null,
   deadline: survey.endDate ? survey.endDate.slice(0, 10) : "",
   questions: survey.questions.map((question) => ({

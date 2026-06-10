@@ -28,7 +28,9 @@ import { getSurveyRoute } from "@/lib/routes";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type { ApiSurveySummary } from "@/shared/types/api-survey";
+import type { ApiSurveySummary } from "@/shared/types/api-survey";
+
+export type { ApiSurveySummary };
 
 // ─── Category icon map ───────────────────────────────────────────────────────
 

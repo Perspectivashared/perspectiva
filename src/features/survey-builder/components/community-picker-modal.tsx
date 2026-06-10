@@ -8,29 +8,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Search, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  ALL_COMMUNITIES,
-  type Community,
-} from "@/features/communities/domain/community-data";
-
-// Group communities by their category field
-const COMMUNITY_GROUPS: Array<{ group: string; communities: Community[] }> =
-  Object.values(
-    ALL_COMMUNITIES.reduce<Record<string, { group: string; communities: Community[] }>>(
-      (acc, community) => {
-        if (!acc[community.category]) {
-          acc[community.category] = { group: community.category, communities: [] };
-        }
-        acc[community.category].communities.push(community);
-        return acc;
-      },
-      {},
-    ),
-  );
+import type { Community } from "@/features/communities/domain/community-data";
 
 interface CommunityPickerModalProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  /** Communities loaded from the API — the single source of truth. */
+  readonly communities: Community[];
   readonly currentValue: string | null;
   readonly favouriteIds: Set<string>;
   readonly onSelect: (value: string) => void;
@@ -39,6 +23,7 @@ interface CommunityPickerModalProps {
 export function CommunityPickerModal({
   open,
   onOpenChange,
+  communities,
   currentValue,
   favouriteIds,
   onSelect,
@@ -46,22 +31,38 @@ export function CommunityPickerModal({
   const [search, setSearch] = useState("");
 
   const favouriteCommunities = useMemo(
-    () => ALL_COMMUNITIES.filter((c) => favouriteIds.has(c.id)),
-    [favouriteIds],
+    () => communities.filter((c) => favouriteIds.has(c.id)),
+    [communities, favouriteIds],
   );
+
+  // Group communities by their category field
+  const groups = useMemo(() => {
+    const byCategory = new Map<string, Community[]>();
+    for (const community of communities) {
+      const list = byCategory.get(community.category) ?? [];
+      list.push(community);
+      byCategory.set(community.category, list);
+    }
+    return [...byCategory.entries()].map(([group, items]) => ({
+      group,
+      communities: items,
+    }));
+  }, [communities]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    if (!q) return COMMUNITY_GROUPS;
-    return COMMUNITY_GROUPS.map((group) => ({
-      ...group,
-      communities: group.communities.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q),
-      ),
-    })).filter((group) => group.communities.length > 0);
-  }, [search]);
+    if (!q) return groups;
+    return groups
+      .map((group) => ({
+        ...group,
+        communities: group.communities.filter(
+          (c) =>
+            c.name.toLowerCase().includes(q) ||
+            c.description.toLowerCase().includes(q),
+        ),
+      }))
+      .filter((group) => group.communities.length > 0);
+  }, [groups, search]);
 
   return (
     <Dialog
@@ -150,7 +151,9 @@ export function CommunityPickerModal({
 
           {filtered.length === 0 && (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No communities match &ldquo;{search}&rdquo;
+              {communities.length === 0
+                ? "Communities are still loading…"
+                : `No communities match “${search}”`}
             </p>
           )}
         </div>

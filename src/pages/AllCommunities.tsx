@@ -14,6 +14,7 @@ import {
   fromSortQueryValue,
   normalizeCategoryFilter,
   toSortQueryValue,
+  type Community,
   type CommunityCategoryFilter,
   type CommunitySortOption,
 } from "@/features/communities/domain/community-data";

@@ -106,7 +106,10 @@ function apiSurveyToRaw(survey: ApiSurvey): RawSurveyPayload {
 
 function serializeAnswer(value: SurveyAnswerValue): string {
   if (value === null || value === undefined) return "";
-  if (Array.isArray(value)) return value.join(",");
+  // Multi-select answers are sent as a JSON array — the backend stores JSON
+  // arrays verbatim, so option text containing commas survives intact.
+  // (A plain comma-join would be re-split server-side and corrupt the answer.)
+  if (Array.isArray(value)) return JSON.stringify(value);
   return String(value);
 }
 
@@ -141,6 +144,19 @@ const Survey = () => {
   // Time limit countdown
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState<number | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { data: myRatingData } = useQuery({
+    queryKey: queryKeys.myRating(surveyId ?? ""),
+    queryFn: () => api.get<{ rating: number | null }>(`/surveys/${surveyId}/my-rating`),
+    enabled: !!surveyId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (myRatingData?.rating != null) {
+      setSelectedRating(myRatingData.rating);
+    }
+  }, [myRatingData]);
 
   const { data: survey, isPending: isLoadingSurvey, error: surveyError } = useQuery({
     queryKey: queryKeys.survey(surveyId ?? ""),
@@ -286,10 +302,14 @@ const Survey = () => {
 
     setIsSubmitting(true);
     try {
-      const answersPayload = orderedQuestions.map((q) => ({
-        question_id: Number.parseInt(q.id, 10),
-        answer_text: serializeAnswer(answers[q.id] ?? null),
-      }));
+      // Only send answered questions — empty rows would inflate the backend's
+      // per-question answer counts and completion-rate analytics.
+      const answersPayload = orderedQuestions
+        .map((q) => ({
+          question_id: Number.parseInt(q.id, 10),
+          answer_text: serializeAnswer(answers[q.id] ?? null),
+        }))
+        .filter((a) => a.answer_text.trim() !== "");
 
       const completionSeconds = startedAtRef.current
         ? Math.round((Date.now() - startedAtRef.current) / 1000)

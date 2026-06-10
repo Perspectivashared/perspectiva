@@ -119,27 +119,5 @@ export const DEFAULT_SURVEY_JSON: RawSurveyPayload = {
   ],
 };
 
-const createFixtureForId = (surveyId: string): RawSurveyPayload => ({
-  ...DEFAULT_SURVEY_JSON,
-  surveyId,
-});
-
-const LOCAL_SURVEY_FIXTURES: Record<string, RawSurveyPayload> = {
-  "demo-survey-001": DEFAULT_SURVEY_JSON,
-  "1": createFixtureForId("1"),
-  "2": createFixtureForId("2"),
-  "3": createFixtureForId("3"),
-  "4": createFixtureForId("4"),
-};
-
-export const loadSurveyFixture = async (
-  surveyId: string,
-): Promise<RawSurveyPayload> => {
-  await new Promise((resolve) => globalThis.setTimeout(resolve, 200));
-  const normalizedSurveyId = surveyId.trim();
-
-  return (
-    LOCAL_SURVEY_FIXTURES[normalizedSurveyId] ??
-    createFixtureForId(normalizedSurveyId || DEFAULT_SURVEY_JSON.surveyId)
-  );
-};
+// NOTE: This file is a TEST FIXTURE only. The pre-backend `loadSurveyFixture`
+// runtime loader was removed — surveys are always fetched from the API.

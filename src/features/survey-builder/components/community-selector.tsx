@@ -9,13 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { ChevronDown, LayoutGrid, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CommunityPickerModal } from "./community-picker-modal";
-import {
-  ALL_COMMUNITIES,
-  sortCommunities,
-} from "@/features/communities/domain/community-data";
+import { sortCommunities } from "@/features/communities/domain/community-data";
+import { useCommunitiesQuery } from "@/features/communities/hooks/use-communities-query";
 import { useFavouriteCommunitiesQuery } from "@/features/communities/hooks/use-favourite-communities-query";
-
-const DEFAULT_COMMUNITIES = sortCommunities(ALL_COMMUNITIES, "mostActive").slice(0, 6);
 
 interface CommunitySelectorProps {
   readonly value: string | null;
@@ -31,6 +27,11 @@ export function CommunitySelector({
   const [open, setOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  // Communities come from the API (single source of truth) — not from the
+  // static landing-page list, which would drift from the server data.
+  const { data: communitiesData } = useCommunitiesQuery();
+  const communities = useMemo(() => communitiesData ?? [], [communitiesData]);
+
   const { data: favouritesData } = useFavouriteCommunitiesQuery();
 
   const favouriteIds = useMemo(
@@ -38,13 +39,18 @@ export function CommunitySelector({
     [favouritesData],
   );
 
+  const defaultCommunities = useMemo(
+    () => sortCommunities(communities, "mostActive").slice(0, 6),
+    [communities],
+  );
+
   const favouriteCommunities = useMemo(
-    () => ALL_COMMUNITIES.filter((c) => favouriteIds.has(c.id)),
-    [favouriteIds],
+    () => communities.filter((c) => favouriteIds.has(c.id)),
+    [communities, favouriteIds],
   );
 
   const currentLabel =
-    ALL_COMMUNITIES.find((c) => c.id === value)?.name ?? "Select community";
+    communities.find((c) => c.id === value)?.name ?? "Select community";
 
   return (
     <>
@@ -93,7 +99,12 @@ export function CommunitySelector({
             </>
           )}
 
-          {DEFAULT_COMMUNITIES.map((community) => (
+          {defaultCommunities.length === 0 && (
+            <p className="px-2 py-1.5 text-sm text-muted-foreground">
+              Loading communities…
+            </p>
+          )}
+          {defaultCommunities.map((community) => (
             <button
               key={community.id}
               className={cn(
@@ -129,6 +140,7 @@ export function CommunitySelector({
       <CommunityPickerModal
         open={pickerOpen}
         onOpenChange={setPickerOpen}
+        communities={communities}
         currentValue={value}
         favouriteIds={favouriteIds}
         onSelect={(val) => {

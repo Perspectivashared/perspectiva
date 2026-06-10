@@ -46,7 +46,7 @@ const EditProfile = () => {
   const { toast } = useToast();
 
   const { data: user, isPending } = useQuery({
-    queryKey: queryKeys.meRaw(),
+    queryKey: queryKeys.me(),
     queryFn: () => api.get<ApiUser>("/users/me"),
   });
 

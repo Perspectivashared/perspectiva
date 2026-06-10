@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
-export type SurveyCardStatus = "active" | "closed" | "completed" | "draft" | "in-progress";
+export type SurveyCardStatus = "active" | "closed" | "completed" | "draft" | "in-progress" | "scheduled";
 
 const STATUS_CONFIG: Record<SurveyCardStatus, { label: string; chipClass: string }> = {
   active: {
@@ -26,6 +26,10 @@ const STATUS_CONFIG: Record<SurveyCardStatus, { label: string; chipClass: string
   "in-progress": {
     label: "In Progress",
     chipClass: "bg-violet-500/10 text-violet-600 border-violet-500/20 dark:text-violet-400 dark:border-violet-500/30",
+  },
+  scheduled: {
+    label: "Scheduled",
+    chipClass: "bg-sky-500/10 text-sky-600 border-sky-500/20 dark:text-sky-400 dark:border-sky-500/30",
   },
 };
 

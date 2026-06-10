@@ -31,6 +31,9 @@ export const APP_ROUTE_PATHS = {
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
   buttonShowcase: "/dev/buttons",
+  admin: "/admin",
+  notifications: "/notifications",
+  userProfile: "/u/:username",
 } as const;
 
 export type AppRouteKey = keyof typeof APP_ROUTE_PATHS;
@@ -46,7 +49,12 @@ export interface AppRouteDefinition {
   protected?: boolean;
 }
 
-const ROUTE_CONFIG: Omit<AppRouteDefinition, "path">[] = [
+type RouteConfigEntry = Omit<AppRouteDefinition, "path"> & {
+  /** Only the catch-all route specifies a path explicitly; others derive it from their key. */
+  path?: AppRouteDefinition["path"];
+};
+
+const ROUTE_CONFIG: RouteConfigEntry[] = [
   { key: "home",            component: lazy(() => import("@/pages/Index")) },
   { key: "forYou",         component: lazy(() => import("@/pages/ForYou")),         protected: true },
   { key: "survey",         component: lazy(() => import("@/pages/Survey")),         protected: true },
@@ -76,6 +84,9 @@ const ROUTE_CONFIG: Omit<AppRouteDefinition, "path">[] = [
   { key: "verifyEmail",    component: lazy(() => import("@/pages/VerifyEmail")) },
   { key: "forgotPassword", component: lazy(() => import("@/pages/ForgotPassword")) },
   { key: "resetPassword",  component: lazy(() => import("@/pages/ResetPassword")) },
+  { key: "admin",          component: lazy(() => import("@/pages/Admin")),         protected: true },
+  { key: "notifications",  component: lazy(() => import("@/pages/Notifications")), protected: true },
+  { key: "userProfile",   component: lazy(() => import("@/pages/UserProfile")) },
   // Only include the dev showcase in development builds.
   ...(import.meta.env.DEV
     ? [{ key: "buttonShowcase" as const, component: lazy(() => import("@/pages/ButtonShowcase")) }]
@@ -85,5 +96,5 @@ const ROUTE_CONFIG: Omit<AppRouteDefinition, "path">[] = [
 
 export const APP_ROUTES: readonly AppRouteDefinition[] = ROUTE_CONFIG.map((cfg) => ({
   ...cfg,
-  path: (cfg as AppRouteDefinition).path ?? APP_ROUTE_PATHS[cfg.key as AppRouteKey],
-})) as AppRouteDefinition[];
+  path: cfg.path ?? APP_ROUTE_PATHS[cfg.key as AppRouteKey],
+}));

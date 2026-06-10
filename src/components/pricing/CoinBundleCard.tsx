@@ -31,6 +31,9 @@ const CoinBundleCard = ({ bundle }: CoinBundleCardProps) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // NOTE: /payments/coins/purchase is a development stub — no money changes
+  // hands, and the backend rejects it with 503 in production until a real
+  // payment provider (Stripe Checkout + webhooks) is integrated.
   const mutation = useMutation({
     mutationFn: () =>
       api.post<CoinPurchaseResponse>("/payments/coins/purchase", {
@@ -38,7 +41,7 @@ const CoinBundleCard = ({ bundle }: CoinBundleCardProps) => {
       }),
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.userProfile() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.me() });
       toast({ title: `${data.coins_added.toLocaleString()} coins added to your balance!` });
     },
     onError: () => {

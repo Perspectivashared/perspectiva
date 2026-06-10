@@ -4,12 +4,15 @@ import logo from "@/assets/logo.png";
 import { BUTTON_STYLES } from "@/lib/button-styles";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Bell } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 
 const NavigationMobileMenu = lazy(
   () => import("@/components/navigation-mobile-menu"),
@@ -42,6 +45,26 @@ const Navigation = () => {
     navigate(ROUTES.home);
   }, [signOut, toast, navigate]);
 
+  const { data: unreadData } = useQuery({
+    queryKey: queryKeys.notificationsUnread(),
+    queryFn: () => api.get<{ unread_count: number }>("/notifications/unread-count"),
+    enabled: isAuthenticated === true,
+    refetchInterval: 30_000,
+    staleTime: 30_000,
+  });
+  const unreadCount = unreadData?.unread_count ?? 0;
+
+  const { data: meData } = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: () => api.get<{ is_admin: boolean }>("/users/me"),
+    enabled: isAuthenticated === true,
+    staleTime: 5 * 60 * 1000,
+  });
+  const displayNavItems = [
+    ...navItems,
+    ...(meData?.is_admin === true ? [{ to: ROUTES.admin, label: "Admin" }] : []),
+  ];
+
   return (
     <nav
       className={cn(
@@ -63,7 +86,7 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-10 lg:gap-12">
-            {navItems.map((item) => (
+            {displayNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -83,6 +106,20 @@ const Navigation = () => {
           {/* CTA Buttons */}
           <div className="flex items-center gap-4">
             <DarkModeToggle />
+            {isAuthenticated && (
+              <Link
+                to={ROUTES.notifications}
+                className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/60 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                aria-label="Notifications"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
             {isAuthenticated ? (
               <Button
                 variant="outline"
@@ -126,7 +163,7 @@ const Navigation = () => {
                 }
               >
                 <NavigationMobileMenu
-                  navItems={navItems}
+                  navItems={displayNavItems}
                   isAuthenticated={isAuthenticated ?? undefined}
                   onSignOut={handleSignOut}
                 />

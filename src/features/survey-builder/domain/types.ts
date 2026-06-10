@@ -46,6 +46,8 @@ export interface DraftSurvey {
   timeLimitMinutes: number | null;
   targetResponses: number | null;
   deadline: string;
+  /** ISO datetime string for scheduled publishing (leave blank to publish immediately). */
+  scheduledAt: string;
   questions: DraftQuestion[];
 }
 
