@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
-const OUT = "f:/categorizer-verify";
+const OUT = "f:/insight-forge-frontend/screenshots/categorizer-verify";
 if (!existsSync(OUT)) await mkdir(OUT, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });

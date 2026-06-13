@@ -20,6 +20,9 @@ dist
 dist-ssr
 *.local
 
+# Screenshot artifacts from screenshot-*.mjs scripts
+screenshots/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
