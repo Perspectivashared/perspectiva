@@ -23,6 +23,10 @@ dist-ssr
 # Screenshot artifacts from screenshot-*.mjs scripts
 screenshots/
 
+# Stray editor/tooling dumps (not part of the app)
+file_structure
+issues
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
