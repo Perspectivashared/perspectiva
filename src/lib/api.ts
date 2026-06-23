@@ -1,10 +1,8 @@
-const _configuredUrl = import.meta.env.VITE_API_URL as string | undefined;
-
-if (import.meta.env.PROD && !_configuredUrl) {
-  throw new Error("[api] VITE_API_URL is not set. Cannot connect to backend in production.");
-}
-
-const BASE_URL = _configuredUrl ?? "http://localhost:8000";
+// In production the Vercel rewrite at /api/* proxies to the Railway backend,
+// keeping cookies same-origin and avoiding third-party cookie blocking.
+const BASE_URL = import.meta.env.PROD
+  ? "/api"
+  : ((import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000");
 
 export const SESSION_EXPIRED = "SESSION_EXPIRED";
 export const RATE_LIMITED = "RATE_LIMITED";
