@@ -193,6 +193,7 @@ const SurveyEdit = () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.mySurveys() });
       navigate(ROUTES.surveyPublished, {
         state: { surveyId: Number(surveyId), surveyTitle: state.surveyTitle.trim() },
+        replace: true,
       });
     },
     onError: (err) => {

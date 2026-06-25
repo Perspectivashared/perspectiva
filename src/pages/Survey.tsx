@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { ROUTES } from "@/lib/routes";
+import { ROUTES, getSurveyResumeRoute } from "@/lib/routes";
 import { api, ApiError } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import {
@@ -270,13 +270,16 @@ const Survey = () => {
   const handleDeclineSurvey = () => navigate(ROUTES.forYou, { replace: true });
 
   const handleContinueLater = () => {
-    if (!normalizedSurvey) return;
+    if (!normalizedSurvey || !surveyId) return;
     browserSurveySessionStorage.saveProgress(
       normalizedSurvey.surveyId,
       answers,
       startedAtRef.current ? new Date(startedAtRef.current).toISOString() : undefined,
     );
     toast({ title: "Progress saved", description: "You can continue this survey later." });
+    // Replace this history entry with the resume prompt so pressing back shows it
+    // instead of reloading the full survey, then push for-you as the destination.
+    navigate(getSurveyResumeRoute(surveyId), { replace: true });
     navigate(ROUTES.forYou);
   };
 
@@ -368,7 +371,7 @@ const Survey = () => {
       // silently ignore rating errors
     } finally {
       setIsRating(false);
-      navigate(ROUTES.forYou);
+      navigate(ROUTES.forYou, { replace: true });
     }
   };
 
@@ -409,7 +412,7 @@ const Survey = () => {
             ))}
           </div>
           <div className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={() => navigate(ROUTES.forYou)}>Skip</Button>
+            <Button variant="outline" onClick={() => navigate(ROUTES.forYou, { replace: true })}>Skip</Button>
             <Button
               disabled={!selectedRating || isRating}
               onClick={() => { void submitRating(); }}

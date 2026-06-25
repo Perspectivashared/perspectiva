@@ -2,7 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Award, BarChart2, Building2, Calendar, Star, Trophy } from "lucide-react";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,7 +15,6 @@ interface PublicProfileOut {
   category: string | null;
   sub_category: string | null;
   institution: string | null;
-  is_admin: boolean;
   points_balance: number;
   avg_rating: number | null;
   achievement_count: number;
@@ -83,9 +81,6 @@ const UserProfile = () => {
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <h1 className="text-2xl font-bold">{profile.name}</h1>
-              {profile.is_admin && (
-                <Badge className="bg-primary/15 text-primary border-primary/30">Admin</Badge>
-              )}
             </div>
             <p className="text-muted-foreground">@{profile.username}</p>
             {(profile.category || profile.sub_category) && (

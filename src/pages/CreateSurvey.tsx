@@ -263,6 +263,7 @@ const CreateSurvey = () => {
 
       navigate(ROUTES.surveyPublished, {
         state: { surveyId, surveyTitle: state.surveyTitle.trim() },
+        replace: true,
       });
     } catch (error) {
       toast({

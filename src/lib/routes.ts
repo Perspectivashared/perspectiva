@@ -8,6 +8,9 @@ export const getCommunityRoute = (communityId: string) =>
 export const getSurveyRoute = (surveyId: string | number) =>
   `/surveys/${surveyId}`;
 
+export const getSurveyResumeRoute = (surveyId: string | number) =>
+  `/surveys/${surveyId}/resume`;
+
 export const getSurveyEditRoute = (surveyId: string | number) =>
   `/surveys/${surveyId}/edit`;
 

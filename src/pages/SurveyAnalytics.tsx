@@ -679,7 +679,15 @@ function exportToCSV(data: SurveyAnalytics) {
   rows.push([]);
   rows.push(["== Demographics (Profession) =="]);
   for (const [k, v] of Object.entries(data.demographics.profession ?? {})) rows.push([k.replace(/_/g, " "), String(v)]);
-  const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+  // Neutralise CSV formula injection: a cell beginning with = + - @ (or a
+  // leading tab/CR) is executed as a formula by Excel/Sheets. Prefix such cells
+  // with a single quote, then quote-escape as usual.
+  const csvCell = (c: string) => {
+    const s = String(c ?? "");
+    const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
+  const csv = rows.map(r => r.map(csvCell).join(",")).join("\n");
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
   const a = Object.assign(document.createElement("a"), { href: url, download: `${data.title.replace(/[^a-z0-9]/gi, "_")}_analytics.csv` });
   document.body.appendChild(a);

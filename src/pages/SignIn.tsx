@@ -48,7 +48,7 @@ const SignIn = () => {
         description: "Signed in successfully!",
       });
 
-      navigate(ROUTES.forYou);
+      navigate(ROUTES.forYou, { replace: true });
     } catch (error) {
       const isRateLimited = error instanceof ApiError && error.message === RATE_LIMITED;
       let description = "Failed to sign in. Please try again.";

@@ -59,7 +59,7 @@ const SignUp = () => {
         description: "Welcome to Perspectiva!",
       });
 
-      navigate(ROUTES.categorizer);
+      navigate(ROUTES.categorizer, { replace: true });
     } catch (error) {
       const isRateLimited = error instanceof ApiError && error.message === RATE_LIMITED;
       let description = "Failed to create account. Please try again.";
