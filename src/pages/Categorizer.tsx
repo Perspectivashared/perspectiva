@@ -32,22 +32,11 @@ import {
   type CategorizerFormValues,
 } from "@/features/categorizer/domain/schema";
 import { AppShell } from "@/shared/components/layout/AppShell";
-import { api } from "@/lib/api";
-import { ROUTES } from "@/lib/routes";
+import { queryKeys } from "@/lib/query-keys";
+import { redirectAfterAuth } from "@/features/auth/lib/post-auth-redirect";
+import { submitCategorizerProfile } from "@/features/categorizer/services/categorizer-repository";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const PRIMARY_STATUS_TO_PROFESSION: Record<string, string> = {
-  "Secondary school student": "student",
-  "Polytechnic student": "student",
-  "JC / IB student": "student",
-  "University student": "student",
-  "Working adult": "corporate_employee",
-  "Founder / self employed": "self_employed",
-  "Independent researcher": "independent_researcher",
-  Retired: "other",
-  Unemployed: "other",
-};
 
 const STEPS = [
   {
@@ -469,22 +458,15 @@ const Categorizer = () => {
   };
 
   const onSubmit = async (data: CategorizerFormValues) => {
-    const profession = PRIMARY_STATUS_TO_PROFESSION[data.primaryStatus ?? ""] ?? "other";
-    const institution = [data.city, data.country].filter(Boolean).join(", ");
-
     try {
-      await api.put("/users/me", {
-        name: data.fullName,
-        institution: institution || null,
-        sub_category: data.profession || null,
-        profession,
-      });
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await submitCategorizerProfile(data);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.me() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.profile() });
       toast({
         title: "Profile Submitted",
         description: "Your profiling information has been saved.",
       });
-      navigate(ROUTES.profile);
+      await redirectAfterAuth(navigate, queryClient);
     } catch (err) {
       toast({
         title: "Failed to save profile",

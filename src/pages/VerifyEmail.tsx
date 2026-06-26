@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { ROUTES } from "@/lib/routes";
+import { queryKeys } from "@/lib/query-keys";
+import { redirectAfterAuth } from "@/features/auth/lib/post-auth-redirect";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { AppShell } from "@/shared/components/layout/AppShell";
@@ -11,6 +13,7 @@ type State = "verifying" | "success" | "error" | "check_inbox";
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const token = searchParams.get("token");
 
@@ -20,9 +23,14 @@ const VerifyEmail = () => {
   useEffect(() => {
     if (!token) return;
     api.get<{ message: string }>(`/auth/verify-email?token=${token}`)
-      .then(() => setState("success"))
+      .then(() => {
+        // Email is now verified — drop the stale ["me"] snapshot so guards and
+        // the post-auth redirect see email_verified = true.
+        void queryClient.invalidateQueries({ queryKey: queryKeys.me() });
+        setState("success");
+      })
       .catch(() => setState("error"));
-  }, [token]);
+  }, [token, queryClient]);
 
   const resend = async () => {
     setResending(true);
@@ -47,7 +55,9 @@ const VerifyEmail = () => {
           <>
             <h1 className="text-2xl font-semibold">Email verified!</h1>
             <p className="text-muted-foreground">Your email has been verified successfully.</p>
-            <Button onClick={() => navigate(ROUTES.forYou)}>Continue</Button>
+            <Button onClick={() => { void redirectAfterAuth(navigate, queryClient); }}>
+              Continue to setup
+            </Button>
           </>
         )}
 

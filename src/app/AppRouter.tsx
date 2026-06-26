@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/shared/components/feedback/ErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { PageTransition } from "@/shared/components/layout/PageTransition";
 import ProtectedRoute from "@/app/ProtectedRoute";
+import { RequireOnboarded, RequireVerified } from "@/app/OnboardingGuards";
 
 // Must be a separate component so useLocation runs inside <BrowserRouter>
 const AnimatedRoutes = () => {
@@ -15,29 +16,28 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="sync" initial={false}>
       <Routes location={location} key={location.pathname}>
-        {APP_ROUTES.map(({ key, path, component: Component, protected: isProtected }) => (
-          <Route
-            key={key}
-            path={path}
-            element={
-              <ErrorBoundary>
-                <Suspense fallback={<FullPageLoading />}>
-                  {isProtected ? (
-                    <ProtectedRoute>
-                      <PageTransition>
-                        <Component />
-                      </PageTransition>
-                    </ProtectedRoute>
-                  ) : (
-                    <PageTransition>
-                      <Component />
-                    </PageTransition>
-                  )}
-                </Suspense>
-              </ErrorBoundary>
-            }
-          />
-        ))}
+        {APP_ROUTES.map(({ key, path, component: Component, protected: isProtected, guard }) => {
+          let content = (
+            <PageTransition>
+              <Component />
+            </PageTransition>
+          );
+          if (guard === "verified") content = <RequireVerified>{content}</RequireVerified>;
+          if (guard === "onboarded") content = <RequireOnboarded>{content}</RequireOnboarded>;
+          if (isProtected) content = <ProtectedRoute>{content}</ProtectedRoute>;
+
+          return (
+            <Route
+              key={key}
+              path={path}
+              element={
+                <ErrorBoundary>
+                  <Suspense fallback={<FullPageLoading />}>{content}</Suspense>
+                </ErrorBoundary>
+              }
+            />
+          );
+        })}
       </Routes>
     </AnimatePresence>
   );

@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { ROUTES } from "@/lib/routes";
 import {
   PROFESSION_OPTIONS,
   signUpSchema,
@@ -29,12 +29,14 @@ import {
 import { signUp } from "@/features/auth/services/auth-service";
 import { ApiError, RATE_LIMITED } from "@/lib/api";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { redirectAfterAuth } from "@/features/auth/lib/post-auth-redirect";
 import AuthPageCard from "@/features/auth/components/AuthPageCard";
 import GoogleSignInButton from "@/features/auth/components/GoogleSignInButton";
 import { AppShell } from "@/shared/components/layout/AppShell";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { signIn: markAuthenticated } = useAuth();
 
@@ -56,10 +58,10 @@ const SignUp = () => {
 
       toast({
         title: "Account created",
-        description: "Welcome to Perspectiva!",
+        description: "Check your inbox to verify your email and continue.",
       });
 
-      navigate(ROUTES.categorizer, { replace: true });
+      await redirectAfterAuth(navigate, queryClient);
     } catch (error) {
       const isRateLimited = error instanceof ApiError && error.message === RATE_LIMITED;
       let description = "Failed to create account. Please try again.";

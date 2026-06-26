@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { api } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/lib/routes";
+import { redirectAfterAuth } from "@/features/auth/lib/post-auth-redirect";
 import { useToast } from "@/hooks/use-toast";
 
 declare global {
@@ -36,6 +37,7 @@ const GoogleSignInButton = ({ label = "Sign in with Google" }: GoogleSignInButto
   const containerRef = useRef<HTMLDivElement>(null);
   const { signIn: storeToken } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,7 +48,7 @@ const GoogleSignInButton = ({ label = "Sign in with Google" }: GoogleSignInButto
         await api.post("/auth/google", { id_token: credential });
         storeToken();
         toast({ title: "Signed in with Google" });
-        navigate(ROUTES.forYou, { replace: true });
+        await redirectAfterAuth(navigate, queryClient);
       } catch {
         toast({ title: "Google sign-in failed", variant: "destructive" });
       }

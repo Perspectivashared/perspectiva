@@ -32,6 +32,7 @@ export interface ApiUser {
   username: string;
   email: string | null;
   email_verified: boolean;
+  onboarding_completed: boolean;
   profession: string;
   is_admin: boolean;
   institution: string | null;

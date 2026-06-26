@@ -48,6 +48,12 @@ export interface AppRouteDefinition {
   component: RouteComponent;
   /** When true, the route requires authentication. */
   protected?: boolean;
+  /**
+   * Onboarding gate applied on top of `protected`:
+   *  - "verified"  → requires a verified email (the categorizer itself)
+   *  - "onboarded" → requires categorizer completion (take/create/edit surveys)
+   */
+  guard?: "verified" | "onboarded";
 }
 
 type RouteConfigEntry = Omit<AppRouteDefinition, "path"> & {
@@ -58,14 +64,14 @@ type RouteConfigEntry = Omit<AppRouteDefinition, "path"> & {
 const ROUTE_CONFIG: RouteConfigEntry[] = [
   { key: "home",            component: lazy(() => import("@/pages/Index")) },
   { key: "forYou",         component: lazy(() => import("@/pages/ForYou")),         protected: true },
-  { key: "survey",         component: lazy(() => import("@/pages/Survey")),         protected: true },
-  { key: "surveyEdit",     component: lazy(() => import("@/pages/SurveyEdit")),     protected: true },
-  { key: "surveyResume",   component: lazy(() => import("@/pages/SurveyResume")),   protected: true },
-  { key: "createSurvey",   component: lazy(() => import("@/pages/CreateSurvey")),   protected: true },
+  { key: "survey",         component: lazy(() => import("@/pages/Survey")),         protected: true, guard: "onboarded" },
+  { key: "surveyEdit",     component: lazy(() => import("@/pages/SurveyEdit")),     protected: true, guard: "onboarded" },
+  { key: "surveyResume",   component: lazy(() => import("@/pages/SurveyResume")),   protected: true, guard: "onboarded" },
+  { key: "createSurvey",   component: lazy(() => import("@/pages/CreateSurvey")),   protected: true, guard: "onboarded" },
   { key: "drafts",         component: lazy(() => import("@/pages/Drafts")),         protected: true },
   { key: "communities",    component: lazy(() => import("@/pages/Communities")) },
   { key: "pricing",        component: lazy(() => import("@/pages/Pricing")) },
-  { key: "converter",      component: lazy(() => import("@/pages/Converter")),      protected: true },
+  { key: "converter",      component: lazy(() => import("@/pages/Converter")),      protected: true, guard: "onboarded" },
   { key: "communityDetails", component: lazy(() => import("@/pages/CommunityDetails")) },
   { key: "allCommunities", component: lazy(() => import("@/pages/AllCommunities")) },
   { key: "allSurveys",     component: lazy(() => import("@/pages/AllSurveys")) },
@@ -76,7 +82,7 @@ const ROUTE_CONFIG: RouteConfigEntry[] = [
   { key: "surveyPublished", component: lazy(() => import("@/pages/SurveyPublished")) },
   { key: "signIn",         component: lazy(() => import("@/pages/SignIn")) },
   { key: "signUp",         component: lazy(() => import("@/pages/SignUp")) },
-  { key: "categorizer",    component: lazy(() => import("@/pages/Categorizer")) },
+  { key: "categorizer",    component: lazy(() => import("@/pages/Categorizer")),    protected: true, guard: "verified" },
   { key: "privacy",        component: lazy(() => import("@/pages/Privacy")) },
   { key: "terms",          component: lazy(() => import("@/pages/Terms")) },
   { key: "faqs",           component: lazy(() => import("@/pages/Faqs")) },
