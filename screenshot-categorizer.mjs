@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
-const OUT = "f:/insight-forge-frontend/screenshots/categorizer-screenshots-v3";
+const OUT = "./screenshots/categorizer-screenshots-v3";
 if (!existsSync(OUT)) await mkdir(OUT, { recursive: true });
 
 const STEPS = [
@@ -27,7 +27,7 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
 await page.setViewportSize({ width: 1280, height: 900 });
 
-await page.goto("http://localhost:8081/categorizer", { waitUntil: "networkidle" });
+await page.goto("http://localhost:8080/categorizer", { waitUntil: "networkidle" });
 await page.waitForTimeout(1000);
 
 // Step 0 — accept terms first

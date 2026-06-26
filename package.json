@@ -12,7 +12,9 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest --passWithNoTests",
     "test:coverage": "vitest run --coverage --passWithNoTests",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:api-types": "npx -y openapi-typescript@7 http://localhost:8000/openapi.json -o src/shared/types/api-generated.ts",
+    "screenshot": "node screenshot-categorizer.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

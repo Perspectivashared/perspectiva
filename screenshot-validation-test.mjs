@@ -2,14 +2,14 @@ import { chromium } from "playwright";
 import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
-const OUT = "f:/insight-forge-frontend/screenshots/validation-test";
+const OUT = "./screenshots/validation-test";
 if (!existsSync(OUT)) await mkdir(OUT, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const ctx = await browser.newContext({ colorScheme: "dark", viewport: { width: 1440, height: 900 } });
 const page = await ctx.newPage();
 
-await page.goto("http://localhost:8081/categorizer", { waitUntil: "networkidle" });
+await page.goto("http://localhost:8080/categorizer", { waitUntil: "networkidle" });
 await page.waitForTimeout(1000);
 
 // Step 1: Try clicking Continue WITHOUT accepting — should be disabled
