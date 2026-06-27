@@ -67,7 +67,7 @@ interface AdminSurvey {
 
 function StatCard({ label, value, icon: Icon }: { label: string; value: number | undefined; icon: React.ElementType }) {
   return (
-    <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
+    <Card className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{label}</p>
@@ -231,7 +231,7 @@ const Admin = () => {
 
         {/* Users Tab */}
         <TabsContent value="users">
-          <Card className="border-border/50 bg-card/50 backdrop-blur">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
             <div className="p-4 border-b border-border/50">
               <div className="relative max-w-sm">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -356,7 +356,7 @@ const Admin = () => {
 
         {/* Surveys Tab */}
         <TabsContent value="surveys">
-          <Card className="border-border/50 bg-card/50 backdrop-blur">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
             <div className="p-4 border-b border-border/50 flex items-center gap-3">
               <p className="text-sm font-medium text-muted-foreground">Filter by status:</p>
               <div className="flex gap-2">

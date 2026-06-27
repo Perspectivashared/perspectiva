@@ -194,7 +194,7 @@ const Communities = () => {
                     isFavourited={(id) => favouriteIds.has(id)}
                     isJoined={() => true}
                     pageSize={6}
-                    className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
+                    className="rounded-xl border border-border/60 bg-linear-to-b from-primary/3 to-transparent p-4 sm:p-5"
                   />
                 </section>
               )}
@@ -239,7 +239,7 @@ const Communities = () => {
                     isFavourited={(id) => favouriteIds.has(id)}
                     isJoined={(id) => joinedIds.has(id)}
                     pageSize={6}
-                    className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
+                    className="rounded-xl border border-border/60 bg-linear-to-b from-primary/3 to-transparent p-4 sm:p-5"
                   />
                 </section>
               ))}

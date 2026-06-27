@@ -92,7 +92,7 @@ const AllCommunities = () => {
       });
       return (
         <>
-          <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-gradient-to-r from-primary/[0.08] via-card to-card p-5">
+          <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-linear-to-r from-primary/8 via-card to-card p-5">
             <h1 className="mb-3 text-4xl font-bold">
               <span className="bg-gradient-primary bg-clip-text text-transparent">
                 All Communities
@@ -133,7 +133,7 @@ const AllCommunities = () => {
               pageSize={9}
               emptyTitle="No communities match your filters"
               emptyDescription="Change category or sort order to discover more communities."
-              className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
+              className="rounded-xl border border-border/60 bg-linear-to-b from-primary/3 to-transparent p-4 sm:p-5"
             />
           </section>
         </>
@@ -152,7 +152,7 @@ const AllCommunities = () => {
         state={communitiesState}
         loading={
           <div>
-            <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-gradient-to-r from-primary/[0.08] via-card to-card p-5">
+            <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-linear-to-r from-primary/8 via-card to-card p-5">
               <Skeleton className="mb-3 h-12 w-72" />
               <Skeleton className="h-5 w-full max-w-3xl" />
             </section>

@@ -127,7 +127,7 @@ export function ModalPortal({
           "relative z-10 flex w-full max-w-2xl flex-col",
           "max-h-[80vh]",
           "rounded-lg border bg-background shadow-lg",
-          "outline-none",
+          "outline-hidden",
           panelClassName,
         )}
         // Stop wheel events from reaching the backdrop/body once they would

@@ -8,7 +8,7 @@ interface ErrorCardProps {
 }
 
 export const ErrorCard = ({ title, message, onRetry }: ErrorCardProps) => (
-  <Card className="border-border/70 p-8 text-center shadow-sm">
+  <Card className="border-border/70 p-8 text-center shadow-xs">
     <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
     {message && (
       <p className="mt-2 text-sm text-muted-foreground">{message}</p>

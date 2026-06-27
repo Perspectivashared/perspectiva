@@ -225,7 +225,7 @@ const CompletedSurveysTab = ({ completed, inProgress, savedIds, onToggleSave, is
     <SurveyListCard key={survey.id} title={survey.title || "Untitled Survey"} status="in-progress" category={survey.category} date={survey.published_at ?? survey.created_at} dateLabel="Published" responseCount={survey.response_count} targetResponses={survey.target_responses}
       action={
         <>
-          <button type="button" onClick={() => onToggleSave(survey.id)} aria-label={savedIds.has(survey.id) ? "Unsave survey" : "Save survey"} className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30">
+          <button type="button" onClick={() => onToggleSave(survey.id)} aria-label={savedIds.has(survey.id) ? "Unsave survey" : "Save survey"} className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-primary/30">
             {savedIds.has(survey.id) ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" /> : <Bookmark className="h-4 w-4" />}
           </button>
           <Button asChild variant="outline" size="sm"><Link to={`/surveys/${survey.id}`}>Take Survey</Link></Button>
@@ -303,7 +303,7 @@ const BookmarksTab = ({ savedSurveys, savedLoading, favouriteCommunities, favour
     return (
       <SurveyListCard key={survey.id} title={survey.title || "Untitled Survey"} status={cardStatus} category={survey.category} date={survey.created_at} responseCount={survey.response_count} targetResponses={survey.target_responses}
         action={
-          <button type="button" onClick={() => onToggleSave(survey.id)} aria-label={savedIds.has(survey.id) ? "Unsave survey" : "Save survey"} className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30">
+          <button type="button" onClick={() => onToggleSave(survey.id)} aria-label={savedIds.has(survey.id) ? "Unsave survey" : "Save survey"} className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-primary/30">
             {savedIds.has(survey.id) ? <BookmarkCheck className="h-4 w-4 fill-primary text-primary" /> : <Bookmark className="h-4 w-4" />}
           </button>
         }
@@ -474,7 +474,7 @@ const Profile = () => {
         )}
 
         {/* Profile Header */}
-        <Card className="p-8 mb-8 border-border/50 bg-card/50 backdrop-blur">
+        <Card className="p-8 mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
           <div className="flex flex-col md:flex-row items-start gap-6">
             <Avatar className="w-24 h-24 border-4 border-primary/20">
               <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username || "user"}`} />
@@ -673,7 +673,7 @@ const Profile = () => {
 
               <TabsContent value="wallet" className="mt-6">
                 <div className="grid md:grid-cols-2 gap-6 mb-8">
-                  <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                  <Card className="p-6 bg-linear-to-br from-primary/5 to-primary/10 border-primary/20">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">
@@ -689,7 +689,7 @@ const Profile = () => {
                     </div>
                   </Card>
 
-                  <Card className="p-6 bg-gradient-to-br from-yellow-500/5 to-yellow-500/10 border-yellow-500/20">
+                  <Card className="p-6 bg-linear-to-br from-yellow-500/5 to-yellow-500/10 border-yellow-500/20">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">
@@ -709,7 +709,7 @@ const Profile = () => {
                   </Card>
                 </div>
 
-                <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+                <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
                   <h3 className="font-semibold mb-4">Transaction History</h3>
                   <div className="space-y-4">
                     {user.transactions.map((transaction) => (
@@ -768,7 +768,7 @@ const Profile = () => {
           {/* Right Column */}
           <div className="space-y-6">
             {/* Achievements */}
-            <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+            <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-primary" />
@@ -807,9 +807,9 @@ const Profile = () => {
                           key={achievement.id}
                           type="button"
                           onClick={() => setAchievementsOpen(true)}
-                          className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-muted/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                          className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-muted/40 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50"
                         >
-                          <div className={`w-14 h-14 rounded-full ${iconBg} flex items-center justify-center flex-shrink-0`}>
+                          <div className={`w-14 h-14 rounded-full ${iconBg} flex items-center justify-center shrink-0`}>
                             <Icon className={`w-7 h-7 ${iconColor}`} />
                           </div>
                           <span className="text-xs font-medium text-center leading-tight line-clamp-2">{achievement.name}</span>
@@ -839,8 +839,8 @@ const Profile = () => {
             >
               <DialogContent className="max-w-2xl flex flex-col max-h-[85vh] gap-0 p-0 overflow-hidden">
                 {/* Decorative header */}
-                <div className="flex items-center gap-4 px-6 py-5 border-b border-border/50 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent flex-shrink-0">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/25 to-primary/8 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-4 px-6 py-5 border-b border-border/50 bg-linear-to-r from-primary/8 via-primary/4 to-transparent shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-linear-to-br from-primary/25 to-primary/8 border border-primary/20 flex items-center justify-center shrink-0">
                     <Trophy className="w-5 h-5 text-primary" />
                   </div>
                   <div>
@@ -858,11 +858,11 @@ const Profile = () => {
                   const categories = [...new Set(data.map((a) => a.category))];
                   if (categories.length <= 1) return null;
                   return (
-                    <div className="flex items-center gap-2 px-6 py-3 border-b border-border/50 flex-wrap flex-shrink-0">
+                    <div className="flex items-center gap-2 px-6 py-3 border-b border-border/50 flex-wrap shrink-0">
                       <button
                         type="button"
                         onClick={() => setActiveCategory("all")}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50 ${
                           activeCategory === "all"
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -877,7 +877,7 @@ const Profile = () => {
                             key={cat}
                             type="button"
                             onClick={() => setActiveCategory(cat)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50 ${
                               activeCategory === cat
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -905,19 +905,19 @@ const Profile = () => {
                     return (
                       <div
                         key={achievement.id}
-                        className="relative flex items-start gap-4 p-4 rounded-xl border border-border bg-muted/50 shadow-sm hover:bg-muted/80 transition-colors overflow-hidden"
+                        className="relative flex items-start gap-4 p-4 rounded-xl border border-border bg-muted/50 shadow-xs hover:bg-muted/80 transition-colors overflow-hidden"
                       >
                         {/* Left category accent strip */}
-                        <div className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${gradient}`} />
+                        <div className={`absolute inset-y-0 left-0 w-1 bg-linear-to-b ${gradient}`} />
                         {/* Icon */}
-                        <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                        <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shrink-0 mt-0.5`}>
                           <Icon className={`w-6 h-6 ${iconColor}`} />
                         </div>
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 flex-wrap">
                             <span className="font-semibold text-sm">{achievement.name}</span>
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <div className="flex items-center gap-1.5 shrink-0">
                               {achievement.points_reward > 0 && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary/12 text-primary font-semibold">
                                   +{achievement.points_reward} pts

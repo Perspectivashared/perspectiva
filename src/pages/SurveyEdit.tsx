@@ -230,7 +230,7 @@ const SurveyEdit = () => {
   if (!isLoading && surveyQuery.data && surveyQuery.data.status !== "draft") {
     return (
       <AppShell withContainer mainClassName="max-w-4xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
-        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur text-center">
+        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur-sm text-center">
           <h2 className="text-2xl font-semibold">Cannot edit this survey</h2>
           <p className="text-muted-foreground">
             Only draft surveys can be edited. This survey is{" "}
@@ -263,13 +263,13 @@ const SurveyEdit = () => {
       </div>
 
       {isLoading && (
-        <Card className="border-border/50 bg-card/50 p-8 backdrop-blur">
+        <Card className="border-border/50 bg-card/50 p-8 backdrop-blur-sm">
           <p className="text-muted-foreground">Loading survey details...</p>
         </Card>
       )}
 
       {!isLoading && surveyQuery.isError && (
-        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur">
+        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur-sm">
           <h2 className="text-2xl font-semibold">Survey unavailable</h2>
           <p className="text-muted-foreground">
             {surveyQuery.error instanceof Error ? surveyQuery.error.message : "Unable to load survey."}
@@ -281,7 +281,7 @@ const SurveyEdit = () => {
       {!isLoading && !surveyQuery.isError && (
         <div className="space-y-6">
           {/* Metadata card */}
-          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
+          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
             <div className="space-y-4">
               <div>
                 <Label>Survey Title</Label>
@@ -412,7 +412,7 @@ const SurveyEdit = () => {
 
           {/* Questions */}
           {state.questions.map((question, index) => (
-            <Card key={question.id} className="border-border/50 bg-card/50 p-6 backdrop-blur">
+            <Card key={question.id} className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
               <div className="flex items-start gap-4">
                 <div className="mt-8 cursor-move">
                   <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -548,7 +548,7 @@ const SurveyEdit = () => {
           </Button>
 
           {/* Action bar */}
-          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
+          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-muted-foreground">
                 Cost: <span className="font-bold text-primary">2 Points</span> to publish

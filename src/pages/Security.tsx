@@ -134,9 +134,9 @@ const Security = () => (
     {/* ── Overview ─────────────────────────────────────────────── */}
     <section className="py-14 bg-background">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Card className="p-8 border-primary/20 bg-card/60 backdrop-blur shadow-elegant">
+        <Card className="p-8 border-primary/20 bg-card/60 backdrop-blur-sm shadow-elegant">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
               <Shield className="w-6 h-6 text-white" aria-hidden="true" />
             </div>
             <div>
@@ -161,10 +161,10 @@ const Security = () => (
           {FEATURES.map(({ icon: Icon, gradient, title, items, note }) => (
             <Card
               key={title}
-              className="p-6 hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur flex flex-col"
+              className="p-6 hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm flex flex-col"
             >
               <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-5 shadow-glow`}
+                className={`w-12 h-12 rounded-xl bg-linear-to-br ${gradient} flex items-center justify-center mb-5 shadow-glow`}
               >
                 <Icon className="w-5 h-5 text-white" aria-hidden="true" />
               </div>
@@ -172,7 +172,7 @@ const Security = () => (
               <ul className="space-y-2 flex-1">
                 {items.map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
                     <span className="leading-relaxed">{item}</span>
                   </li>
                 ))}
@@ -186,8 +186,8 @@ const Security = () => (
           ))}
 
           {/* Contact card — same card shell as every feature card above */}
-          <Card className="p-6 hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur flex flex-col">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-5 shadow-glow">
+          <Card className="p-6 hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm flex flex-col">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-accent flex items-center justify-center mb-5 shadow-glow">
               <Mail className="w-5 h-5 text-white" aria-hidden="true" />
             </div>
             <h3 className="text-lg font-semibold mb-3">Contact</h3>

@@ -74,7 +74,7 @@ const SurveyListCard = ({
   return (
     <Card
       className={cn(
-        "border-border/50 bg-card/50 backdrop-blur transition-all duration-200",
+        "border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-200",
         "hover:border-border/80 hover:shadow-md",
         className,
       )}

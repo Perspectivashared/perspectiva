@@ -39,7 +39,7 @@ const CommunityFilterBar = ({
 }: CommunityFilterBarProps) => (
   <Card
     className={cn(
-      "border-primary/15 bg-gradient-to-r from-primary/[0.06] via-card to-card p-4 shadow-sm",
+      "border-primary/15 bg-linear-to-r from-primary/6 via-card to-card p-4 shadow-xs",
       className,
     )}
   >

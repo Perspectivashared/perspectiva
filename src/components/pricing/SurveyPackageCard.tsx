@@ -29,7 +29,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
   return (
     <Card
       className={cn(
-        "group relative flex h-full min-w-0 flex-col overflow-hidden border-border/80 bg-card shadow-sm transition-all duration-200 hover:border-foreground/25",
+        "group relative flex h-full min-w-0 flex-col overflow-hidden border-border/80 bg-card shadow-xs transition-all duration-200 hover:border-foreground/25",
         pkg.recommended
           ? "border-2 border-[hsl(195_85%_30%/0.82)] shadow-[0_0_42px_-18px_hsl(195_85%_30%/0.62)] ring-1 ring-[hsl(195_85%_30%/0.24)] dark:border-[hsl(195_85%_72%/0.82)] dark:shadow-[0_0_42px_-18px_hsl(195_85%_72%/0.5)] dark:ring-[hsl(195_85%_72%/0.28)]"
           : "",

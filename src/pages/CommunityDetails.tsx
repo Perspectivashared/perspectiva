@@ -77,7 +77,7 @@ const CommunityOverview = ({
 
   return (
     <section className="mb-12">
-      <Card className="border border-primary/20 p-6 shadow-sm md:p-8">
+      <Card className="border border-primary/20 p-6 shadow-xs md:p-8">
         <div>
           <div className="space-y-4">
           {/* Icon + Category + Title */}
@@ -106,7 +106,7 @@ const CommunityOverview = ({
               {community.subcategories.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-primary dark:bg-primary/[0.18]"
+                  className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-wide text-primary dark:bg-primary/18"
                 >
                   {tag}
                 </span>
@@ -221,7 +221,7 @@ const SurveysSection = ({
     </div>
 
     {surveys.length === 0 ? (
-      <Card className="border-border/70 p-8 text-center shadow-sm">
+      <Card className="border-border/70 p-8 text-center shadow-xs">
         <p className="text-muted-foreground">No active surveys in this community yet.</p>
         <Button asChild className="mt-4" size="sm" variant="outline">
           <Link to={ROUTES.allSurveys}>
@@ -255,11 +255,11 @@ const LeaderboardSection = ({ entries }: { entries: LeaderboardEntry[] }) => {
       </div>
 
       {entries.length === 0 ? (
-        <Card className="border-border/70 bg-gradient-to-b from-primary/[0.03] to-card shadow-sm p-8 text-center text-muted-foreground">
+        <Card className="border-border/70 bg-linear-to-b from-primary/3 to-card shadow-xs p-8 text-center text-muted-foreground">
           No responses yet — be the first to participate in a survey from this community.
         </Card>
       ) : (
-        <Card className="border-border/70 bg-gradient-to-b from-primary/[0.03] to-card shadow-sm">
+        <Card className="border-border/70 bg-linear-to-b from-primary/3 to-card shadow-xs">
           <Table>
             <TableHeader>
               <TableRow>
@@ -501,7 +501,7 @@ const CommunityDetails = () => {
           isFavourited={(id) => favouriteIds.has(id)}
           isJoined={(id) => joinedIds.has(id)}
           pageSize={6}
-          className="rounded-xl border border-border/60 bg-gradient-to-b from-primary/[0.03] to-transparent p-4 sm:p-5"
+          className="rounded-xl border border-border/60 bg-linear-to-b from-primary/3 to-transparent p-4 sm:p-5"
         />
       </section>
     </AppShell>

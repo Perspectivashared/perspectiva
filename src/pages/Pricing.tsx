@@ -139,7 +139,7 @@ const Pricing = () => {
   return (
     <AppShell
       withContainer
-      mainClassName="mx-auto max-w-screen-xl px-4 pb-20 pt-20 sm:px-6 lg:px-8"
+      mainClassName="mx-auto max-w-(--breakpoint-xl) px-4 pb-20 pt-20 sm:px-6 lg:px-8"
       backgroundClassName="bg-gradient-subtle"
     >
       <header className="mb-12 border-b border-border/70 pb-10">
@@ -281,7 +281,7 @@ const Pricing = () => {
           description="The same packages, reorganized for scanning. Use this when you already know your audience and need the practical limits side by side."
         />
 
-        <Card className="overflow-hidden border-border/80 bg-card shadow-sm">
+        <Card className="overflow-hidden border-border/80 bg-card shadow-xs">
           <div className="hidden lg:block">
             <Table className="min-w-[980px]">
               <TableHeader>
@@ -494,7 +494,7 @@ const Pricing = () => {
       </section>
 
       <section className="mb-16 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        <Card className="border-border/80 bg-card p-6 shadow-sm">
+        <Card className="border-border/80 bg-card p-6 shadow-xs">
           <div className="flex h-full flex-col justify-between gap-6">
             <div>
               <p className="font-semibold text-foreground">
@@ -526,7 +526,7 @@ const Pricing = () => {
           </div>
         </Card>
 
-        <Card className="border-border/80 bg-card p-6 shadow-sm">
+        <Card className="border-border/80 bg-card p-6 shadow-xs">
           <div className="mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-[hsl(142_76%_28%)] dark:text-[hsl(142_76%_62%)]" />
             <h2 className="text-xl font-semibold tracking-normal text-foreground">
@@ -573,7 +573,7 @@ const Pricing = () => {
       </section>
 
       <section>
-        <Card className="overflow-hidden border-border/80 bg-card shadow-sm">
+        <Card className="overflow-hidden border-border/80 bg-card shadow-xs">
           <div className="grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-center">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">

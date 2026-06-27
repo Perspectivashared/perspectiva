@@ -32,7 +32,7 @@ export function H1({ className, children, ...props }: AsProps<"h1">) {
     <h1
       className={cn(
         "font-display font-bold tracking-tighter",
-        "text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.05]",
+        "text-[clamp(2.25rem,5vw,3.75rem)] leading-tighter",
         className,
       )}
       {...props}

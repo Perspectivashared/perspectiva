@@ -82,7 +82,7 @@ const MetricCard = ({
   b: string;
   icon: React.ElementType;
 }) => (
-  <Card className="p-4 border-border/50 bg-card/50 backdrop-blur">
+  <Card className="p-4 border-border/50 bg-card/50 backdrop-blur-sm">
     <div className="flex items-center gap-2 mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
       <Icon className="h-3.5 w-3.5" />
       {label}
@@ -157,7 +157,7 @@ const DemographicPie = ({
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={(v: number) => [v, "responses"]} />
+          <Tooltip formatter={(v) => [Number(v), "responses"]} />
           <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
       </ResponsiveContainer>
@@ -193,7 +193,7 @@ const SurveyComparison = () => {
   if (surveyIds.length < 2) {
     return (
       <AppShell withContainer mainClassName="max-w-5xl px-4 pb-12 pt-24">
-        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur space-y-4">
+        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur-sm space-y-4">
           <h1 className="text-2xl font-bold">Compare Surveys</h1>
           <p className="text-muted-foreground">
             Navigate here from a survey's analytics page to compare two surveys side by side.
@@ -225,13 +225,13 @@ const SurveyComparison = () => {
       </div>
 
       {comparisonQuery.isPending && (
-        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur">
+        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur-sm">
           <p className="text-muted-foreground">Loading comparison data…</p>
         </Card>
       )}
 
       {comparisonQuery.isError && (
-        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur space-y-3">
+        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur-sm space-y-3">
           <p className="font-semibold">Failed to load comparison</p>
           <p className="text-sm text-muted-foreground">
             {comparisonQuery.error instanceof Error
@@ -252,7 +252,7 @@ const SurveyComparison = () => {
               { survey: a, colors: COLORS_A, label: "Survey A" },
               { survey: b, colors: COLORS_B, label: "Survey B" },
             ].map(({ survey, label }) => (
-              <Card key={survey.survey_id} className="p-5 border-border/50 bg-card/50 backdrop-blur">
+              <Card key={survey.survey_id} className="p-5 border-border/50 bg-card/50 backdrop-blur-sm">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
                 <h2 className="text-lg font-semibold leading-snug">{survey.title}</h2>
                 <div className="flex items-center gap-2 mt-2">
@@ -310,7 +310,7 @@ const SurveyComparison = () => {
           </div>
 
           {/* Demographics side-by-side */}
-          <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+          <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
             <h3 className="font-semibold mb-4">Profession Demographics</h3>
             <div className="grid grid-cols-2 gap-6">
               <DemographicPie data={a.demographics.profession} colors={COLORS_A} label="Survey A" />
@@ -322,7 +322,7 @@ const SurveyComparison = () => {
           {a.question_breakdowns.filter((q) => q.distribution).map((qA) => {
             const qB = b.question_breakdowns.find((q) => q.question_text === qA.question_text);
             return (
-              <Card key={qA.question_id} className="p-6 border-border/50 bg-card/50 backdrop-blur">
+              <Card key={qA.question_id} className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                   Question comparison
                 </p>

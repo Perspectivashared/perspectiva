@@ -48,7 +48,7 @@ const Drafts = () => {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : drafts.length === 0 ? (
-        <Card className="border-border/50 bg-card/50 p-10 backdrop-blur text-center">
+        <Card className="border-border/50 bg-card/50 p-10 backdrop-blur-sm text-center">
           <p className="text-muted-foreground mb-4">No drafts saved yet.</p>
           <Button onClick={() => navigate("/create-survey")}>Create one now</Button>
         </Card>

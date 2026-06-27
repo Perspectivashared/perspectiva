@@ -48,7 +48,7 @@ const PaginatedCommunityGrid = ({
 
   if (communities.length === 0) {
     return (
-      <Card className="border-border/70 bg-card p-8 text-center shadow-sm">
+      <Card className="border-border/70 bg-card p-8 text-center shadow-xs">
         <h3 className="text-2xl font-semibold tracking-tight">{emptyTitle}</h3>
         <p className="mt-2 text-sm text-muted-foreground">{emptyDescription}</p>
       </Card>

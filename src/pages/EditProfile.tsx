@@ -97,7 +97,7 @@ const EditProfile = () => {
   return (
     <AppShell withContainer mainClassName="max-w-2xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
       <h1 className="text-3xl font-bold mb-8">Edit Profile</h1>
-      <Card className="p-8 border-border/50 bg-card/50 backdrop-blur">
+      <Card className="p-8 border-border/50 bg-card/50 backdrop-blur-sm">
         <Form {...form}>
           <form onSubmit={form.handleSubmit((d) => mutation.mutate(d))} className="space-y-6">
             <FormField control={form.control} name="name" render={({ field }) => (

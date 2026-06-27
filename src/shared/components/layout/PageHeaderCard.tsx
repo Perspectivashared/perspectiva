@@ -13,7 +13,7 @@ export const PageHeaderCard = ({
   countLabel,
   isLoading = false,
 }: PageHeaderCardProps) => (
-  <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-gradient-to-r from-primary/[0.08] via-card to-card p-5">
+  <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-linear-to-r from-primary/8 via-card to-card p-5">
     {isLoading ? (
       <>
         <Skeleton className="mb-3 h-12 w-72" />

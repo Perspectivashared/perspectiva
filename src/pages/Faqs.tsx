@@ -244,7 +244,7 @@ const FaqItem = ({
     <Collapsible open={isOpen} onOpenChange={onToggle}>
       <div
         className={cn(
-          "rounded-xl border backdrop-blur transition-colors duration-200",
+          "rounded-xl border backdrop-blur-sm transition-colors duration-200",
           isOpen
             ? "border-primary/30 bg-card/80"
             : "border-border/50 bg-card/50 hover:border-border/80"
@@ -255,11 +255,11 @@ const FaqItem = ({
             type="button"
             aria-expanded={isOpen}
             aria-controls={answerId}
-            className="w-full flex items-center justify-between px-5 py-4 group hover:bg-accent/10 active:bg-accent/15 rounded-xl transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset"
+            className="w-full flex items-center justify-between px-5 py-4 group hover:bg-accent/10 active:bg-accent/15 rounded-xl transition-colors duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset"
           >
             <div className="flex items-center gap-4 text-left">
               <span
-                className="text-[11px] font-mono text-muted-foreground/50 flex-shrink-0 w-5 tabular-nums select-none"
+                className="text-[11px] font-mono text-muted-foreground/50 shrink-0 w-5 tabular-nums select-none"
                 aria-hidden="true"
               >
                 {String(idx + 1).padStart(2, "0")}
@@ -269,7 +269,7 @@ const FaqItem = ({
               </span>
             </div>
             <ChevronDown
-              className="w-4 h-4 text-muted-foreground group-hover:text-foreground flex-shrink-0 ml-4 transition-transform duration-300"
+              className="w-4 h-4 text-muted-foreground group-hover:text-foreground shrink-0 ml-4 transition-transform duration-300"
               style={{ transform: `rotate(${chevronDeg}deg)` }}
               aria-hidden="true"
             />
@@ -280,7 +280,7 @@ const FaqItem = ({
             id={answerId}
             role="region"
             aria-label={faq.q}
-            className="px-5 pb-5 pt-1 pl-[3.75rem] text-[14px] leading-[1.65] text-muted-foreground"
+            className="px-5 pb-5 pt-1 pl-15 text-[14px] leading-survey text-muted-foreground"
           >
             {faq.aNode ?? faq.a}
           </div>
@@ -418,13 +418,13 @@ const Faqs = () => {
               placeholder="Search FAQs..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-16 py-3 rounded-xl border border-border/60 bg-card/60 backdrop-blur text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/40 transition-all duration-200"
+              className="w-full pl-11 pr-16 py-3 rounded-xl border border-border/60 bg-card/60 backdrop-blur-sm text-sm placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/50 focus:border-primary/40 transition-all duration-200"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded text-xs text-muted-foreground hover:text-foreground transition-colors px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded text-xs text-muted-foreground hover:text-foreground transition-colors px-1 py-0.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50"
                 aria-label="Clear search"
               >
                 Clear
@@ -445,7 +445,7 @@ const Faqs = () => {
                   type="button"
                   onClick={() => scrollToCategory(cat.id)}
                   className={cn(
-                    "flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border shadow-sm transition-all duration-150 whitespace-nowrap focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30 focus-visible:ring-offset-2",
+                    "shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border shadow-xs transition-all duration-150 whitespace-nowrap focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-primary/30 focus-visible:ring-offset-2",
                     activeId === cat.id
                       ? "border-primary/50 bg-gradient-primary text-primary-foreground"
                       : "border-border/60 bg-transparent text-muted-foreground hover:border-primary/60 hover:bg-primary/8 hover:text-primary"
@@ -508,7 +508,7 @@ const Faqs = () => {
                   </p>
                   <button
                     onClick={toggleAll}
-                    className="text-sm text-primary hover:text-primary/80 transition-colors font-medium focus-visible:outline-none focus-visible:underline"
+                    className="text-sm text-primary hover:text-primary/80 transition-colors font-medium focus-visible:outline-hidden focus-visible:underline"
                   >
                     {allOpen ? "Close all" : "Open all answers"}
                   </button>

@@ -319,7 +319,7 @@ const CreateSurvey = () => {
                   });
                   toast({ title: `Template loaded: ${tpl.name}`, description: "Customise and publish when ready." });
                 }}
-                className="text-left p-5 rounded-xl border-2 border-border/60 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="text-left p-5 rounded-xl border-2 border-border/60 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -337,7 +337,7 @@ const CreateSurvey = () => {
         </TabsContent>
 
         <TabsContent value="import" className="mt-6">
-          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
+          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
             <div className="space-y-4">
               <p className="text-center text-muted-foreground">
                 Import from Google Forms feature coming soon.
@@ -348,7 +348,7 @@ const CreateSurvey = () => {
 
         <TabsContent value="create" className="mt-6 space-y-6">
           {/* Survey metadata */}
-          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
+          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
             <div className="space-y-4">
               <div>
                 <Label>Survey Title</Label>
@@ -492,7 +492,7 @@ const CreateSurvey = () => {
 
           {/* Questions */}
           {state.questions.map((question, index) => (
-            <Card key={question.id} className="border-border/50 bg-card/50 p-6 backdrop-blur">
+            <Card key={question.id} className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
               <div className="flex items-start gap-4">
                 <div className="mt-8 cursor-move">
                   <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -627,7 +627,7 @@ const CreateSurvey = () => {
           </Button>
 
           {/* Action bar */}
-          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur">
+          <Card className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
                 Cost: <span className="font-bold text-primary">2 Points</span> to publish

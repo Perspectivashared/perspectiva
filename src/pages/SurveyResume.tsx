@@ -34,7 +34,7 @@ const SurveyResume = () => {
 
   return (
     <AppShell withContainer mainClassName="max-w-2xl pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
-      <Card className="p-10 text-center border-border/50 bg-card/50 backdrop-blur space-y-6">
+      <Card className="p-10 text-center border-border/50 bg-card/50 backdrop-blur-sm space-y-6">
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
           <ClipboardList className="w-8 h-8 text-primary" />
         </div>

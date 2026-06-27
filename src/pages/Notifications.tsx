@@ -120,7 +120,7 @@ const Notifications = () => {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : !notifications || notifications.length === 0 ? (
-        <Card className="border-border/50 bg-card/50 p-10 backdrop-blur text-center">
+        <Card className="border-border/50 bg-card/50 p-10 backdrop-blur-sm text-center">
           <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
           <p className="font-medium text-muted-foreground">No notifications yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -142,7 +142,7 @@ const Notifications = () => {
                   }
                 }}
                 className={cn(
-                  "flex cursor-pointer items-start gap-4 border-border/50 p-4 backdrop-blur transition-colors",
+                  "flex cursor-pointer items-start gap-4 border-border/50 p-4 backdrop-blur-sm transition-colors",
                   isUnread
                     ? "bg-primary/5 hover:bg-primary/10"
                     : "bg-card/50 hover:bg-card/80",

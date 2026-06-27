@@ -80,7 +80,7 @@ const AllSurveys = () => {
   return (
     <AppShell withContainer mainClassName="pb-14 pt-24">
       {/* Header */}
-      <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-gradient-to-r from-primary/[0.08] via-card to-card p-5">
+      <section className="mb-10 space-y-2 rounded-xl border border-primary/15 bg-linear-to-r from-primary/8 via-card to-card p-5">
         {publishedQ.isPending ? (
           <>
             <Skeleton className="mb-3 h-12 w-64" />

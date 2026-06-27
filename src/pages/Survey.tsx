@@ -380,7 +380,7 @@ const Survey = () => {
   if (submittedSurveyId) {
     return (
       <AppShell withContainer mainClassName="max-w-4xl pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
-        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur space-y-6">
+        <Card className="p-8 text-center border-border/50 bg-card/50 backdrop-blur-sm space-y-6">
           <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8 text-success" />
           </div>
@@ -428,7 +428,7 @@ const Survey = () => {
   if (isLoadingSurvey) {
     return (
       <AppShell withContainer mainClassName="max-w-4xl pb-12 pt-24">
-        <Card className="border-border/50 bg-card/50 p-8 backdrop-blur">
+        <Card className="border-border/50 bg-card/50 p-8 backdrop-blur-sm">
           <p className="text-muted-foreground">Loading survey...</p>
         </Card>
       </AppShell>
@@ -438,7 +438,7 @@ const Survey = () => {
   if (isClosed) {
     return (
       <AppShell withContainer mainClassName="max-w-4xl pb-12 pt-24">
-        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur text-center">
+        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur-sm text-center">
           <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mx-auto">
             <Clock className="w-8 h-8 text-muted-foreground" />
           </div>
@@ -453,7 +453,7 @@ const Survey = () => {
   if (loadError || !normalizedSurvey) {
     return (
       <AppShell withContainer mainClassName="max-w-4xl pb-12 pt-24">
-        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur">
+        <Card className="space-y-4 border-border/50 bg-card/50 p-8 backdrop-blur-sm">
           <h1 className="text-2xl font-semibold">Survey not found</h1>
           <p className="text-muted-foreground">{loadError ?? "This survey does not exist or is no longer active."}</p>
           <Button onClick={() => navigate(ROUTES.forYou)}>Back to For You</Button>
@@ -470,7 +470,7 @@ const Survey = () => {
   return (
     <AppShell withContainer mainClassName="max-w-4xl space-y-6 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
       {/* Survey info card */}
-      <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur">
+      <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur-sm">
         <div>
           <h1 className="mb-2 text-3xl font-bold">{normalizedSurvey.title}</h1>
           <p className="text-muted-foreground">{normalizedSurvey.description}</p>
@@ -513,7 +513,7 @@ const Survey = () => {
 
       {hasAcceptedAcknowledgement ? (
         <form onSubmit={(e) => { void handleSubmitSurvey(e); }} className="space-y-6">
-          <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur">
+          <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ListChecks className="h-4 w-4" />
@@ -525,7 +525,7 @@ const Survey = () => {
           </Card>
 
           {orderedQuestions.map((question) => (
-            <Card key={question.id} className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur">
+            <Card key={question.id} className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur-sm">
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">Q{question.order}</Badge>
@@ -561,7 +561,7 @@ const Survey = () => {
           </div>
         </form>
       ) : (
-        <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur">
+        <Card className="space-y-4 border-border/50 bg-card/50 p-6 backdrop-blur-sm">
           <h2 className="mb-4 text-2xl font-semibold">Acknowledgement</h2>
           <p className="mb-4 text-muted-foreground">{normalizedSurvey.acknowledgement}</p>
           <div className="flex items-center space-x-2">

@@ -70,7 +70,7 @@ const Navigation = () => {
       className={cn(
         "fixed top-0 w-full z-50 backdrop-blur-lg border-b transition-all duration-300",
         scrolled
-          ? "bg-background/95 border-border shadow-sm"
+          ? "bg-background/95 border-border shadow-xs"
           : "bg-background/50 border-border/50 shadow-none",
       )}
     >
@@ -91,7 +91,7 @@ const Navigation = () => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `nav-slot-link transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:rounded-sm ${
+                  `nav-slot-link transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:rounded-sm ${
                     isActive
                       ? "is-active text-foreground font-medium"
                       : "text-foreground/80 hover:text-foreground"
@@ -109,7 +109,7 @@ const Navigation = () => {
             {isAuthenticated && (
               <Link
                 to={ROUTES.notifications}
-                className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/60 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/60 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50"
                 aria-label="Notifications"
               >
                 <Bell className="h-4 w-4" />

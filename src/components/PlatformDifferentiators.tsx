@@ -82,7 +82,7 @@ const PlatformDifferentiators = () => {
                 }`}
               >
                 <span className="text-sm text-foreground pr-4">{row.feature}</span>
-                <span className="w-32 flex justify-center border-l-2 border-primary/15 bg-primary/[0.03]">
+                <span className="w-32 flex justify-center border-l-2 border-primary/15 bg-primary/3">
                   {row.perspectiva ? (
                     <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
                       <Check className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
