@@ -100,16 +100,41 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+type ChartTooltipItem = {
+  dataKey?: string | number;
+  name?: string | number;
+  value?: string | number;
+  color?: string;
+  payload: Record<string, unknown> & { fill?: string };
+};
+
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-    React.ComponentProps<"div"> & {
-      hideLabel?: boolean;
-      hideIndicator?: boolean;
-      indicator?: "line" | "dot" | "dashed";
-      nameKey?: string;
-      labelKey?: string;
-    }
+  // recharts 3 no longer surfaces active/payload/label on Tooltip's prop type,
+  // so declare the content-injected props we read directly.
+  React.ComponentProps<"div"> & {
+    active?: boolean;
+    payload?: ChartTooltipItem[];
+    label?: unknown;
+    labelFormatter?: (
+      value: unknown,
+      payload: ChartTooltipItem[],
+    ) => React.ReactNode;
+    formatter?: (
+      value: string | number,
+      name: string | number,
+      item: ChartTooltipItem,
+      index: number,
+      itemPayload: Record<string, unknown>,
+    ) => React.ReactNode;
+    color?: string;
+    labelClassName?: string;
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
+    indicator?: "line" | "dot" | "dashed";
+    nameKey?: string;
+    labelKey?: string;
+  }
 >(
   (
     {
@@ -258,11 +283,19 @@ const ChartLegend = RechartsPrimitive.Legend;
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> &
-    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-      hideIcon?: boolean;
-      nameKey?: string;
-    }
+  React.ComponentProps<"div"> & {
+    // recharts 3 retyped LegendProps so payload/verticalAlign are no longer
+    // Pick-able; declare the minimal shape we actually read instead.
+    payload?: Array<{
+      value?: string | number;
+      dataKey?: string | number;
+      color?: string;
+      [key: string]: unknown;
+    }>;
+    verticalAlign?: "top" | "middle" | "bottom";
+    hideIcon?: boolean;
+    nameKey?: string;
+  }
 >(
   (
     { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },

@@ -157,7 +157,7 @@ const DemographicPie = ({
               <Cell key={i} fill={colors[i % colors.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={(v: number) => [v, "responses"]} />
+          <Tooltip formatter={(v) => [Number(v), "responses"]} />
           <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
       </ResponsiveContainer>

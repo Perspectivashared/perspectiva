@@ -2,16 +2,9 @@ import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/lib/routes";
-import {
-  ArrowUp,
-  Instagram,
-  Linkedin,
-  Phone,
-  Twitter,
-  Youtube,
-  type LucideIcon,
-} from "lucide-react";
-import { useEffect, useRef } from "react";
+import { ArrowUp, Phone } from "lucide-react";
+import { Instagram, Linkedin, Twitter, Youtube } from "@/components/BrandIcons";
+import { useEffect, useRef, type ComponentType } from "react";
 import { scrollToTop } from "@/lib/scroll";
 import { Link } from "react-router-dom";
 
@@ -28,7 +21,7 @@ interface FooterSection {
 interface FooterSocialLink {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
 }
 
 const footerSections: FooterSection[] = [

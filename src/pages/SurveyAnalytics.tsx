@@ -954,7 +954,7 @@ const ChoicePieChart = ({ distribution }: { distribution: Record<string, number>
           <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={2} dataKey="value">
             {data.map((entry, i) => <Cell key={entry.name} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
           </Pie>
-          <Tooltip formatter={(v: number) => [`${v} (${Math.round((v / total) * 100)}%)`, "Responses"]} />
+          <Tooltip formatter={(v) => { const n = Number(v); return [`${n} (${Math.round((n / total) * 100)}%)`, "Responses"]; }} />
         </PieChart>
       </ResponsiveContainer>
       <div className="flex flex-col gap-2 flex-1 min-w-0">
@@ -1095,7 +1095,7 @@ const DropoffFunnel = ({ breakdowns }: { breakdowns: QuestionBreakdown[] }) => {
           <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border/30" />
           <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
           <YAxis type="category" dataKey="name" width={190} tick={{ fontSize: 11 }} />
-          <Tooltip formatter={(v: number) => `${v}%`} />
+          <Tooltip formatter={(v) => `${v}%`} />
           <Bar dataKey="rate" name="Answered" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
@@ -1121,7 +1121,7 @@ const LinearScaleRadar = ({ breakdowns }: { breakdowns: QuestionBreakdown[] }) =
           <PolarRadiusAxis angle={30} domain={[0, 10]} tick={{ fontSize: 10 }} />
           <Radar name="Mean Score" dataKey="mean" stroke="hsl(var(--primary))"
             fill="hsl(var(--primary))" fillOpacity={0.25} strokeWidth={2} />
-          <Tooltip formatter={(v: number) => v.toFixed(2)} />
+          <Tooltip formatter={(v) => Number(v).toFixed(2)} />
         </RadarChart>
       </ResponsiveContainer>
     </Card>
@@ -1179,7 +1179,7 @@ const CorrelationMatrix = ({ correlations, breakdowns }: { correlations: Questio
 
 const AutoResearchSummary = ({ data }: { data: SurveyAnalytics }) => {
   const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
   const parts: string[] = [];
