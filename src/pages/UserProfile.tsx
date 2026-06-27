@@ -72,7 +72,7 @@ const UserProfile = () => {
 
   return (
     <AppShell withContainer mainClassName="max-w-2xl pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
-      <Card className="p-8 space-y-8 border-border/50 bg-card/50 backdrop-blur">
+      <Card className="p-8 space-y-8 border-border/50 bg-card/50 backdrop-blur-sm">
         {/* Header */}
         <div className="flex items-start gap-5">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

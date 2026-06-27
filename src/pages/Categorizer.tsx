@@ -146,7 +146,7 @@ const SelectOption = ({
     type="button"
     onClick={onSelect}
     className={cn(
-      "w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+      "w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50",
       selected
         ? "border-primary bg-primary/10 text-primary"
         : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5"
@@ -169,7 +169,7 @@ const CheckOption = ({
     type="button"
     onClick={onToggle}
     className={cn(
-      "w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-150 flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+      "w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-150 flex items-center gap-3 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/50",
       selected
         ? "border-primary bg-primary/10 text-primary"
         : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5"
@@ -177,7 +177,7 @@ const CheckOption = ({
   >
     <div
       className={cn(
-        "w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all",
+        "w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
         selected ? "border-primary bg-primary" : "border-muted-foreground/40"
       )}
     >
@@ -500,7 +500,7 @@ const Categorizer = () => {
                 >
                   <div
                     className={cn(
-                      "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
+                      "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all",
                       field.value ? "border-primary bg-primary" : "border-muted-foreground/40"
                     )}
                   >
@@ -1046,19 +1046,19 @@ const Categorizer = () => {
       {/* Natural page flow — sidebar sticks, nav bar is fixed to viewport bottom */}
       <div className="flex">
         {/* ── Sidebar — sticky to viewport ── */}
-        <aside className="hidden md:block w-60 flex-shrink-0 border-r border-border/50">
+        <aside className="hidden md:block w-60 shrink-0 border-r border-border/50">
           <div
-            className="sticky flex flex-col bg-card/60 backdrop-blur overflow-hidden"
+            className="sticky flex flex-col bg-card/60 backdrop-blur-sm overflow-hidden"
             style={{ top: "4rem", height: "calc(100dvh - 4rem)" }}
           >
-          <div className="px-6 py-5 border-b border-border/50 flex-shrink-0">
+          <div className="px-6 py-5 border-b border-border/50 shrink-0">
             <h2 className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent">
               Perspectiva
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">Profile Setup</p>
             <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full transition-all duration-500"
+                className="h-full bg-linear-to-r from-primary to-purple-500 rounded-full transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -1086,7 +1086,7 @@ const Categorizer = () => {
                 >
                   <div
                     className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all",
+                      "w-5 h-5 rounded-full flex items-center justify-center shrink-0 border-2 transition-all",
                       circleCls
                     )}
                   >
@@ -1103,7 +1103,7 @@ const Categorizer = () => {
           </nav>
 
           {/* Sidebar footer */}
-          <div className="px-6 py-4 border-t border-border/50 flex-shrink-0">
+          <div className="px-6 py-4 border-t border-border/50 shrink-0">
             <p className="text-xs text-muted-foreground">
               {currentStep} of {STEPS.length} sections complete
             </p>
@@ -1114,7 +1114,7 @@ const Categorizer = () => {
         {/* ── Main content — natural page flow ── */}
         <div className="flex-1 min-w-0 bg-background" style={{ minHeight: "calc(100dvh - 4rem)" }}>
           {/* Mobile step indicator */}
-          <div className="md:hidden flex items-center justify-between px-5 py-3 bg-card/60 border-b border-border/50 backdrop-blur sticky top-16 z-10">
+          <div className="md:hidden flex items-center justify-between px-5 py-3 bg-card/60 border-b border-border/50 backdrop-blur-sm sticky top-16 z-10">
             <span className="text-sm font-medium text-foreground">{STEPS[currentStep].label}</span>
             <span className="text-xs text-muted-foreground">{currentStep + 1} / {STEPS.length}</span>
           </div>
@@ -1122,7 +1122,7 @@ const Categorizer = () => {
           {/* Progress bar — sticky below app nav */}
           <div className="h-0.5 bg-muted sticky top-16 z-10">
             <div
-              className="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-500"
+              className="h-full bg-linear-to-r from-primary to-purple-500 transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>

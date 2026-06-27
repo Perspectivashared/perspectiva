@@ -165,8 +165,8 @@ const Converter = () => {
 
       {/* Balance display */}
       <div className="mb-6 grid grid-cols-2 gap-4">
-        <Card className="border-border/50 bg-card/60 p-4 backdrop-blur flex items-center gap-3">
-          <Trophy className="h-6 w-6 text-primary flex-shrink-0" />
+        <Card className="border-border/50 bg-card/60 p-4 backdrop-blur-sm flex items-center gap-3">
+          <Trophy className="h-6 w-6 text-primary shrink-0" />
           <div>
             <p className="text-xs text-muted-foreground">Your Points</p>
             <p className="text-2xl font-bold text-primary tabular-nums">
@@ -174,8 +174,8 @@ const Converter = () => {
             </p>
           </div>
         </Card>
-        <Card className="border-border/50 bg-card/60 p-4 backdrop-blur flex items-center gap-3">
-          <Coins className="h-6 w-6 text-amber-600 flex-shrink-0" />
+        <Card className="border-border/50 bg-card/60 p-4 backdrop-blur-sm flex items-center gap-3">
+          <Coins className="h-6 w-6 text-amber-600 shrink-0" />
           <div>
             <p className="text-xs text-muted-foreground">Your Coins</p>
             <p className="text-2xl font-bold text-amber-600 tabular-nums">
@@ -185,7 +185,7 @@ const Converter = () => {
         </Card>
       </div>
 
-      <Card className="mb-6 border-border/50 bg-card/60 p-5 backdrop-blur">
+      <Card className="mb-6 border-border/50 bg-card/60 p-5 backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-3">
           <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">
             Current rate
@@ -197,7 +197,7 @@ const Converter = () => {
       </Card>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <Card className="border-border/50 bg-card/60 p-6 backdrop-blur">
+        <Card className="border-border/50 bg-card/60 p-6 backdrop-blur-sm">
           <div className="mb-4 flex items-center gap-2">
             <Trophy className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Points to Convert</h2>
@@ -226,7 +226,7 @@ const Converter = () => {
           </div>
         </Card>
 
-        <Card className="border-border/50 bg-card/60 p-6 backdrop-blur">
+        <Card className="border-border/50 bg-card/60 p-6 backdrop-blur-sm">
           <div className="mb-4 flex items-center gap-2">
             <Coins className="h-5 w-5 text-amber-600" />
             <h2 className="text-lg font-semibold">Coins Reference</h2>
@@ -253,7 +253,7 @@ const Converter = () => {
       </section>
 
       {/* Convert action */}
-      <Card className="mt-6 border-border/50 bg-card/60 p-6 backdrop-blur">
+      <Card className="mt-6 border-border/50 bg-card/60 p-6 backdrop-blur-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-medium">
@@ -276,7 +276,7 @@ const Converter = () => {
         </div>
       </Card>
 
-      <Card className="mt-4 border-border/50 bg-card/60 p-5 backdrop-blur">
+      <Card className="mt-4 border-border/50 bg-card/60 p-5 backdrop-blur-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />

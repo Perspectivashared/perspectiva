@@ -86,10 +86,10 @@ const About = () => (
           {HOW_IT_WORKS.map(({ icon: Icon, gradient, title, body }) => (
             <Card
               key={title}
-              className="p-8 hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur"
+              className="p-8 hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm"
             >
               <div
-                className={`w-14 h-14 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-6 shadow-glow`}
+                className={`w-14 h-14 rounded-xl bg-linear-to-br ${gradient} flex items-center justify-center mb-6 shadow-glow`}
               >
                 <Icon className="w-7 h-7 text-white" aria-hidden="true" />
               </div>
@@ -123,7 +123,7 @@ const About = () => (
               {DIFFERENTIATORS.map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <CheckCircle2
-                    className="w-5 h-5 text-primary flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 text-primary shrink-0 mt-0.5"
                     aria-hidden="true"
                   />
                   <span className="text-foreground leading-relaxed">{item}</span>
@@ -132,7 +132,7 @@ const About = () => (
             </ul>
           </div>
 
-          <Card className="p-8 border-primary/25 bg-card/80 backdrop-blur shadow-elegant">
+          <Card className="p-8 border-primary/25 bg-card/80 backdrop-blur-sm shadow-elegant">
             <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center mb-6 shadow-glow">
               <Lightbulb className="w-6 h-6 text-white" aria-hidden="true" />
             </div>
@@ -165,8 +165,8 @@ const About = () => (
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 mb-16">
-          <Card className="p-8 bg-card/80 backdrop-blur border-border/50 hover:shadow-elegant transition-all duration-300">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-5 shadow-glow">
+          <Card className="p-8 bg-card/80 backdrop-blur-sm border-border/50 hover:shadow-elegant transition-all duration-300">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-accent flex items-center justify-center mb-5 shadow-glow">
               <TrendingUp className="w-6 h-6 text-white" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-semibold mb-3">The problem</h3>
@@ -177,8 +177,8 @@ const About = () => (
             </p>
           </Card>
 
-          <Card className="p-8 bg-card/80 backdrop-blur border-border/50 hover:shadow-elegant transition-all duration-300">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center mb-5 shadow-glow">
+          <Card className="p-8 bg-card/80 backdrop-blur-sm border-border/50 hover:shadow-elegant transition-all duration-300">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-accent to-primary flex items-center justify-center mb-5 shadow-glow">
               <Target className="w-6 h-6 text-white" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-semibold mb-3">The goal</h3>

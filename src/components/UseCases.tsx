@@ -68,7 +68,7 @@ const UseCases = () => {
                   className="p-7 rounded-2xl border border-border/60 bg-card hover:border-primary/35 hover:shadow-elegant transition-all duration-300"
                 >
                   <div
-                    className={`w-11 h-11 rounded-xl bg-gradient-to-br ${uc.color} flex items-center justify-center mb-5`}
+                    className={`w-11 h-11 rounded-xl bg-linear-to-br ${uc.color} flex items-center justify-center mb-5`}
                   >
                     <Icon className="w-5 h-5 text-white" />
                   </div>

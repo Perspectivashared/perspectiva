@@ -18,7 +18,7 @@ const SurveyPublished = () => {
 
   return (
     <AppShell withContainer mainClassName="max-w-2xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
-      <Card className="p-10 text-center border-border/50 bg-card/50 backdrop-blur space-y-6">
+      <Card className="p-10 text-center border-border/50 bg-card/50 backdrop-blur-sm space-y-6">
         <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-10 h-10 text-success" />
         </div>

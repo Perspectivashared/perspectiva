@@ -9,7 +9,7 @@ interface AddOnCardProps {
 
 const AddOnCard = ({ addon }: AddOnCardProps) => {
   return (
-    <Card className="flex h-full gap-4 border-border/80 bg-card p-4 shadow-sm transition-colors hover:border-foreground/25">
+    <Card className="flex h-full gap-4 border-border/80 bg-card p-4 shadow-xs transition-colors hover:border-foreground/25">
       <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">
         {addon.includedIn ? (
           <CheckCircle2 className="h-4 w-4 text-[hsl(142_76%_28%)] dark:text-[hsl(142_76%_62%)]" />

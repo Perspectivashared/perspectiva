@@ -43,7 +43,7 @@ const SECTIONS = [
               className="flex items-start gap-2.5 p-3.5 rounded-xl bg-muted/50 border border-border/40"
             >
               <ShieldCheck
-                className="w-4 h-4 text-primary mt-0.5 flex-shrink-0"
+                className="w-4 h-4 text-primary mt-0.5 shrink-0"
                 aria-hidden="true"
               />
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -86,7 +86,7 @@ const SECTIONS = [
             <ul className="space-y-1.5">
               {items.map((i) => (
                 <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                   {i}
                 </li>
               ))}
@@ -112,7 +112,7 @@ const SECTIONS = [
             "Maintain response quality and detect abuse",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <Activity className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <Activity className="w-4 h-4 text-primary mt-0.5 shrink-0" aria-hidden="true" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -142,7 +142,7 @@ const SECTIONS = [
               "Expose your identity to survey creators",
             ].map((i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-destructive flex-shrink-0 mt-1.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0 mt-1.5" />
                 {i}
               </li>
             ))}
@@ -158,7 +158,7 @@ const SECTIONS = [
               "Provide statistical outputs (averages, trends, patterns)",
             ].map((i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-success flex-shrink-0 mt-1.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0 mt-1.5" />
                 {i}
               </li>
             ))}
@@ -183,7 +183,7 @@ const SECTIONS = [
             "Stop using the platform at any time",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <UserCheck className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <UserCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" aria-hidden="true" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -218,7 +218,7 @@ const SECTIONS = [
             "Your data is not used to train external public AI systems.",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <Cpu className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <Cpu className="w-4 h-4 text-primary mt-0.5 shrink-0" aria-hidden="true" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -241,7 +241,7 @@ const SECTIONS = [
             "Improve performance",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <Globe className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <Globe className="w-4 h-4 text-primary mt-0.5 shrink-0" aria-hidden="true" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -270,7 +270,7 @@ const SECTIONS = [
             "Reasonable protection of personal data",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <FileCheck className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <FileCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" aria-hidden="true" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -292,7 +292,7 @@ const SECTIONS = [
             hello@perspectiva.com
           </a>
         </p>
-        <Button asChild className="flex-shrink-0">
+        <Button asChild className="shrink-0">
           <Link to={ROUTES.contact}>Contact us →</Link>
         </Button>
       </div>
@@ -365,7 +365,7 @@ const Privacy = () => {
               <section key={id} id={id} aria-labelledby={`${id}-heading`}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
-                    className={`w-9 h-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-glow flex-shrink-0`}
+                    className={`w-9 h-9 rounded-lg bg-linear-to-br ${gradient} flex items-center justify-center shadow-glow shrink-0`}
                   >
                     <Icon className="w-4 h-4 text-white" aria-hidden="true" />
                   </div>
@@ -373,7 +373,7 @@ const Privacy = () => {
                     {title}
                   </h2>
                 </div>
-                <Card className="p-6 border-border/50 bg-card/60 backdrop-blur">
+                <Card className="p-6 border-border/50 bg-card/60 backdrop-blur-sm">
                   {body}
                 </Card>
               </section>

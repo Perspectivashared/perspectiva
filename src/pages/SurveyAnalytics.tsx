@@ -753,16 +753,16 @@ function exportToXLSX(data: SurveyAnalytics) {
 // ---------------------------------------------------------------------------
 
 const SEVERITY_STYLES = {
-  info: { icon: <Info className="h-3.5 w-3.5 text-primary flex-shrink-0" />, text: "text-muted-foreground" },
-  warning: { icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />, text: "text-amber-600 dark:text-amber-400" },
-  action: { icon: <Zap className="h-3.5 w-3.5 text-destructive flex-shrink-0" />, text: "text-destructive" },
+  info: { icon: <Info className="h-3.5 w-3.5 text-primary shrink-0" />, text: "text-muted-foreground" },
+  warning: { icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />, text: "text-amber-600 dark:text-amber-400" },
+  action: { icon: <Zap className="h-3.5 w-3.5 text-destructive shrink-0" />, text: "text-destructive" },
 };
 
 const KeyInsightsPanel = ({ data }: { data: SurveyAnalytics }) => {
   const insights = generateInsights(data);
   if (!insights.length) return null;
   return (
-    <Card className="p-6 mb-8 border-amber-200/30 bg-amber-50/5 backdrop-blur">
+    <Card className="p-6 mb-8 border-amber-200/30 bg-amber-50/5 backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-4">
         <Lightbulb className="h-5 w-5 text-amber-500" />
         <h2 className="font-semibold">Key Insights</h2>
@@ -786,7 +786,7 @@ const STATUS_DOT: Record<HealthStatus, string> = {
 const SurveyHealthDashboard = ({ data }: { data: SurveyAnalytics }) => {
   const metrics = getSurveyHealth(data);
   return (
-    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur">
+    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-4">
         <Activity className="h-5 w-5 text-primary" />
         <h2 className="font-semibold">Survey Health</h2>
@@ -807,7 +807,7 @@ const SurveyHealthDashboard = ({ data }: { data: SurveyAnalytics }) => {
 const RespondentClusters = ({ clusters, total }: { clusters: RespondentCluster[]; total: number }) => {
   if (clusters.length < 2) return null;
   return (
-    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur">
+    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-5">
         <Users className="h-5 w-5 text-primary" />
         <h2 className="font-semibold">Respondent Segments</h2>
@@ -960,7 +960,7 @@ const ChoicePieChart = ({ distribution }: { distribution: Record<string, number>
       <div className="flex flex-col gap-2 flex-1 min-w-0">
         {data.map((d, i) => (
           <div key={d.name} className="flex items-center gap-2 text-sm">
-            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
             <span className="truncate flex-1 text-muted-foreground">{d.name}</span>
             <span className="font-medium tabular-nums">{d.value}</span>
             <span className="text-muted-foreground tabular-nums w-10 text-right">{Math.round((d.value / total) * 100)}%</span>
@@ -1084,7 +1084,7 @@ const DropoffFunnel = ({ breakdowns }: { breakdowns: QuestionBreakdown[] }) => {
     rate: Math.round((q.question_completion_rate ?? 0) * 100),
   }));
   return (
-    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur">
+    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-4">
         <Filter className="h-5 w-5 text-primary" />
         <h2 className="font-semibold">Question Drop-off</h2>
@@ -1112,7 +1112,7 @@ const LinearScaleRadar = ({ breakdowns }: { breakdowns: QuestionBreakdown[] }) =
     fullMark: 10,
   }));
   return (
-    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur">
+    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
       <h2 className="font-semibold mb-4">Scale Questions Overview</h2>
       <ResponsiveContainer width="100%" height={280}>
         <RadarChart data={radarData}>
@@ -1142,7 +1142,7 @@ const CorrelationMatrix = ({ correlations, breakdowns }: { correlations: Questio
     return "bg-muted/30";
   };
   return (
-    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur overflow-x-auto">
+    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm overflow-x-auto">
       <h2 className="font-semibold mb-4">Question Correlation Matrix</h2>
       <table className="text-xs border-collapse">
         <thead>
@@ -1203,7 +1203,7 @@ const AutoResearchSummary = ({ data }: { data: SurveyAnalytics }) => {
     timeoutRef.current = setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur">
+    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-muted-foreground" />
@@ -1223,7 +1223,7 @@ const RecommendationsPanel = ({ data }: { data: SurveyAnalytics }) => {
   if (!recs.length) return null;
   const PRIORITY_COLOR: Record<string, string> = { high: "text-destructive", medium: "text-amber-500", low: "text-muted-foreground" };
   return (
-    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur">
+    <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-4">
         <Sparkles className="h-5 w-5 text-primary" />
         <h2 className="font-semibold">Recommendations</h2>
@@ -1231,7 +1231,7 @@ const RecommendationsPanel = ({ data }: { data: SurveyAnalytics }) => {
       <div className="space-y-3">
         {recs.map((rec) => (
           <div key={`${rec.priority}:${rec.title}`} className="flex items-start gap-3 rounded-lg border border-border/30 p-3">
-            <span className={cn("text-xs font-semibold uppercase mt-0.5 w-14 flex-shrink-0", PRIORITY_COLOR[rec.priority])}>
+            <span className={cn("text-xs font-semibold uppercase mt-0.5 w-14 shrink-0", PRIORITY_COLOR[rec.priority])}>
               {rec.priority}
             </span>
             <div>
@@ -1257,7 +1257,7 @@ const CrossSegmentChart = ({ crosses }: { crosses: DemographicCross[] }) => {
     return row;
   });
   return (
-    <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+    <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
       <h3 className="text-sm font-semibold mb-4">Profession × Category</h3>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData}>
@@ -1383,7 +1383,7 @@ const SurveyAnalytics = () => {
   return (
     <AppShell withContainer mainClassName="max-w-5xl px-4 pb-12 pt-24" backgroundClassName="bg-gradient-subtle">
       {/* Print styles */}
-      <style>{`@media print { [data-print-hide]{display:none!important} body{background:white!important} .backdrop-blur{backdrop-filter:none!important} [data-print-section]{page-break-inside:avoid;margin-bottom:1.5rem} }`}</style>
+      <style>{`@media print { [data-print-hide]{display:none!important} body{background:white!important} .backdrop-blur-sm{backdrop-filter:none!important} [data-print-section]{page-break-inside:avoid;margin-bottom:1.5rem} }`}</style>
 
       {/* Header */}
       <div className="mb-8" data-print-section>
@@ -1418,7 +1418,7 @@ const SurveyAnalytics = () => {
       {/* Small sample warning */}
       {data.response_count < 20 && data.response_count > 0 && (
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-400/40 bg-amber-50/10 px-5 py-4" data-print-section>
-          <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
           <div>
             <p className="text-sm font-medium text-amber-600">Small sample — interpret with caution</p>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -1432,7 +1432,7 @@ const SurveyAnalytics = () => {
       {/* Engagement score + summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8" data-print-section>
         {/* Engagement score */}
-        <Card className="p-4 border-border/50 bg-card/50 backdrop-blur text-center col-span-1">
+        <Card className="p-4 border-border/50 bg-card/50 backdrop-blur-sm text-center col-span-1">
           <div className="relative inline-flex items-center justify-center w-16 h-16 mb-1 mx-auto">
             <svg className="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.9" fill="none" className="stroke-muted" strokeWidth="3" />
@@ -1446,7 +1446,7 @@ const SurveyAnalytics = () => {
         </Card>
 
         {/* Responses */}
-        <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+        <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
           <Users className="mx-auto h-5 w-5 text-primary mb-2" />
           <div className="text-2xl font-bold text-primary">{data.response_count}</div>
           <div className="text-xs text-muted-foreground">Responses{data.target_responses ? ` / ${data.target_responses}` : ""}</div>
@@ -1461,7 +1461,7 @@ const SurveyAnalytics = () => {
         </Card>
 
         {/* Completion rate */}
-        <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+        <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
           <TrendingUp className="mx-auto h-5 w-5 text-success mb-2" />
           <div className="text-2xl font-bold text-success">
             {data.completion_rate !== null ? `${Math.round(data.completion_rate * 100)}%` : "—"}
@@ -1475,7 +1475,7 @@ const SurveyAnalytics = () => {
         </Card>
 
         {/* Avg time */}
-        <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+        <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
           <Clock className="mx-auto h-5 w-5 text-accent mb-2" />
           <div className="text-2xl font-bold text-accent">
             {data.avg_completion_seconds !== null ? fmtSeconds(data.avg_completion_seconds) : "—"}
@@ -1488,13 +1488,13 @@ const SurveyAnalytics = () => {
 
         {/* Rating (conditional) */}
         {data.avg_rating != null ? (
-          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
             <Star className="mx-auto h-5 w-5 text-amber-400 mb-2" />
             <div className="text-2xl font-bold text-amber-400">{data.avg_rating.toFixed(1)}</div>
             <div className="text-xs text-muted-foreground">Avg Rating ({data.rating_count})</div>
           </Card>
         ) : (
-          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
             <HelpCircle className="mx-auto h-5 w-5 text-muted-foreground mb-2" />
             <div className="text-2xl font-bold">{data.question_breakdowns.length}</div>
             <div className="text-xs text-muted-foreground">Questions</div>
@@ -1503,7 +1503,7 @@ const SurveyAnalytics = () => {
 
         {/* Data quality / margin of error */}
         {data.verified_percentage != null ? (
-          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
             <ShieldCheck className="mx-auto h-5 w-5 text-emerald-500 mb-2" />
             <div className="text-2xl font-bold text-emerald-500">{data.verified_percentage}%</div>
             <div className="text-xs text-muted-foreground">Verified</div>
@@ -1511,13 +1511,13 @@ const SurveyAnalytics = () => {
             {data.straight_line_count > 0 && <div className="text-xs text-amber-500">{data.straight_line_count} straight-line</div>}
           </Card>
         ) : moe != null ? (
-          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
             <FlaskConical className="mx-auto h-5 w-5 text-indigo-500 mb-2" />
             <div className="text-2xl font-bold text-indigo-500">±{moe}%</div>
             <div className="text-xs text-muted-foreground">Margin of Error (95%)</div>
           </Card>
         ) : (
-          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur text-center">
+          <Card className="p-5 border-border/50 bg-card/50 backdrop-blur-sm text-center">
             <HelpCircle className="mx-auto h-5 w-5 text-muted-foreground mb-2" />
             <div className="text-2xl font-bold">{data.question_breakdowns.length}</div>
             <div className="text-xs text-muted-foreground">Questions</div>
@@ -1535,7 +1535,7 @@ const SurveyAnalytics = () => {
 
       {/* Response progress */}
       {data.target_responses && (
-        <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur" data-print-section>
+        <Card className="p-6 mb-8 border-border/50 bg-card/50 backdrop-blur-sm" data-print-section>
           <div className="flex justify-between text-sm mb-2">
             <span className="font-medium">Response Progress</span>
             <span className="text-muted-foreground">{data.response_count} / {data.target_responses}</span>
@@ -1556,7 +1556,7 @@ const SurveyAnalytics = () => {
       {/* Filter toolbar */}
       {(professions.length > 1 || categories.length > 0 || data.responses_by_day.length > 1) && (
         <div className="flex flex-wrap items-center gap-3 mb-6 p-4 rounded-xl border border-border/40 bg-muted/20" data-print-hide>
-          <SlidersHorizontal className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <SlidersHorizontal className="h-4 w-4 text-muted-foreground shrink-0" />
           {professions.length > 1 && (
             <select value={activeProfession ?? ""} onChange={e => setActiveProfession(e.target.value || null)}
               className="text-sm border border-border rounded-md px-3 py-1.5 bg-background text-foreground">
@@ -1590,7 +1590,7 @@ const SurveyAnalytics = () => {
       {/* Time charts */}
       {data.responses_by_day.length > 0 && (
         <div className="grid md:grid-cols-2 gap-6 mb-8" data-print-section>
-          <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+          <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="font-semibold">Responses Over Time</h2>
               {accel.trend !== "insufficient" && (
@@ -1621,7 +1621,7 @@ const SurveyAnalytics = () => {
             </ResponsiveContainer>
           </Card>
 
-          <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+          <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
             <h2 className="font-semibold mb-4">Activity by Day of Week</h2>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={dayOfWeek}>
@@ -1640,7 +1640,7 @@ const SurveyAnalytics = () => {
       {(data.completion_time_buckets.length > 0 || data.question_breakdowns.some(q => q.question_type === "linear-scale" && q.mean != null)) && (
         <div className="grid md:grid-cols-2 gap-6 mb-8" data-print-section>
           {data.completion_time_buckets.length > 1 && (
-            <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+            <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
               <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />Completion Time Distribution
               </h3>
@@ -1737,7 +1737,7 @@ const SurveyAnalytics = () => {
           const outliers = q.question_type === "linear-scale" && q.distribution ? detectOutliers(q.distribution) : null;
           const distShape = q.question_type === "linear-scale" && q.distribution ? classifyDistribution(q.distribution) : "";
           return (
-            <Card key={q.question_id} className="p-6 border-border/50 bg-card/50 backdrop-blur" data-print-section>
+            <Card key={q.question_id} className="p-6 border-border/50 bg-card/50 backdrop-blur-sm" data-print-section>
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-sm font-medium text-muted-foreground">Q{i + 1}</span>
                 <Badge variant="outline" className="text-xs">{QUESTION_TYPE_LABELS[q.question_type] ?? q.question_type}</Badge>
@@ -1778,7 +1778,7 @@ const SurveyAnalytics = () => {
               {/* Polarization warning */}
               {pol && (
                 <div className="mt-2 text-xs text-amber-600 flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
-                  <Zap className="h-3.5 w-3.5 flex-shrink-0" />
+                  <Zap className="h-3.5 w-3.5 shrink-0" />
                   Polarized: "{pol.optionA}" ({pol.pctA}%) vs "{pol.optionB}" ({pol.pctB}%)
                 </div>
               )}
@@ -1833,14 +1833,14 @@ const SurveyAnalytics = () => {
 
           {demographicWarning && (
             <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-600">
-              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               {demographicWarning}
             </div>
           )}
 
           <div className="grid md:grid-cols-2 gap-6">
             {professionData.length > 0 && (
-              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
                 <h3 className="font-semibold mb-4 text-sm">By Profession</h3>
                 <ResponsiveContainer width="100%" height={Math.max(160, professionData.length * 40)}>
                   <BarChart data={professionData} layout="vertical" margin={{ left: 8, right: 24 }}>
@@ -1853,7 +1853,7 @@ const SurveyAnalytics = () => {
               </Card>
             )}
             {categoryData.length > 0 && (
-              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
                 <h3 className="font-semibold mb-4 text-sm">By Category</h3>
                 <ResponsiveContainer width="100%" height={Math.max(160, categoryData.length * 40)}>
                   <BarChart data={categoryData} layout="vertical" margin={{ left: 8, right: 24 }}>
@@ -1866,7 +1866,7 @@ const SurveyAnalytics = () => {
               </Card>
             )}
             {institutionData.length > 0 && (
-              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
                 <h3 className="font-semibold mb-4 text-sm">By Institution</h3>
                 <ResponsiveContainer width="100%" height={Math.max(160, institutionData.length * 40)}>
                   <BarChart data={institutionData} layout="vertical" margin={{ left: 8, right: 24 }}>
@@ -1879,7 +1879,7 @@ const SurveyAnalytics = () => {
               </Card>
             )}
             {subCatData.length > 0 && (
-              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur">
+              <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
                 <h3 className="font-semibold mb-4 text-sm">By Sub-Category</h3>
                 <ResponsiveContainer width="100%" height={Math.max(160, subCatData.length * 40)}>
                   <BarChart data={subCatData} layout="vertical" margin={{ left: 8, right: 24 }}>

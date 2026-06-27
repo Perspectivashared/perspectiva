@@ -85,9 +85,9 @@ export const CustomScrollbar = () => {
   if (!visible) return null;
 
   return (
-    <div className="fixed right-1 top-0 h-screen w-2.5 z-[9999] flex flex-col select-none">
+    <div className="fixed right-1 top-0 h-screen w-2.5 z-9999 flex flex-col select-none">
       <button
-        className="w-full flex-shrink-0 flex items-center justify-center hover:brightness-110 transition-[filter]"
+        className="w-full shrink-0 flex items-center justify-center hover:brightness-110 transition-[filter]"
         style={{ height: BUTTON_HEIGHT, color: "hsl(195 85% 45%)" }}
         onClick={() => scrollBy(-120)}
         aria-label="Scroll up"
@@ -106,7 +106,7 @@ export const CustomScrollbar = () => {
           aria-valuemax={100}
           aria-valuenow={scrollPercent}
           tabIndex={0}
-          className="absolute w-full rounded-full cursor-pointer transition-[filter] hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="absolute w-full rounded-full cursor-pointer transition-[filter] hover:brightness-110 focus:outline-hidden focus:ring-2 focus:ring-blue-300"
           style={{ top: thumbTop, height: thumbHeight, background: "var(--gradient-primary)" }}
           onMouseDown={handleThumbMouseDown}
           onKeyDown={(e) => {
@@ -117,7 +117,7 @@ export const CustomScrollbar = () => {
       </div>
 
       <button
-        className="w-full flex-shrink-0 flex items-center justify-center hover:brightness-110 transition-[filter]"
+        className="w-full shrink-0 flex items-center justify-center hover:brightness-110 transition-[filter]"
         style={{ height: BUTTON_HEIGHT, color: "hsl(195 85% 45%)" }}
         onClick={() => scrollBy(120)}
         aria-label="Scroll down"

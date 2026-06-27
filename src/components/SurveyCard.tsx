@@ -97,7 +97,7 @@ const SurveyCardComponent = ({
     // No focus-within ring — it leaks from child buttons and causes the blue-ring artifact
     <Card
       onClick={() => navigate(getSurveyRoute(survey.id))}
-      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
+      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
     >
       {/* Top-right: Take Survey button + Save button */}
       <div className="absolute right-4 top-4 z-10 flex items-center gap-1.5">
@@ -105,9 +105,9 @@ const SurveyCardComponent = ({
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(getSurveyRoute(survey.id)); }}
           aria-label="Take survey"
-          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[190ms] ease-out hover:shadow-glow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-[7rem]"
+          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-190 ease-out hover:shadow-glow focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-28"
         >
-          <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[190ms] ease-out group-hover:mr-1.5 group-hover:max-w-[4.5rem] group-hover:opacity-100">
+          <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-190 ease-out group-hover:mr-1.5 group-hover:max-w-18 group-hover:opacity-100">
             Take Survey
           </span>
           <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -117,7 +117,7 @@ const SurveyCardComponent = ({
           onClick={(e) => { e.stopPropagation(); onToggleSave(survey.id); }}
           title={isSaved ? "Unsave" : "Save"}
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 text-muted-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30",
+            "flex h-9 w-9 items-center justify-center rounded-lg border bg-card/90 text-muted-foreground shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-primary/30",
             isSaved
               ? "border-2 border-primary/60 text-primary hover:border-primary/80"
               : "border-border/60 hover:border-primary/50 hover:text-primary",
@@ -197,16 +197,16 @@ const OwnedSurveyCardComponent = ({ survey }: OwnedSurveyCardProps) => {
   return (
     <Card
       onClick={() => navigate(`/surveys/${survey.id}/analytics`)}
-      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-sm transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
+      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
     >
       {/* Analytics button — content-based width */}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); navigate(`/surveys/${survey.id}/analytics`); }}
         aria-label="View analytics"
-        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-[150ms] ease-out hover:shadow-glow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-[6rem]"
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-150 ease-out hover:shadow-glow focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-24"
       >
-        <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-[150ms] ease-out group-hover:mr-1.5 group-hover:max-w-[3.5rem] group-hover:opacity-100">
+        <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-150 ease-out group-hover:mr-1.5 group-hover:max-w-14 group-hover:opacity-100">
           Analytics
         </span>
         <BarChart3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

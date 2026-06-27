@@ -50,10 +50,10 @@ const HowItWorks = () => {
             {steps.map((step, index) => (
               <div key={step.number} className="relative flex gap-7 pb-10 last:pb-0">
                 {index < steps.length - 1 && (
-                  <div className="absolute left-5 top-11 bottom-0 w-px bg-gradient-to-b from-primary/30 to-transparent" />
+                  <div className="absolute left-5 top-11 bottom-0 w-px bg-linear-to-b from-primary/30 to-transparent" />
                 )}
 
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-border bg-background flex items-center justify-center z-10">
+                <div className="shrink-0 w-10 h-10 rounded-xl border-2 border-border bg-background flex items-center justify-center z-10">
                   <span className="text-xs font-bold font-mono text-muted-foreground tabular-nums">
                     {step.number}
                   </span>

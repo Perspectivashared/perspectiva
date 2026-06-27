@@ -62,7 +62,7 @@ const SECTIONS = [
             "Use the platform in compliance with applicable laws",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -92,7 +92,7 @@ const SECTIONS = [
             "Ensuring your login details are secure",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -123,7 +123,7 @@ const SECTIONS = [
             "Interfere with platform operations or security",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-destructive flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -153,7 +153,7 @@ const SECTIONS = [
             "You must comply with applicable data protection laws",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -179,7 +179,7 @@ const SECTIONS = [
             "Rewards may be adjusted or withheld for low-quality or fraudulent participation",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -216,7 +216,7 @@ const SECTIONS = [
             "Withhold rewards in cases of abuse or fraud",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -270,7 +270,7 @@ const SECTIONS = [
             "We are not liable for decisions made based on platform insights",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -296,7 +296,7 @@ const SECTIONS = [
             "We may remove content that violates these terms",
           ].map((item) => (
             <li key={item} className="flex items-start gap-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-2" />
               <span className="text-muted-foreground leading-relaxed">{item}</span>
             </li>
           ))}
@@ -349,7 +349,7 @@ const SECTIONS = [
             hello@perspectiva.com
           </a>
         </p>
-        <Button asChild className="flex-shrink-0">
+        <Button asChild className="shrink-0">
           <Link to={ROUTES.contact}>Contact us →</Link>
         </Button>
       </div>
@@ -422,7 +422,7 @@ const Terms = () => {
               <section key={id} id={id} aria-labelledby={`${id}-heading`}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
-                    className={`w-9 h-9 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-glow flex-shrink-0`}
+                    className={`w-9 h-9 rounded-lg bg-linear-to-br ${gradient} flex items-center justify-center shadow-glow shrink-0`}
                   >
                     <Icon className="w-4 h-4 text-white" aria-hidden="true" />
                   </div>
@@ -430,7 +430,7 @@ const Terms = () => {
                     {title}
                   </h2>
                 </div>
-                <Card className="p-6 border-border/50 bg-card/60 backdrop-blur">
+                <Card className="p-6 border-border/50 bg-card/60 backdrop-blur-sm">
                   {body}
                 </Card>
               </section>
