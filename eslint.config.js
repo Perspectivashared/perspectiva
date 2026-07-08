@@ -19,6 +19,12 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // eslint-plugin-react-hooks 7 ships new React Compiler-powered rules at
+      // error severity. Pre-existing code (incl. generated shadcn ui files)
+      // trips these three; keep them visible as warnings pending a burn-down.
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/immutability": "warn",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
