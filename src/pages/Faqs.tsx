@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { JsonLd } from "@/shared/components/seo/JsonLd";
 import { Link } from "react-router-dom";
 import { AppShell } from "@/shared/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
@@ -360,6 +361,19 @@ const Faqs = () => {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
+    <>
+      <JsonLd schema={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": ALL_FAQS.map((faq) => ({
+          "@type": "Question",
+          "name": faq.q,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.a,
+          },
+        })),
+      }} />
     <AppShell backgroundClassName="bg-background" mainClassName="static-page-main">
       {/* Skip link */}
       <a
@@ -625,6 +639,7 @@ const Faqs = () => {
         </div>
       </section>
     </AppShell>
+    </>
   );
 };
 

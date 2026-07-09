@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import { JsonLd } from "@/shared/components/seo/JsonLd";
 import Hero from "@/components/Hero";
 import SurveyBuilderFeatures from "@/components/SurveyBuilderFeatures";
 import PlatformDifferentiators from "@/components/PlatformDifferentiators";
@@ -12,6 +13,22 @@ import { LANDING_SECTION_IDS } from "@/lib/routes";
 
 const Index = () => {
   return (
+    <>
+      <JsonLd schema={{
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Perspectiva",
+        "url": "https://perspectiva.app",
+        "description": "Gamified survey exchange platform for students and researchers",
+        "sameAs": [],
+      }} />
+      <JsonLd schema={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Perspectiva",
+        "url": "https://perspectiva.app",
+        "description": "Join Perspectiva, the gamified survey exchange platform for students and researchers.",
+      }} />
     <div className="min-h-screen">
       <Navigation />
       <main>
@@ -30,6 +47,7 @@ const Index = () => {
       </main>
       <Footer />
     </div>
+    </>
   );
 };
 
