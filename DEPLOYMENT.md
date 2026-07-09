@@ -8,7 +8,7 @@ Read it top to bottom and do the steps **in order**. Set aside about **60–90 m
 for the first deployment. After that, updates are automatic.
 
 > The same file exists in both repositories (`insight-forge-api` and
-> `insight-forge-frontend`). They are identical — read whichever one you have open.
+> `perspectiva`). They are identical — read whichever one you have open.
 
 ---
 
@@ -88,7 +88,7 @@ You will sign in to Vercel and Railway **using your GitHub account**, so set up
 GitHub first.
 
 1. **GitHub** — Your code already lives here in two repositories:
-   - `Perspectivasurveys/insight-forge-frontend` (the website)
+   - `Perspectivasurveys/perspectiva` (the website)
    - `Perspectivasurveys/insight-forge-api` (the backend)
 
    Make sure you can log in to GitHub and open both repositories in your browser.
@@ -385,9 +385,9 @@ Now we put the website online and point it at the backend.
 2. Click **Add New…** → **Project**.
 3. The first time, Vercel asks to access GitHub. Click **Install** / **Configure**,
    choose **Perspectivasurveys**, and grant access to **All repositories** or to
-   **insight-forge-frontend**. Approve (an org owner may need to approve, like with
+   **perspectiva**. Approve (an org owner may need to approve, like with
    Railway).
-4. Find **`insight-forge-frontend`** in the list and click **Import**.
+4. Find **`perspectiva`** in the list and click **Import**.
 
 ### F2. Configure the build (mostly automatic)
 
@@ -418,7 +418,7 @@ Still on the import screen, expand **Environment Variables** and add:
 1. Click **Deploy**. Wait 1–3 minutes for it to build.
 2. Vercel gives you an address like:
    ```
-   https://insight-forge-frontend.vercel.app
+   https://perspectiva.vercel.app
    ```
    (Yours may have extra characters.) Copy it into your notepad, labelled
    **Frontend URL**.
@@ -434,8 +434,8 @@ Vercel address so logins and emails work.
 
 1. Go back to **Railway** → your `insight-forge-api` service → **Variables** tab.
 2. Change these two variables to your real **Frontend URL** (no trailing slash):
-   - `CORS_ORIGINS` = `https://insight-forge-frontend.vercel.app`
-   - `FRONTEND_URL` = `https://insight-forge-frontend.vercel.app`
+   - `CORS_ORIGINS` = `https://perspectiva.vercel.app`
+   - `FRONTEND_URL` = `https://perspectiva.vercel.app`
    - Use **your** actual Vercel address, not the example.
 3. Save. Railway redeploys automatically (wait for **Active**).
 
@@ -445,7 +445,7 @@ Vercel address so logins and emails work.
 > always because this value doesn't *exactly* match your real frontend address.
 > If you later add a custom domain, **add it here too**, comma-separated:
 > ```
-> CORS_ORIGINS=https://insight-forge-frontend.vercel.app,https://www.yourdomain.com
+> CORS_ORIGINS=https://perspectiva.vercel.app,https://www.yourdomain.com
 > ```
 > No spaces around the comma, no trailing slashes.
 
@@ -486,7 +486,7 @@ works and how to use it.
 of a repository on GitHub, the matching service **rebuilds and republishes itself
 automatically**:
 
-- Push to `insight-forge-frontend` → **Vercel** rebuilds the website.
+- Push to `perspectiva` → **Vercel** rebuilds the website.
 - Push to `insight-forge-api` → **Railway** rebuilds the backend (and runs any
   new database migrations automatically on startup).
 
@@ -497,7 +497,7 @@ You do nothing in Vercel or Railway after the initial setup — they watch GitHu
 You have three ways, from easiest to most technical:
 
 **Option 1 — Edit directly on GitHub (easiest, no tools):**
-1. Open the file on github.com (e.g. in `insight-forge-frontend`).
+1. Open the file on github.com (e.g. in `perspectiva`).
 2. Click the **pencil** ✏️ icon to edit.
 3. Make your change, scroll down, and click **Commit changes** (commit straight
    to `main`).
@@ -560,7 +560,7 @@ Because you changed the website's address, update the backend's allow-list:
    - Update `CORS_ORIGINS` to include the new domain (comma-separated, keep the
      `.vercel.app` one too if you still use it):
      ```
-     CORS_ORIGINS=https://www.perspectiva.com,https://insight-forge-frontend.vercel.app
+     CORS_ORIGINS=https://www.perspectiva.com,https://perspectiva.vercel.app
      ```
    - Update `FRONTEND_URL` to your **primary** domain
      (e.g. `https://www.perspectiva.com`) so email links use it.
@@ -585,7 +585,7 @@ Skip this unless you want the Google login button to work.
 3. **APIs & Services** → **Credentials** → **Create Credentials** →
    **OAuth client ID** → Application type **Web application**.
 4. Under **Authorized JavaScript origins**, add your frontend address(es):
-   - `https://insight-forge-frontend.vercel.app` (and your custom domain if any)
+   - `https://perspectiva.vercel.app` (and your custom domain if any)
 5. Create it. Copy the **Client ID** (looks like `xxxx.apps.googleusercontent.com`).
 6. Add it in **two** places, using the **same** value:
    - **Railway** variable `GOOGLE_CLIENT_ID = xxxx.apps.googleusercontent.com`
@@ -664,7 +664,7 @@ Skip this unless you want the Google login button to work.
 > `REFRESH_TOKEN_EXPIRE_DAYS`, `DB_POOL_SIZE`, `DB_MAX_OVERFLOW`,
 > `DB_POOL_TIMEOUT`, `DB_POOL_RECYCLE`. See `.env.example`.
 
-### Vercel (frontend: `insight-forge-frontend`) — Environment Variables
+### Vercel (frontend: `perspectiva`) — Environment Variables
 
 | Variable | Where it comes from | Example |
 |---|---|---|
