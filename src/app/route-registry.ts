@@ -54,6 +54,12 @@ export interface AppRouteDefinition {
    *  - "onboarded" → requires categorizer completion (take/create/edit surveys)
    */
   guard?: "verified" | "onboarded";
+  /** Page title for <title> and og:title */
+  title?: string;
+  /** Meta description */
+  description?: string;
+  /** If true, add <meta name="robots" content="noindex"> */
+  noindex?: boolean;
 }
 
 type RouteConfigEntry = Omit<AppRouteDefinition, "path"> & {
@@ -62,33 +68,33 @@ type RouteConfigEntry = Omit<AppRouteDefinition, "path"> & {
 };
 
 const ROUTE_CONFIG: RouteConfigEntry[] = [
-  { key: "home",            component: lazy(() => import("@/pages/Index")) },
-  { key: "forYou",         component: lazy(() => import("@/pages/ForYou")),         protected: true },
+  { key: "home",            component: lazy(() => import("@/pages/Index")),          title: "Perspectiva - Gamified Survey Exchange Platform", description: "Join Perspectiva, earn points by completing surveys, publish your own research, and join communities of researchers." },
+  { key: "forYou",         component: lazy(() => import("@/pages/ForYou")),         protected: true, title: "For You | Perspectiva", description: "Surveys curated for you based on your profile." },
   { key: "survey",         component: lazy(() => import("@/pages/Survey")),         protected: true, guard: "onboarded" },
   { key: "surveyEdit",     component: lazy(() => import("@/pages/SurveyEdit")),     protected: true, guard: "onboarded" },
   { key: "surveyResume",   component: lazy(() => import("@/pages/SurveyResume")),   protected: true, guard: "onboarded" },
   { key: "createSurvey",   component: lazy(() => import("@/pages/CreateSurvey")),   protected: true, guard: "onboarded" },
   { key: "drafts",         component: lazy(() => import("@/pages/Drafts")),         protected: true },
-  { key: "communities",    component: lazy(() => import("@/pages/Communities")) },
-  { key: "pricing",        component: lazy(() => import("@/pages/Pricing")) },
+  { key: "communities",    component: lazy(() => import("@/pages/Communities")),    title: "Communities | Perspectiva", description: "Join research communities and connect with researchers on Perspectiva." },
+  { key: "pricing",        component: lazy(() => import("@/pages/Pricing")),        title: "Pricing | Perspectiva", description: "Choose a plan to publish surveys and get insights on Perspectiva." },
   { key: "converter",      component: lazy(() => import("@/pages/Converter")),      protected: true, guard: "onboarded" },
   { key: "communityDetails", component: lazy(() => import("@/pages/CommunityDetails")) },
-  { key: "allCommunities", component: lazy(() => import("@/pages/AllCommunities")) },
-  { key: "allSurveys",     component: lazy(() => import("@/pages/AllSurveys")) },
+  { key: "allCommunities", component: lazy(() => import("@/pages/AllCommunities")), title: "All Communities | Perspectiva" },
+  { key: "allSurveys",     component: lazy(() => import("@/pages/AllSurveys")),    title: "All Surveys | Perspectiva", description: "Browse all published surveys on Perspectiva." },
   { key: "profile",        component: lazy(() => import("@/pages/Profile")),        protected: true },
   { key: "editProfile",    component: lazy(() => import("@/pages/EditProfile")),    protected: true },
   { key: "surveyAnalytics", component: lazy(() => import("@/pages/SurveyAnalytics")), protected: true },
   { key: "surveyComparison", component: lazy(() => import("@/pages/SurveyComparison")), protected: true },
   { key: "surveyPublished", component: lazy(() => import("@/pages/SurveyPublished")) },
-  { key: "signIn",         component: lazy(() => import("@/pages/SignIn")) },
-  { key: "signUp",         component: lazy(() => import("@/pages/SignUp")) },
+  { key: "signIn",         component: lazy(() => import("@/pages/SignIn")),         title: "Sign In | Perspectiva" },
+  { key: "signUp",         component: lazy(() => import("@/pages/SignUp")),         title: "Sign Up | Perspectiva" },
   { key: "categorizer",    component: lazy(() => import("@/pages/Categorizer")),    protected: true, guard: "verified" },
-  { key: "privacy",        component: lazy(() => import("@/pages/Privacy")) },
-  { key: "terms",          component: lazy(() => import("@/pages/Terms")) },
-  { key: "faqs",           component: lazy(() => import("@/pages/Faqs")) },
-  { key: "about",          component: lazy(() => import("@/pages/About")) },
-  { key: "contact",        component: lazy(() => import("@/pages/Contact")) },
-  { key: "security",       component: lazy(() => import("@/pages/Security")) },
+  { key: "privacy",        component: lazy(() => import("@/pages/Privacy")),       title: "Privacy Policy | Perspectiva" },
+  { key: "terms",          component: lazy(() => import("@/pages/Terms")),          title: "Terms of Service | Perspectiva" },
+  { key: "faqs",           component: lazy(() => import("@/pages/Faqs")),           title: "FAQs | Perspectiva", description: "Frequently asked questions about Perspectiva, surveys, pricing, and data privacy." },
+  { key: "about",          component: lazy(() => import("@/pages/About")),          title: "About | Perspectiva", description: "Learn about Perspectiva, the gamified survey exchange platform for researchers and students." },
+  { key: "contact",        component: lazy(() => import("@/pages/Contact")),        title: "Contact | Perspectiva" },
+  { key: "security",       component: lazy(() => import("@/pages/Security")),       title: "Security | Perspectiva" },
   { key: "verifyEmail",    component: lazy(() => import("@/pages/VerifyEmail")) },
   { key: "forgotPassword", component: lazy(() => import("@/pages/ForgotPassword")) },
   { key: "resetPassword",  component: lazy(() => import("@/pages/ResetPassword")) },
@@ -99,7 +105,7 @@ const ROUTE_CONFIG: RouteConfigEntry[] = [
   ...(import.meta.env.DEV
     ? [{ key: "buttonShowcase" as const, component: lazy(() => import("@/pages/ButtonShowcase")) }]
     : []),
-  { key: "notFound",       component: lazy(() => import("@/pages/NotFound")),       path: "*" as const },
+  { key: "notFound",       component: lazy(() => import("@/pages/NotFound")),       path: "*" as const, title: "Page Not Found | Perspectiva", noindex: true },
 ];
 
 export const APP_ROUTES: readonly AppRouteDefinition[] = ROUTE_CONFIG.map((cfg) => ({

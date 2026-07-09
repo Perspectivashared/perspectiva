@@ -1,5 +1,6 @@
 import { type PropsWithChildren } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "@/app/query-client";
@@ -9,6 +10,7 @@ import { CustomScrollbar } from "@/components/CustomScrollbar";
 import { ThemeProvider } from "@/context/ThemeContext";
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
+  <HelmetProvider>
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -22,4 +24,5 @@ export const AppProviders = ({ children }: PropsWithChildren) => (
       </AuthProvider>
     </QueryClientProvider>
   </ThemeProvider>
+  </HelmetProvider>
 );
