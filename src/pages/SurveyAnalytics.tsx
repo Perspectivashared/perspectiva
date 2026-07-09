@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import * as XLSX from "xlsx";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { AppShell } from "@/shared/components/layout/AppShell";
@@ -696,7 +695,8 @@ function exportToCSV(data: SurveyAnalytics) {
   URL.revokeObjectURL(url);
 }
 
-function exportToXLSX(data: SurveyAnalytics) {
+async function exportToXLSX(data: SurveyAnalytics) {
+  const XLSX = await import("xlsx");
   const { score } = calcEngagementScore(data);
   const moe = calcMarginOfError(data.response_count);
   const wb = XLSX.utils.book_new();
