@@ -37,3 +37,4 @@ issues
 *.njsproj
 *.sln
 *.sw?
+.vercel
