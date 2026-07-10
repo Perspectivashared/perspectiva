@@ -18,7 +18,7 @@ const Index = () => {
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "Perspectiva",
-        "url": "https://perspectiva.app",
+        "url": "https://perspectiva.vercel.app",
         "description": "Gamified survey exchange platform for students and researchers",
         "sameAs": [],
       }} />
@@ -26,7 +26,7 @@ const Index = () => {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "Perspectiva",
-        "url": "https://perspectiva.app",
+        "url": "https://perspectiva.vercel.app",
         "description": "Join Perspectiva, the gamified survey exchange platform for students and researchers.",
       }} />
     <div className="min-h-screen">

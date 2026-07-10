@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://perspectiva.app/sitemap.xml
+Sitemap: https://perspectiva.vercel.app/sitemap.xml
