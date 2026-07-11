@@ -26,7 +26,7 @@ export const contactSchema = z.object({
     .email("Please enter a valid email"),
   organisation: z.string().optional(),
   role: z.enum(["founder", "student", "organisation", "other"], {
-    errorMap: () => ({ message: "Please select an option" }),
+    error: "Please select an option",
   }),
   message: z.string().min(10, "Message must be at least 10 characters"),
 });

@@ -33,7 +33,7 @@ export const signUpSchema = z.object({
       "independent_researcher",
       "other",
     ],
-    { required_error: "Please select your profession" },
+    { error: "Please select your profession" },
   ),
 });
 

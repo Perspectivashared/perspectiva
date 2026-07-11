@@ -106,7 +106,7 @@ export const loyaltyFactorEnum = [
 // ─── Sub-schemas ──────────────────────────────────────────────────────────────
 
 const requiredEnum = <T extends [string, ...string[]]>(values: T) =>
-  z.enum(values, { required_error: "Please select an option" });
+  z.enum(values, { error: "Please select an option" });
 
 const acknowledgementSchema = z.object({
   accept: z.boolean().refine((val) => val === true, {
