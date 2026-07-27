@@ -5,21 +5,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-transparent text-sm font-medium ring-offset-background transition-all duration-200 focus:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-transparent text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "border-primary/50 bg-gradient-primary text-primary-foreground shadow-[0_10px_24px_-16px_hsl(var(--primary)/0.85)] hover:border-primary/80 hover:brightness-105 hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.18),0_14px_32px_-16px_hsl(var(--primary)/0.95)] focus-visible:ring-primary/35",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-[hsl(var(--primary-hover))] active:bg-[hsl(var(--primary-active))]",
         secondary:
-          "border-border bg-secondary text-secondary-foreground shadow-xs hover:border-foreground/35 hover:bg-secondary/80 hover:shadow-[0_0_0_3px_hsl(var(--foreground)/0.08),0_10px_24px_-18px_hsl(var(--foreground)/0.35)] focus-visible:ring-foreground/20",
+          "border-border bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
         destructive:
-          "border-destructive/70 bg-destructive text-destructive-foreground shadow-xs hover:border-destructive hover:bg-destructive/90 hover:shadow-[0_0_0_3px_hsl(var(--destructive)/0.2),0_14px_32px_-18px_hsl(var(--destructive)/0.8)] focus-visible:ring-destructive/35",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
-          "border-border bg-background text-foreground shadow-xs hover:border-primary/60 hover:bg-primary/8 hover:text-primary hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.12),0_10px_24px_-18px_hsl(var(--primary)/0.45)] focus-visible:ring-primary/30",
+          "border-border bg-background text-foreground shadow-xs hover:border-primary/50 hover:bg-primary/8 hover:text-primary",
         ghost:
-          "border-transparent bg-transparent text-foreground shadow-none hover:bg-primary/10 hover:text-primary focus-visible:ring-primary/25",
-        link: "border-transparent bg-transparent px-0 text-primary shadow-none underline-offset-4 hover:text-primary/80 hover:underline focus-visible:ring-primary/30 focus-visible:ring-offset-0",
+          "border-transparent bg-transparent text-foreground hover:bg-primary/10 hover:text-primary",
+        link: "border-transparent bg-transparent px-0 text-primary underline-offset-4 hover:underline focus-visible:ring-offset-0",
       },
       size: {
         default: "h-10 px-4 py-2",
