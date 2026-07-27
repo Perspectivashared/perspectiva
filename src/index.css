@@ -2591,7 +2591,7 @@ All colors MUST be HSL.
     --popover: 210 18% 12%;
     --popover-foreground: 210 15% 95%;
 
-    --primary: var(--blue-500);
+    --primary: var(--blue-600);
     --primary-foreground: 0 0% 100%;
     --primary-strong: var(--blue-400);
     --primary-hover:  var(--blue-400);
