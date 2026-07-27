@@ -155,9 +155,13 @@
 
   --ease-smooth: var(--transition-smooth);
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -2552,6 +2556,26 @@ All colors MUST be HSL.
     --shadow-elegant: 0 0 40px -5px hsl(195 85% 45% / 0.25);
     --shadow-glow: 0 0 50px hsl(195 85% 45% / 0.15);
 
+    /* Editorial elevation ramp (soft; accents keep the glow shadows above) */
+    --shadow-xs: 0 1px 2px hsl(220 40% 12% / 0.05);
+    --shadow-sm: 0 1px 3px hsl(220 40% 12% / 0.06), 0 1px 2px hsl(220 40% 12% / 0.04);
+    --shadow-md: 0 4px 12px -2px hsl(220 40% 12% / 0.08);
+    --shadow-lg: 0 12px 32px -8px hsl(220 40% 12% / 0.12);
+
+    /* Motion tokens */
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+    --duration-slow: 450ms;
+
+    /* Semantic: warning + coin */
+    --warning: 38 92% 50%;
+    --warning-foreground: 26 83% 14%;
+    --coin: 38 92% 45%;
+    --coin-foreground: 0 0% 100%;
+
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -2619,6 +2643,18 @@ All colors MUST be HSL.
 
     --shadow-elegant: 0 0 40px -5px hsl(195 85% 45% / 0.4);
     --shadow-glow: 0 0 50px hsl(195 85% 45% / 0.25);
+
+    /* Editorial elevation ramp (dark) */
+    --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.4), 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.45);
+    --shadow-lg: 0 12px 32px -8px hsl(0 0% 0% / 0.5);
+
+    /* Semantic: warning + coin (dark) */
+    --warning: 38 95% 60%;
+    --warning-foreground: 26 83% 14%;
+    --coin: 38 95% 58%;
+    --coin-foreground: 26 83% 14%;
   }
 }
 
