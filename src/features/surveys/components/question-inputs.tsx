@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -54,14 +55,27 @@ const renderRadioGroupInput = (
   <RadioGroup
     value={typeof answer === "string" ? answer : ""}
     onValueChange={(value) => updateAnswer(question.id, value)}
-    className="space-y-3"
+    className="space-y-2.5"
   >
-    {question.options.map((option) => (
-      <div key={option.value} className="flex items-center space-x-2">
-        <RadioGroupItem value={option.value} id={`${question.id}-${option.value}`} />
-        <Label htmlFor={`${question.id}-${option.value}`}>{option.label}</Label>
-      </div>
-    ))}
+    {question.options.map((option) => {
+      const optionId = `${question.id}-${option.value}`;
+      const selected = answer === option.value;
+      return (
+        <Label
+          key={option.value}
+          htmlFor={optionId}
+          className={cn(
+            "flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm font-normal transition-colors",
+            selected
+              ? "border-primary/50 bg-primary/8 text-foreground"
+              : "border-border/70 hover:border-primary/40 hover:bg-primary/5",
+          )}
+        >
+          <RadioGroupItem value={option.value} id={optionId} />
+          <span>{option.label}</span>
+        </Label>
+      );
+    })}
   </RadioGroup>
 );
 
@@ -79,7 +93,16 @@ const renderMultipleChoiceInput = (
         const isChecked = selectedValues.includes(option.value);
 
         return (
-          <div key={option.value} className="flex items-center space-x-2">
+          <Label
+            key={option.value}
+            htmlFor={optionId}
+            className={cn(
+              "flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm font-normal transition-colors",
+              isChecked
+                ? "border-primary/50 bg-primary/8 text-foreground"
+                : "border-border/70 hover:border-primary/40 hover:bg-primary/5",
+            )}
+          >
             <Checkbox
               id={optionId}
               checked={isChecked}
@@ -95,8 +118,8 @@ const renderMultipleChoiceInput = (
                 );
               }}
             />
-            <Label htmlFor={optionId}>{option.label}</Label>
-          </div>
+            <span>{option.label}</span>
+          </Label>
         );
       })}
     </div>
