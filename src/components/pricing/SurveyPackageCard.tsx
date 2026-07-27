@@ -31,7 +31,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
       className={cn(
         "group relative flex h-full min-w-0 flex-col overflow-hidden border-border/80 bg-card shadow-xs transition-all duration-200 hover:border-foreground/25",
         pkg.recommended
-          ? "border-2 border-[hsl(195_85%_30%/0.82)] shadow-[0_0_42px_-18px_hsl(195_85%_30%/0.62)] ring-1 ring-[hsl(195_85%_30%/0.24)] dark:border-[hsl(195_85%_72%/0.82)] dark:shadow-[0_0_42px_-18px_hsl(195_85%_72%/0.5)] dark:ring-[hsl(195_85%_72%/0.28)]"
+          ? "border-2 border-primary/60 ring-1 ring-primary/20 shadow-md"
           : "",
       )}
     >
@@ -46,7 +46,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
             </h3>
           </div>
           {pkg.recommended ? (
-            <Badge className="shrink-0 border-[hsl(195_85%_28%/0.25)] bg-[hsl(195_85%_28%/0.08)] text-[hsl(195_85%_28%)] dark:border-[hsl(195_85%_72%/0.25)] dark:bg-[hsl(195_85%_72%/0.12)] dark:text-[hsl(195_85%_72%)]">
+            <Badge className="shrink-0">
               Most Popular
             </Badge>
           ) : null}
@@ -71,7 +71,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
 
         <div className="mb-5 grid grid-cols-3 border-y border-border/70 py-4">
           <div className="border-r border-border/70 pr-3">
-            <Users className="mb-2 h-4 w-4 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+            <Users className="mb-2 h-4 w-4 text-primary" />
             <p className="text-sm font-semibold text-foreground tabular-nums">
               {pkg.respondents}
             </p>
@@ -80,7 +80,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
             </p>
           </div>
           <div className="border-r border-border/70 px-3">
-            <MessageSquare className="mb-2 h-4 w-4 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+            <MessageSquare className="mb-2 h-4 w-4 text-primary" />
             <p className="text-sm font-semibold text-foreground tabular-nums">
               {pkg.maxQuestions}
             </p>
@@ -89,7 +89,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
             </p>
           </div>
           <div className="pl-3">
-            <Clock className="mb-2 h-4 w-4 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+            <Clock className="mb-2 h-4 w-4 text-primary" />
             <p className="text-sm font-semibold leading-tight text-foreground">
               {pkg.duration}
             </p>
@@ -102,7 +102,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
         <div className="mb-5 space-y-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 shrink-0 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+              <Target className="h-4 w-4 shrink-0 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Targeting Level {pkg.targetingLevel}
               </span>
@@ -117,7 +117,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
                   className={cn(
                     "h-1.5 w-4 rounded-full",
                     dot <= pkg.targetingLevel
-                      ? "bg-[hsl(195_85%_30%)] dark:bg-[hsl(195_85%_72%)]"
+                      ? "bg-primary"
                       : "bg-border",
                   )}
                 />
@@ -151,7 +151,7 @@ const SurveyPackageCard = ({ pkg }: SurveyPackageCardProps) => {
                     "mt-0.5 h-4 w-4 shrink-0",
                     isInheritance
                       ? "text-muted-foreground"
-                      : "text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]",
+                      : "text-primary",
                   )}
                 />
                 <span

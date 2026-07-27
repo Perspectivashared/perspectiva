@@ -14,7 +14,7 @@ const AddOnCard = ({ addon }: AddOnCardProps) => {
         {addon.includedIn ? (
           <CheckCircle2 className="h-4 w-4 text-[hsl(142_76%_28%)] dark:text-[hsl(142_76%_62%)]" />
         ) : (
-          <Plus className="h-4 w-4 text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]" />
+          <Plus className="h-4 w-4 text-primary" />
         )}
       </div>
       <div className="min-w-0 flex-1">
@@ -31,7 +31,7 @@ const AddOnCard = ({ addon }: AddOnCardProps) => {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {addon.description}
         </p>
-        <p className="mt-3 text-sm font-semibold text-[hsl(195_85%_30%)] dark:text-[hsl(195_85%_72%)]">
+        <p className="mt-3 text-sm font-semibold text-primary">
           {addon.pricing}
         </p>
       </div>

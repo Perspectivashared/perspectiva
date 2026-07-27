@@ -54,7 +54,7 @@ const CoinBundleCard = ({ bundle }: CoinBundleCardProps) => {
       className={cn(
         "relative flex h-full flex-col overflow-hidden border-border/80 bg-card p-5 shadow-xs transition-all hover:border-foreground/25",
         bundle.recommended
-          ? "border-[hsl(38_92%_38%/0.72)] shadow-[0_18px_48px_-26px_hsl(38_92%_38%/0.55)] ring-1 ring-[hsl(38_92%_38%/0.22)] dark:border-[hsl(38_92%_62%/0.72)] dark:shadow-[0_18px_48px_-26px_hsl(38_92%_62%/0.45)] dark:ring-[hsl(38_92%_62%/0.24)]"
+          ? "border-[hsl(38_92%_38%/0.6)] ring-1 ring-[hsl(38_92%_38%/0.22)] shadow-md dark:border-[hsl(38_92%_62%/0.6)] dark:ring-[hsl(38_92%_62%/0.24)]"
           : "",
       )}
     >

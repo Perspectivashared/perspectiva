@@ -16,7 +16,7 @@ const SectionHeading = ({
   return (
     <div className={cn("mb-6 max-w-3xl", className)}>
       {eyebrow ? (
-        <p className="mb-2 text-eyebrow font-semibold uppercase tracking-widest text-[hsl(195_85%_28%)] dark:text-[hsl(195_85%_72%)]">
+        <p className="mb-2 font-mono text-eyebrow font-semibold uppercase tracking-widest text-[hsl(var(--eyebrow-fg))]">
           {eyebrow}
         </p>
       ) : null}

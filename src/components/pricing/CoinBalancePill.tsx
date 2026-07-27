@@ -16,12 +16,12 @@ const CoinBalancePill = ({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1.5",
+        "inline-flex items-center gap-2 rounded-full border border-[hsl(var(--coin)/0.3)] bg-[hsl(var(--coin)/0.1)] px-3 py-1.5",
         className,
       )}
     >
-      <Coins className="h-4 w-4 text-amber-600" />
-      <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+      <Coins className="h-4 w-4 text-[hsl(var(--coin))]" />
+      <span className="font-mono text-sm font-semibold tabular-nums text-[hsl(38_92%_28%)] dark:text-[hsl(38_95%_72%)]">
         {coins.toLocaleString()} Coins
       </span>
       {showBuyAction ? <BuyCoinsIconLink className="h-7 w-7" /> : null}
