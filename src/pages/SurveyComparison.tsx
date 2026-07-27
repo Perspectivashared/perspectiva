@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import {
   Users, Clock, TrendingUp, Star, ArrowLeft, ShieldCheck,
+  type LucideIcon,
 } from "lucide-react";
 
 // ─── Types (mirrors backend SurveyAnalytics schema) ──────────────────────────
@@ -80,7 +81,7 @@ const MetricCard = ({
   label: string;
   a: string;
   b: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }) => (
   <Card className="p-4 border-border/50 bg-card/50 backdrop-blur-sm">
     <div className="flex items-center gap-2 mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

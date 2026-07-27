@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import type { LucideIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
@@ -65,7 +66,7 @@ interface AdminSurvey {
   published_at: string | null;
 }
 
-function StatCard({ label, value, icon: Icon }: { label: string; value: number | undefined; icon: React.ElementType }) {
+function StatCard({ label, value, icon: Icon }: { label: string; value: number | undefined; icon: LucideIcon }) {
   return (
     <Card className="border-border/50 bg-card/50 p-6 backdrop-blur-sm">
       <div className="flex items-center justify-between">

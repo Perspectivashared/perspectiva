@@ -10,6 +10,7 @@
  * so that font choices, sizes, and spacing stay consistent site-wide.
  */
 
+import { createElement } from "react";
 import { cn } from "@/lib/utils";
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
@@ -107,17 +108,16 @@ export function Body<T extends ElementType = "p">({
   children,
   ...props
 }: AsProps<T>) {
-  const Tag = as ?? "p";
-  return (
-    <Tag
-      className={cn(
-        "font-sans text-base leading-relaxed text-foreground",
-        className,
-      )}
-      {...(props as object)}
-    >
-      {children}
-    </Tag>
+  // Rendered via createElement, not <Tag> JSX: R3F augments react's
+  // JSX.IntrinsicElements, which collapses className→never on a generic
+  // ElementType through JSX. createElement's ElementType overload does not.
+  return createElement(
+    as ?? "p",
+    {
+      className: cn("font-sans text-base leading-relaxed text-foreground", className),
+      ...props,
+    },
+    children,
   );
 }
 
@@ -130,17 +130,14 @@ export function BodyMuted<T extends ElementType = "p">({
   children,
   ...props
 }: AsProps<T>) {
-  const Tag = as ?? "p";
-  return (
-    <Tag
-      className={cn(
-        "font-sans text-base leading-relaxed text-muted-foreground",
-        className,
-      )}
-      {...(props as object)}
-    >
-      {children}
-    </Tag>
+  // See Body: createElement avoids the R3F JSX.IntrinsicElements collapse.
+  return createElement(
+    as ?? "p",
+    {
+      className: cn("font-sans text-base leading-relaxed text-muted-foreground", className),
+      ...props,
+    },
+    children,
   );
 }
 

@@ -208,7 +208,7 @@ function Backdrop({ pal }: { pal: Palette }) {
 function StreamParticles({ pal }: { pal: Palette }) {
   const scroll = useScroll();
   const ref = useRef<THREE.Points>(null);
-  const sprite = useMemo(makeCircleTexture, []);
+  const sprite = useMemo(() => makeCircleTexture(), []);
   const N = isNarrow ? 480 : 1000;
 
   const { scatter, target, colors } = useMemo(() => {

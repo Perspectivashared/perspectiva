@@ -5,7 +5,7 @@ import { AppShell } from "@/shared/components/layout/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCheck, Trophy, FileText, Star, Target, Calendar, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, Trophy, FileText, Star, Target, Calendar, Loader2, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ApiNotification {
@@ -17,7 +17,7 @@ interface ApiNotification {
   created_at: string;
 }
 
-const TYPE_ICON: Record<string, React.ElementType> = {
+const TYPE_ICON: Record<string, LucideIcon> = {
   achievement_unlocked: Trophy,
   survey_response_received: FileText,
   survey_rated: Star,
