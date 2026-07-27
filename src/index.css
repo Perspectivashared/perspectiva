@@ -18,8 +18,10 @@
 
 @theme {
   --font-sans: 'Plus Jakarta Sans', system-ui, ui-sans-serif, sans-serif;
-  --font-display: 'Space Grotesk', system-ui, ui-sans-serif, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-serif: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-display: var(--font-serif);
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-eyebrow: var(--font-mono);
 
   --text-xs: 0.75rem;
   --text-xs--line-height: 1rem;
@@ -2398,10 +2400,7 @@ All colors MUST be HSL.
   :root {
     /* ─── Typography Tokens ─────────────────────────────────────────────── */
 
-    /* Font stacks */
-    --font-sans:    "Plus Jakarta Sans", system-ui, ui-sans-serif, sans-serif;
-    --font-display: "Space Grotesk", system-ui, ui-sans-serif, sans-serif;
-    --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+    /* Font stacks — single source of truth is the @theme block (emitted to :root). */
 
     /* Base sizes */
     --text-xs:   0.75rem;     /* 12px */
@@ -2610,6 +2609,7 @@ All colors MUST be HSL.
   /* Headings default to display font */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    font-optical-sizing: auto;
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-tight);
     line-height: var(--leading-tight);

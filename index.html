@@ -22,26 +22,18 @@
     />
     <meta name="author" content="Perspectiva" />
 
-    <!-- Typography system: Space Grotesk (display) + Plus Jakarta Sans (body) + JetBrains Mono (data) -->
+    <!-- Typography system: Fraunces (serif display) + Plus Jakarta Sans (body) + IBM Plex Mono (eyebrows/labels/readouts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!--
-      Critical weights loaded first (display=swap prevents FOIT).
-      Plus Jakarta Sans 400+500: body text — loaded eagerly, used everywhere.
-      Space Grotesk 600+700: headings — loaded eagerly, above-fold impact.
-      Plus Jakarta Sans 300+600+700: extended weights for hierarchy.
-      Space Grotesk 300+400+500: subheadings and lighter display use.
-      JetBrains Mono 400+500: data, analytics, IDs — deferred (not render-blocking).
+      display=swap prevents FOIT.
+      Plus Jakarta Sans 300-700: body text — used everywhere.
+      Fraunces (ital,opsz,wght): serif display headings — optical sizing 9..144.
+      IBM Plex Mono 400+500+600: eyebrows, labels, stat readouts.
     -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
     />
 
     <meta
