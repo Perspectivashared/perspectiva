@@ -2439,7 +2439,7 @@ All colors MUST be HSL.
     --text-survey-q:      1.1875rem;  /* 19px — question primary text */
     --text-survey-option: 1rem;       /* 16px — answer options */
     --text-eyebrow:       0.6875rem;  /* 11px — section labels */
-    --text-helper:        0.8125rem;  /* 13px — helper / error text */
+    --text-helper:        var(--text-helper-text);  /* alias → @theme (single source) */
     --text-form-label:    0.875rem;   /* 14px — form labels */
 
     /* Line heights */
@@ -2464,16 +2464,18 @@ All colors MUST be HSL.
     --tracking-widest:   0.14em;  /* eyebrows */
 
     /* Font weights */
-    --weight-light:    300;
-    --weight-normal:   400;
-    --weight-medium:   500;
-    --weight-semibold: 600;
-    --weight-bold:     700;
+    /* Aliases → @theme font-weights (single source of truth) */
+    --weight-light:    var(--font-weight-light);
+    --weight-normal:   var(--font-weight-normal);
+    --weight-medium:   var(--font-weight-medium);
+    --weight-semibold: var(--font-weight-semibold);
+    --weight-bold:     var(--font-weight-bold);
 
     /* Measure (max line length for readable prose) */
-    --measure-narrow: 55ch;
-    --measure:        65ch;
-    --measure-wide:   75ch;
+    /* Aliases → @theme prose containers (single source of truth) */
+    --measure-narrow: var(--container-prose-narrow);
+    --measure:        var(--container-prose);
+    --measure-wide:   var(--container-prose-wide);
 
     /* ─── Colors ────────────────────────────────────────────────────────── */
     --background: 210 25% 98%;
