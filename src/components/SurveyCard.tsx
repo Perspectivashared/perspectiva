@@ -97,7 +97,7 @@ const SurveyCardComponent = ({
     // No focus-within ring — it leaks from child buttons and causes the blue-ring artifact
     <Card
       onClick={() => navigate(getSurveyRoute(survey.id))}
-      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
+      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 p-5 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-md"
     >
       {/* Top-right: Take Survey button + Save button */}
       <div className="absolute right-4 top-4 z-10 flex items-center gap-1.5">
@@ -105,7 +105,7 @@ const SurveyCardComponent = ({
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(getSurveyRoute(survey.id)); }}
           aria-label="Take survey"
-          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-190 ease-out hover:shadow-glow focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-28"
+          className="flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-primary px-2 text-primary-foreground shadow-sm transition-all duration-190 ease-out hover:bg-[hsl(var(--primary-hover))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-28"
         >
           <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-190 ease-out group-hover:mr-1.5 group-hover:max-w-18 group-hover:opacity-100">
             Take Survey
@@ -166,7 +166,7 @@ const SurveyCardComponent = ({
               {formatDeadline(survey.deadline)}
             </span>
           </div>
-          <span className="flex items-center gap-1 font-medium text-primary">
+          <span className="flex items-center gap-1 font-mono font-medium tabular-nums text-primary">
             <TrendingUp className="h-3.5 w-3.5" />
             10 pts
           </span>
@@ -197,14 +197,14 @@ const OwnedSurveyCardComponent = ({ survey }: OwnedSurveyCardProps) => {
   return (
     <Card
       onClick={() => navigate(`/surveys/${survey.id}/analytics`)}
-      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-5 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant"
+      className="group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-xl border-border/70 p-5 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-md"
     >
       {/* Analytics button — content-based width */}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); navigate(`/surveys/${survey.id}/analytics`); }}
         aria-label="View analytics"
-        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-gradient-primary px-2 text-primary-foreground shadow-elegant transition-all duration-150 ease-out hover:shadow-glow focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-24"
+        className="absolute right-4 top-4 z-10 flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg bg-primary px-2 text-primary-foreground shadow-sm transition-all duration-150 ease-out hover:bg-[hsl(var(--primary-hover))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-24"
       >
         <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-150 ease-out group-hover:mr-1.5 group-hover:max-w-14 group-hover:opacity-100">
           Analytics

@@ -74,7 +74,7 @@ const SurveyListCard = ({
   return (
     <Card
       className={cn(
-        "border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-200",
+        "border-border/50 bg-card transition-all duration-200",
         "hover:border-border/80 hover:shadow-md",
         className,
       )}
@@ -86,7 +86,7 @@ const SurveyListCard = ({
             <h3 className="text-base font-semibold leading-snug tracking-tight">{title}</h3>
             <span
               className={cn(
-                "inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium leading-none",
+                "inline-flex shrink-0 items-center rounded-sm border px-2 py-0.5 font-mono text-[0.625rem] font-medium uppercase tracking-wide leading-none",
                 chipClass,
               )}
             >

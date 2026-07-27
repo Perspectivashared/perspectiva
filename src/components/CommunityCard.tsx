@@ -43,7 +43,7 @@ const CommunityCard = ({
     <Card
       onClick={() => onExplore(community.id)}
       className={cn(
-        "group relative flex h-full min-h-[252px] cursor-pointer flex-col rounded-xl border-border/70 card-arc-gradient p-6 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-elegant focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        "group relative flex h-full min-h-[252px] cursor-pointer flex-col rounded-xl border-border/70 p-6 shadow-xs transition-all duration-200 ease-out hover:border-primary/45 hover:shadow-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         className,
       )}
     >
@@ -54,10 +54,10 @@ const CommunityCard = ({
           onClick={(e) => { e.stopPropagation(); onExplore(community.id); }}
           aria-label="Explore community"
           className={cn(
-            "flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg px-2 text-white shadow-elegant transition-all duration-110 ease-out focus-visible:w-22 focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:ring-offset-2 group-hover:w-22 group-focus-within:w-22",
+            "flex h-9 w-9 origin-right items-center justify-center overflow-hidden rounded-lg px-2 text-white shadow-sm transition-all duration-110 ease-out focus-visible:w-22 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group-hover:w-22 group-focus-within:w-22",
             isJoined
-              ? "bg-success hover:bg-success/90 hover:shadow-[0_0_12px_-2px_hsl(var(--success)/0.6)]"
-              : "bg-gradient-primary hover:shadow-glow",
+              ? "bg-success hover:bg-success/90"
+              : "bg-primary hover:bg-[hsl(var(--primary-hover))]",
           )}
         >
           <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-medium opacity-0 transition-all duration-110 ease-out group-hover:mr-1 group-hover:max-w-14 group-hover:opacity-100 group-focus-within:mr-1 group-focus-within:max-w-14 group-focus-within:opacity-100 focus-visible:mr-1 focus-visible:max-w-14 focus-visible:opacity-100">
