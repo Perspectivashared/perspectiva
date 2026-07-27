@@ -3,8 +3,8 @@
  *
  * Design principles:
  * - Body / UI chrome  → Plus Jakarta Sans (font-sans)
- * - Headings          → Space Grotesk     (font-display)
- * - Data / analytics  → JetBrains Mono   (font-mono)
+ * - Headings          → Fraunces     (font-display)
+ * - Data / analytics  → IBM Plex Mono   (font-mono)
  *
  * Use these components instead of raw Tailwind heading / text utilities
  * so that font choices, sizes, and spacing stay consistent site-wide.
@@ -24,7 +24,7 @@ type AsProps<T extends ElementType> = {
 // ─── Heading components ────────────────────────────────────────────────────
 
 /**
- * H1 — Page title. Space Grotesk 700. Fluid: 36–60px.
+ * H1 — Page title. Fraunces 700. Fluid: 36–60px.
  * Reserve for one-per-page landmark headings only.
  */
 export function H1({ className, children, ...props }: AsProps<"h1">) {
@@ -43,7 +43,7 @@ export function H1({ className, children, ...props }: AsProps<"h1">) {
 }
 
 /**
- * H2 — Section heading. Space Grotesk 700. Fluid: 30–40px.
+ * H2 — Section heading. Fraunces 700. Fluid: 30–40px.
  */
 export function H2({ className, children, ...props }: AsProps<"h2">) {
   return (
@@ -61,7 +61,7 @@ export function H2({ className, children, ...props }: AsProps<"h2">) {
 }
 
 /**
- * H3 — Sub-section heading. Space Grotesk 600. Fluid: 22–30px.
+ * H3 — Sub-section heading. Fraunces 600. Fluid: 22–30px.
  */
 export function H3({ className, children, ...props }: AsProps<"h3">) {
   return (
@@ -79,7 +79,7 @@ export function H3({ className, children, ...props }: AsProps<"h3">) {
 }
 
 /**
- * H4 — Card headings, sidebar sections. Space Grotesk 600. 20px fixed.
+ * H4 — Card headings, sidebar sections. Fraunces 600. 20px fixed.
  */
 export function H4({ className, children, ...props }: AsProps<"h4">) {
   return (
@@ -189,7 +189,7 @@ export function Eyebrow({ className, children, ...props }: AsProps<"span">) {
   return (
     <span
       className={cn(
-        "font-sans text-eyebrow font-semibold uppercase tracking-widest text-primary",
+        "font-mono text-eyebrow font-semibold uppercase tracking-widest text-primary",
         className,
       )}
       {...props}
@@ -257,7 +257,7 @@ export function ErrorText({ className, children, ...props }: AsProps<"p">) {
 }
 
 /**
- * Mono — Data, IDs, counts, timestamps. JetBrains Mono 400.
+ * Mono — Data, IDs, counts, timestamps. IBM Plex Mono 400.
  * Applies tabular-nums for stable layout during updates.
  */
 export function Mono({ className, children, ...props }: AsProps<"span">) {
