@@ -11,6 +11,8 @@ import { SceneEnvironment } from "./scene/SceneEnvironment";
 import { Backdrop } from "./scene/Backdrop";
 import { ParticleField } from "./scene/ParticleField";
 import { ScrollCamera } from "./scene/ScrollCamera";
+import { GlassPrism } from "./scene/GlassPrism";
+import { SecondaryGeodesic } from "./scene/SecondaryGeodesic";
 import { HeroPoster } from "./HeroPoster";
 
 /** Any WebGL/Canvas render error falls back to the static poster. */
@@ -64,7 +66,8 @@ function SceneCanvas() {
           <Backdrop pal={pal} />
           <group ref={rigRef}>
             <ParticleField pal={pal} />
-            {/* GlassPrism + SecondaryGeodesic land in P2b (Task 9). */}
+            <SecondaryGeodesic pal={pal} />
+            <GlassPrism pal={pal} />
           </group>
         </Suspense>
         <EffectComposer>
