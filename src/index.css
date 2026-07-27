@@ -2462,8 +2462,28 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 210 15% 12%;
 
-    --primary: 195 85% 45%;
+    /* ─── Blue ramp (editorial) ─────────────────────────────────────────── */
+    --blue-50:  214 100% 97%;
+    --blue-100: 214 96% 93%;
+    --blue-200: 214 92% 86%;
+    --blue-300: 214 88% 76%;
+    --blue-400: 214 85% 66%;
+    --blue-500: 214 82% 56%;
+    --blue-600: 214 84% 48%;
+    --blue-700: 216 86% 40%;
+    --blue-800: 218 80% 32%;
+    --blue-900: 220 72% 24%;
+    --blue-950: 222 66% 15%;
+
+    --primary: var(--blue-600);
     --primary-foreground: 0 0% 100%;
+    --primary-strong: var(--blue-700);      /* small text on primary */
+    --primary-hover:  var(--blue-700);
+    --primary-active: var(--blue-800);
+    --primary-subtle: 214 84% 48% / 0.10;
+    --primary-border: 214 84% 48% / 0.25;
+    --eyebrow-fg:     214 84% 40%;
+    --focus-ring:     0 0 0 3px hsl(var(--ring) / 0.35);
 
     --secondary: 210 25% 95%;
     --secondary-foreground: 210 15% 12%;
@@ -2471,7 +2491,7 @@ All colors MUST be HSL.
     --muted: 210 25% 95%;
     --muted-foreground: 210 10% 45%;
 
-    --accent: 185 75% 50%;
+    --accent: var(--blue-500);
     --accent-foreground: 0 0% 100%;
 
     --success: 142 76% 36%;
@@ -2482,7 +2502,7 @@ All colors MUST be HSL.
 
     --border: 210 25% 88%;
     --input: 210 25% 88%;
-    --ring: 195 85% 45%;
+    --ring: var(--blue-600);
 
     --radius: 0.75rem;
 
@@ -2518,8 +2538,14 @@ All colors MUST be HSL.
     --popover: 210 18% 12%;
     --popover-foreground: 210 15% 95%;
 
-    --primary: 195 85% 45%;
+    --primary: var(--blue-500);
     --primary-foreground: 0 0% 100%;
+    --primary-strong: var(--blue-400);
+    --primary-hover:  var(--blue-400);
+    --primary-active: var(--blue-300);
+    --primary-subtle: 214 85% 66% / 0.14;
+    --primary-border: 214 85% 66% / 0.30;
+    --eyebrow-fg:     214 85% 66%;
 
     --secondary: 210 18% 16%;
     --secondary-foreground: 210 15% 95%;
@@ -2527,8 +2553,8 @@ All colors MUST be HSL.
     --muted: 210 18% 16%;
     --muted-foreground: 210 10% 60%;
 
-    --accent: 185 75% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: var(--blue-400);
+    --accent-foreground: 222 47% 11%;
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
@@ -2538,7 +2564,7 @@ All colors MUST be HSL.
 
     --border: 210 18% 20%;
     --input: 210 18% 20%;
-    --ring: 195 85% 45%;
+    --ring: var(--blue-500);
 
     --gradient-primary: linear-gradient(
       135deg,
