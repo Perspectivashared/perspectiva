@@ -221,6 +221,15 @@
   }
 }
 
+@utility glass-panel {
+  /* Frosted glass surface for sections layered over the WebGL canvas.
+     AA note: text on this must be verified in both themes (dark-mode gate). */
+  background: hsl(var(--glass-bg) / var(--glass-bg-alpha));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid hsl(var(--glass-border) / var(--glass-border-alpha));
+}
+
 @utility dark {
   & .card-arc-gradient {
     background-image: radial-gradient(
@@ -2579,6 +2588,15 @@ All colors MUST be HSL.
     --coin-foreground: 0 0% 100%;
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ─── Glass surfaces (P2 landing, layered over the WebGL canvas) ───── */
+    --glass-bg:           210 40% 99%;   /* channel-only; alpha below */
+    --glass-bg-alpha:     0.55;
+    --glass-border:       210 40% 100%;
+    --glass-border-alpha: 0.60;
+    --glass-highlight:    0 0% 100%;
+    --glass-blur:         16px;
+    --gradient-section:   radial-gradient(120% 80% at 50% 0%, hsl(214 70% 96% / 0.9), hsl(210 25% 98% / 0) 70%);
   }
 
   .dark {
@@ -2657,6 +2675,14 @@ All colors MUST be HSL.
     --warning-foreground: 26 83% 14%;
     --coin: 38 95% 58%;
     --coin-foreground: 26 83% 14%;
+
+    /* Glass surfaces (dark) */
+    --glass-bg:           210 24% 14%;
+    --glass-bg-alpha:     0.42;
+    --glass-border:       210 40% 100%;
+    --glass-border-alpha: 0.10;
+    --glass-highlight:    210 40% 100%;
+    --gradient-section:   radial-gradient(120% 80% at 50% 0%, hsl(214 55% 22% / 0.55), hsl(210 20% 8% / 0) 70%);
   }
 }
 
