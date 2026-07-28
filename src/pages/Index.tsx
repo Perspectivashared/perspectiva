@@ -47,14 +47,14 @@ const Index = () => {
         {/* Transparent zone — canvas continues behind these glass sections. */}
         <ProductShowcase />
         <SurveyBuilderFeatures />
+        <PlatformDifferentiators />
+        <div id={LANDING_SECTION_IDS.howItWorks}>
+          <HowItWorks />
+        </div>
+        <UseCases />
         {/* Below stays opaque over the canvas until P2c makes each section
             glass; the wrapper shrinks from the top as sections graduate. */}
         <div className="relative bg-background">
-          <PlatformDifferentiators />
-          <div id={LANDING_SECTION_IDS.howItWorks}>
-            <HowItWorks />
-          </div>
-          <UseCases />
           <div id={LANDING_SECTION_IDS.communities}>
             <Communities />
           </div>

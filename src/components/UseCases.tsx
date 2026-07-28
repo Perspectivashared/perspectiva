@@ -8,7 +8,6 @@ const useCases = [
     description:
       "Students and professors running dissertation studies, class projects, and peer-reviewed research. Get a statistically meaningful sample fast.",
     tags: ["Dissertation", "Peer review", "Class projects"],
-    color: "from-blue-500 to-cyan-500",
   },
   {
     icon: TrendingUp,
@@ -16,7 +15,6 @@ const useCases = [
     description:
       "Businesses and startups validating product ideas, measuring brand perception, and gathering consumer insight before launching.",
     tags: ["Product validation", "Consumer insight", "Brand tracking"],
-    color: "from-green-500 to-emerald-500",
   },
   {
     icon: MousePointerClick,
@@ -24,7 +22,6 @@ const useCases = [
     description:
       "Product teams collecting targeted user feedback on features, flows, and prototypes — from respondents who actually match your user profile.",
     tags: ["Usability", "Feature feedback", "Prototype testing"],
-    color: "from-violet-500 to-purple-500",
   },
   {
     icon: Users,
@@ -32,26 +29,22 @@ const useCases = [
     description:
       "Sociologists, psychologists, and public health researchers studying attitudes, habits, and population-wide behaviours.",
     tags: ["Behavioural science", "Public health", "Psychology"],
-    color: "from-orange-500 to-amber-500",
   },
 ];
 
 const UseCases = () => {
   return (
-    <section className="py-24 bg-background border-t border-border/50">
+    <section className="relative py-24">
       <div className="container mx-auto px-4">
         <FadeInView>
-          <div className="max-w-2xl mx-auto text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--eyebrow-fg))]">
               Use cases
             </p>
-            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
-              Research for{" "}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                every field
-              </span>
+            <h2 className="font-display text-4xl font-semibold tracking-tight text-foreground lg:text-5xl">
+              Research for <span className="text-primary">every field</span>
             </h2>
-            <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
+            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
               Whether you're writing a dissertation or launching a product,
               Perspectiva adapts to what you need to learn.
             </p>
@@ -59,24 +52,22 @@ const UseCases = () => {
         </FadeInView>
 
         <FadeInView delay={0.1}>
-          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
             {useCases.map((uc) => {
               const Icon = uc.icon;
               return (
                 <div
                   key={uc.title}
-                  className="p-7 rounded-2xl border border-border/60 bg-card hover:border-primary/35 hover:shadow-elegant transition-all duration-300"
+                  className="glass-panel rounded-2xl p-7 transition-all duration-300 hover:border-primary/40 hover:shadow-lg"
                 >
-                  <div
-                    className={`w-11 h-11 rounded-xl bg-linear-to-br ${uc.color} flex items-center justify-center mb-5`}
-                  >
-                    <Icon className="w-5 h-5 text-white" />
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+                    <Icon className="h-5 w-5 text-primary" />
                   </div>
 
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                  <h3 className="mb-2 text-lg font-semibold text-foreground">
                     {uc.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-5">
+                  <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
                     {uc.description}
                   </p>
 
@@ -84,7 +75,7 @@ const UseCases = () => {
                     {uc.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center rounded-full border border-border/70 bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+                        className="inline-flex items-center rounded-full border border-border/70 bg-primary/5 px-2.5 py-0.5 font-mono text-xs font-medium text-muted-foreground"
                       >
                         {tag}
                       </span>

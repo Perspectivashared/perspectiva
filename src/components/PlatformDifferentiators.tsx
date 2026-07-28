@@ -25,20 +25,18 @@ const comparison: ComparisonRow[] = [
 
 const PlatformDifferentiators = () => {
   return (
-    <section className="py-24 bg-background border-t border-border/50">
+    <section className="relative py-24">
       <div className="container mx-auto px-4">
         <FadeInView>
-          <div className="max-w-2xl mx-auto text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+          <div className="mx-auto mb-16 max-w-2xl text-center">
+            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--eyebrow-fg))]">
               The difference
             </p>
-            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
+            <h2 className="font-display text-4xl font-semibold tracking-tight text-foreground lg:text-5xl">
               Why Perspectiva outperforms{" "}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                traditional methods
-              </span>
+              <span className="text-primary">traditional methods</span>
             </h2>
-            <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
+            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
               Generic survey tools give you a blank form. Perspectiva gives you a
               motivated, targeted audience and everything needed to act on your
               data.
@@ -47,16 +45,13 @@ const PlatformDifferentiators = () => {
         </FadeInView>
 
         <FadeInView delay={0.08}>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto mb-14">
+          <div className="mx-auto mb-14 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat) => (
-              <div
-                key={stat.value}
-                className="p-6 rounded-2xl border border-border/60 bg-card text-center"
-              >
-                <div className="text-4xl font-bold tracking-tighter bg-gradient-primary bg-clip-text text-transparent mb-2">
+              <div key={stat.value} className="glass-panel rounded-2xl p-6 text-center">
+                <div className="mb-2 font-display text-4xl font-semibold tracking-tight text-primary">
                   {stat.value}
                 </div>
-                <p className="text-sm text-muted-foreground leading-snug">
+                <p className="text-sm leading-snug text-muted-foreground">
                   {stat.label}
                 </p>
               </div>
@@ -65,13 +60,17 @@ const PlatformDifferentiators = () => {
         </FadeInView>
 
         <FadeInView delay={0.15}>
-          <div className="max-w-3xl mx-auto rounded-2xl border border-border/60 bg-card overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto] items-center px-6 py-4 border-b border-border/60 bg-muted/40">
-              <span className="text-sm font-semibold text-foreground">Feature</span>
-              <span className="w-32 text-center text-sm font-semibold text-primary border-l-2 border-primary/40">
+          <div className="glass-panel mx-auto max-w-3xl overflow-hidden rounded-2xl">
+            <div className="grid grid-cols-[1fr_auto_auto] items-center border-b border-border/60 px-6 py-4">
+              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Feature
+              </span>
+              <span className="w-32 border-l-2 border-primary/40 text-center font-mono text-xs font-semibold uppercase tracking-wider text-primary">
                 Perspectiva
               </span>
-              <span className="w-32 text-center text-sm font-semibold text-muted-foreground">Generic tools</span>
+              <span className="w-32 text-center font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Generic tools
+              </span>
             </div>
 
             {comparison.map((row, i) => (
@@ -81,28 +80,26 @@ const PlatformDifferentiators = () => {
                   i < comparison.length - 1 ? "border-b border-border/40" : ""
                 }`}
               >
-                <span className="text-sm text-foreground pr-4">{row.feature}</span>
-                <span className="w-32 flex justify-center border-l-2 border-primary/15 bg-primary/3">
+                <span className="pr-4 text-sm text-foreground">{row.feature}</span>
+                <span className="flex w-32 justify-center border-l-2 border-primary/15">
                   {row.perspectiva ? (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
-                      <Check className="w-3.5 h-3.5 text-primary" strokeWidth={2.5} />
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                      <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
                     </span>
                   ) : (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted">
-                      <X className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted">
+                      <X className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2.5} />
                     </span>
                   )}
                 </span>
-                <span className="w-32 flex justify-center">
-                  {row.generic ? (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted">
-                      <Check className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted">
-                      <X className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
-                    </span>
-                  )}
+                <span className="flex w-32 justify-center">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted">
+                    {row.generic ? (
+                      <Check className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2.5} />
+                    ) : (
+                      <X className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2.5} />
+                    )}
+                  </span>
                 </span>
               </div>
             ))}

@@ -29,41 +29,38 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="py-24 bg-muted/30 border-t border-border/50">
+    <section className="relative py-24">
       <div className="container mx-auto px-4">
         <FadeInView>
-          <div className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+          <div className="mb-16 text-center">
+            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--eyebrow-fg))]">
               How it works
             </p>
-            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
-              Four steps to{" "}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                better research
-              </span>
+            <h2 className="font-display text-4xl font-semibold tracking-tight text-foreground lg:text-5xl">
+              Four steps to <span className="text-primary">better research</span>
             </h2>
           </div>
         </FadeInView>
 
         <FadeInView delay={0.1}>
-          <div className="max-w-2xl mx-auto">
+          <div className="mx-auto max-w-2xl">
             {steps.map((step, index) => (
               <div key={step.number} className="relative flex gap-7 pb-10 last:pb-0">
                 {index < steps.length - 1 && (
-                  <div className="absolute left-5 top-11 bottom-0 w-px bg-linear-to-b from-primary/30 to-transparent" />
+                  <div className="absolute bottom-0 left-5 top-11 w-px bg-linear-to-b from-primary/40 to-transparent" />
                 )}
 
-                <div className="shrink-0 w-10 h-10 rounded-xl border-2 border-border bg-background flex items-center justify-center z-10">
-                  <span className="text-xs font-bold font-mono text-muted-foreground tabular-nums">
+                <div className="glass-panel z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                  <span className="font-mono text-xs font-bold tabular-nums text-primary">
                     {step.number}
                   </span>
                 </div>
 
                 <div className="pt-1.5">
-                  <h3 className="text-xl font-semibold text-foreground mb-1.5">
+                  <h3 className="mb-1.5 text-xl font-semibold text-foreground">
                     {step.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="leading-relaxed text-muted-foreground">
                     {step.description}
                   </p>
                 </div>
