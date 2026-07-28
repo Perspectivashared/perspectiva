@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import Navigation from "@/components/Navigation";
 import { JsonLd } from "@/shared/components/seo/JsonLd";
 import Hero from "@/components/Hero";
+import ProductShowcase from "@/components/ProductShowcase";
 import SurveyBuilderFeatures from "@/components/SurveyBuilderFeatures";
 import PlatformDifferentiators from "@/components/PlatformDifferentiators";
 import HowItWorks from "@/components/HowItWorks";
@@ -41,8 +42,10 @@ const Index = () => {
       <Navigation />
       <main className="relative z-10">
         <Hero />
-        {/* Below the hero stays opaque over the canvas until P2c makes each
-            section glass; the wrapper covers the fixed canvas for now. */}
+        {/* Transparent zone — canvas continues behind these glass sections. */}
+        <ProductShowcase />
+        {/* Below stays opaque over the canvas until P2c makes each section
+            glass; the wrapper shrinks from the top as sections graduate. */}
         <div className="relative bg-background">
           <SurveyBuilderFeatures />
           <PlatformDifferentiators />
