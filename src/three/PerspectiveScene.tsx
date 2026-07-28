@@ -15,14 +15,23 @@ import { GlassPrism } from "./scene/GlassPrism";
 import { SecondaryGeodesic } from "./scene/SecondaryGeodesic";
 import { HeroPoster } from "./HeroPoster";
 
-/** Any WebGL/Canvas render error falls back to the static poster. */
+/**
+ * Any WebGL/Canvas render error falls back to the static poster. `resetKey`
+ * (the active theme) clears the latched failure: a fresh mount on theme change
+ * lets a scene that tripped on one palette recover on the next.
+ */
 class SceneErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
+  { fallback: ReactNode; children: ReactNode; resetKey: string },
   { failed: boolean }
 > {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  componentDidUpdate(prev: { resetKey: string }) {
+    if (prev.resetKey !== this.props.resetKey && this.state.failed) {
+      this.setState({ failed: false });
+    }
   }
   render() {
     return this.state.failed ? this.props.fallback : this.props.children;
@@ -36,18 +45,22 @@ class SceneErrorBoundary extends Component<
  */
 export default function PerspectiveScene() {
   const enabled = useSceneEnabled();
+  const { resolvedTheme } = useTheme();
   if (!enabled) return <HeroPoster />;
   return (
-    <SceneErrorBoundary fallback={<HeroPoster />}>
-      <SceneCanvas />
+    <SceneErrorBoundary fallback={<HeroPoster />} resetKey={resolvedTheme}>
+      {/* Remount the whole canvas on theme change: swapping palettes on live
+          transmission materials / Environment is fragile, but each palette
+          renders cleanly from a fresh mount. Toggles are rare, so the WebGL
+          context teardown/recreate cost is acceptable. */}
+      <SceneCanvas key={resolvedTheme} theme={resolvedTheme} />
     </SceneErrorBoundary>
   );
 }
 
-function SceneCanvas() {
+function SceneCanvas({ theme }: { theme: "light" | "dark" }) {
   useBindScrollProgress();
-  const { resolvedTheme } = useTheme();
-  const pal = PALETTES[resolvedTheme];
+  const pal = PALETTES[theme];
   const pointer = usePointer();
   const rigRef = useRef<Group>(null);
   const bloomRef = useRef<{ intensity: number } | null>(null);
