@@ -49,20 +49,17 @@ const features = [
 
 const SurveyBuilderFeatures = () => {
   return (
-    <section className="py-24 bg-muted/30 border-t border-border/50">
+    <section className="relative py-24">
       <div className="container mx-auto px-4">
         <FadeInView>
-          <div className="max-w-2xl mx-auto text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--eyebrow-fg))]">
               Platform features
             </p>
-            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
-              Everything in{" "}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                one platform
-              </span>
+            <h2 className="font-display text-4xl font-semibold tracking-tight text-foreground lg:text-5xl">
+              Everything in <span className="text-primary">one platform</span>
             </h2>
-            <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
+            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
               Every tool you need to craft high-quality surveys, reach the right
               audience, and turn responses into real insights.
             </p>
@@ -70,21 +67,21 @@ const SurveyBuilderFeatures = () => {
         </FadeInView>
 
         <FadeInView delay={0.1}>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          <div className="mx-auto grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={feature.title}
-                  className="p-6 rounded-2xl border border-border/60 bg-card hover:border-primary/35 hover:shadow-elegant transition-all duration-300"
+                  className="glass-panel rounded-2xl p-6 transition-all duration-300 hover:border-primary/40 hover:shadow-lg"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <Icon className="w-4 h-4 text-primary" />
+                  <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="h-4 w-4 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-1.5">
+                  <h3 className="mb-1.5 font-semibold text-foreground">
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {feature.description}
                   </p>
                 </div>
