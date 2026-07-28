@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Float, Edges } from "@react-three/drei";
-import type { Mesh } from "three";
+import type { Group, Mesh } from "three";
 import type { ScenePalette } from "../palettes";
+import { scrollProgress } from "../scrollProgress";
+import { smoothstep } from "./motion";
 
 /**
  * Hero centerpiece — a tetrahedral glass prism. Core meshPhysicalMaterial (NOT
@@ -13,15 +15,23 @@ import type { ScenePalette } from "../palettes";
  */
 export function GlassPrism({ pal }: { pal: ScenePalette }) {
   const spin = useRef<Mesh>(null);
+  const fade = useRef<Group>(null);
   useFrame((_, d) => {
     if (spin.current) {
       spin.current.rotation.y += d * 0.22;
       spin.current.rotation.x += d * 0.08;
     }
+    if (fade.current) {
+      // Recede past the hero + product showcase so deeper content stays calm.
+      const s = 1 - smoothstep(0.16, 0.21, scrollProgress.current);
+      fade.current.scale.setScalar(Math.max(0.0001, s));
+      fade.current.visible = s > 0.01;
+    }
   });
   return (
-    <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
-      <mesh ref={spin}>
+    <group ref={fade}>
+      <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
+        <mesh ref={spin}>
         <tetrahedronGeometry args={[2.6, 0]} />
         <meshPhysicalMaterial
           transmission={1}
@@ -39,8 +49,9 @@ export function GlassPrism({ pal }: { pal: ScenePalette }) {
           attenuationColor={pal.glassTint}
           attenuationDistance={pal.glassTintDist}
         />
-        <Edges threshold={15} color={pal.edge} />
-      </mesh>
-    </Float>
+          <Edges threshold={15} color={pal.edge} />
+        </mesh>
+      </Float>
+    </group>
   );
 }

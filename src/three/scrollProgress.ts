@@ -29,18 +29,23 @@ export function useBindScrollProgress(): void {
       scrollProgress.current = windowProgress();
     };
     const bind = () => {
+      const unsubs: Array<() => void> = [];
       const lenis = getLenis();
       if (lenis) {
         scrollProgress.current = lenis.progress;
-        unsubscribe = lenis.on("scroll", (l) => {
-          scrollProgress.current = l.progress;
-          scrollProgress.velocity = l.velocity;
-        });
-      } else {
-        onScroll();
-        window.addEventListener("scroll", onScroll, { passive: true });
-        unsubscribe = () => window.removeEventListener("scroll", onScroll);
+        unsubs.push(
+          lenis.on("scroll", (l) => {
+            scrollProgress.current = l.progress;
+            scrollProgress.velocity = l.velocity;
+          }),
+        );
       }
+      // Always also track native scroll — covers any lenis/native desync and
+      // the no-lenis path (reduced-motion). Both write the same value in sync.
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      unsubs.push(() => window.removeEventListener("scroll", onScroll));
+      unsubscribe = () => unsubs.forEach((u) => u());
     };
     const raf = requestAnimationFrame(bind);
     return () => {
