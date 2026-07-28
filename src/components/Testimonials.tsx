@@ -8,7 +8,6 @@ const testimonials = [
     role: "PhD Student, Psychology",
     quote:
       "I collected 60 responses in under 24 hours for my dissertation. The community targeting meant every respondent was actually relevant to my study — something generic tools could never give me.",
-    color: "from-blue-500 to-cyan-500",
   },
   {
     initials: "JK",
@@ -16,7 +15,6 @@ const testimonials = [
     role: "Associate Professor, Economics",
     quote:
       "My students now use Perspectiva for every class research project. The points system gets people genuinely engaged rather than rushing through — response quality is noticeably higher.",
-    color: "from-violet-500 to-purple-500",
   },
   {
     initials: "AR",
@@ -24,24 +22,20 @@ const testimonials = [
     role: "Product Designer",
     quote:
       "I needed feedback from professionals in a specific field. Perspectiva's targeting got me exactly that in a day. The AI summary saved me hours of manual analysis on top of it.",
-    color: "from-green-500 to-emerald-500",
   },
 ];
 
 const Testimonials = () => {
   return (
-    <section className="py-24 bg-background border-t border-border/50">
+    <section className="relative py-24">
       <div className="container mx-auto px-4">
         <FadeInView>
           <div className="max-w-2xl mx-auto text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--eyebrow-fg))]">
               Testimonials
             </p>
-            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
-              What researchers{" "}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                are saying
-              </span>
+            <h2 className="font-display text-4xl font-semibold tracking-tight text-foreground lg:text-5xl">
+              What researchers <span className="text-primary">are saying</span>
             </h2>
           </div>
         </FadeInView>
@@ -51,7 +45,7 @@ const Testimonials = () => {
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="flex flex-col p-7 rounded-2xl border border-border/60 bg-card"
+                className="glass-panel flex flex-col rounded-2xl p-7"
               >
                 <div className="flex gap-0.5 mb-5" aria-label="5 out of 5 stars">
                   {["s1", "s2", "s3", "s4", "s5"].map((id) => (
@@ -64,10 +58,8 @@ const Testimonials = () => {
                 </p>
 
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-full bg-linear-to-br ${t.color} flex items-center justify-center shrink-0`}
-                  >
-                    <span className="text-xs font-bold text-white">{t.initials}</span>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10">
+                    <span className="font-mono text-xs font-bold text-primary">{t.initials}</span>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground leading-none mb-0.5">

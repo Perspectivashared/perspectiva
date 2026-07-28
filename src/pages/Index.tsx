@@ -52,15 +52,11 @@ const Index = () => {
           <HowItWorks />
         </div>
         <UseCases />
-        {/* Below stays opaque over the canvas until P2c makes each section
-            glass; the wrapper shrinks from the top as sections graduate. */}
-        <div className="relative bg-background">
-          <div id={LANDING_SECTION_IDS.communities}>
-            <Communities />
-          </div>
-          <Testimonials />
-          <CtaBanner />
+        <div id={LANDING_SECTION_IDS.communities}>
+          <Communities />
         </div>
+        <Testimonials />
+        <CtaBanner />
       </main>
       <Footer />
     </div>

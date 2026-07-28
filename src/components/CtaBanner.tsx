@@ -6,23 +6,15 @@ import FadeInView from "@/components/FadeInView";
 
 const CtaBanner = () => {
   return (
-    <section className="relative py-24 overflow-hidden border-t border-border/50">
-      {/* Radial glow from top-centre, fading to background */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_0%,hsl(195_85%_45%/0.08),transparent)]"
-      />
+    <section className="relative py-24">
       <div className="relative z-10 container mx-auto px-4">
         <FadeInView>
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-4">
+          <div className="glass-panel mx-auto max-w-3xl rounded-3xl px-8 py-16 text-center">
+            <p className="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--eyebrow-fg))]">
               Get started today
             </p>
-            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight mb-6">
-              Ready to start your{" "}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                research journey?
-              </span>
+            <h2 className="mb-6 font-display text-4xl font-semibold tracking-tight text-foreground lg:text-5xl">
+              Ready to start your <span className="text-primary">research journey?</span>
             </h2>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
               Join thousands of students and researchers on Perspectiva.

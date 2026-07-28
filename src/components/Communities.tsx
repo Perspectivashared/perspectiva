@@ -11,19 +11,16 @@ const TOP_COMMUNITIES = sortCommunities(ALL_COMMUNITIES, "mostActive").slice(0, 
 
 const Communities = () => {
   return (
-    <section className="py-24 bg-muted/30 border-t border-border/50">
+    <section className="relative py-24">
       <div className="container mx-auto px-4">
         <FadeInView>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-3">
+              <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--eyebrow-fg))]">
                 Communities
               </p>
-              <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
-                Find your{" "}
-                <span className="bg-gradient-primary bg-clip-text text-transparent">
-                  research tribe
-                </span>
+              <h2 className="font-display text-4xl font-semibold tracking-tight text-foreground lg:text-5xl">
+                Find your <span className="text-primary">research tribe</span>
               </h2>
             </div>
             <Button asChild variant="outline" size="sm" className="w-fit">
@@ -40,7 +37,7 @@ const Communities = () => {
                 <Link
                   key={community.id}
                   to={`${ROUTES.communities}/${community.id}`}
-                  className="group p-5 rounded-2xl border border-border/60 bg-card hover:border-primary/35 hover:shadow-elegant transition-all duration-300 block"
+                  className="glass-panel group block rounded-2xl p-5 transition-all duration-300 hover:border-primary/40 hover:shadow-lg"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
