@@ -926,10 +926,8 @@
 
 @utility footer-reveal {
   /* Footer reveal — progress-driven parallax (0..1 via CSS variable).
-     Negative Y: footer starts 18 px above its natural position (hidden
-     behind its own dark background) and slides down into place.
-     This eliminates the gap that +18px caused when the footer first
-     entered the viewport at progress=0. */
+     Negative Y: footer starts 18 px above its natural position and
+     slides down into place as it enters the viewport, fading 0.92->1. */
   --footer-reveal-progress: 0;
   --footer-reveal-inverse: calc(1 - var(--footer-reveal-progress));
   opacity: calc(0.92 + (0.08 * var(--footer-reveal-progress)));
@@ -944,73 +942,6 @@
     filter: none;
     will-change: auto;
   }
-}
-
-@utility footer-parallax {
-  transform: translate3d(0, calc(-24px * var(--footer-reveal-progress)), 0);
-  will-change: transform;
-
-  @media (prefers-reduced-motion: reduce) {
-    transform: none;
-    will-change: auto;
-  }
-}
-
-@utility footer-parallax-sheen {
-  position: absolute;
-  inset: -35% -10% auto -10%;
-  height: 70%;
-  background:
-    radial-gradient(
-      60% 60% at 15% 35%,
-      hsl(var(--blue-500) / 0.18),
-      transparent 68%
-    ),
-    radial-gradient(
-      50% 50% at 85% 15%,
-      hsl(215 80% 60% / 0.14),
-      transparent 70%
-    );
-  opacity: 0.7;
-  filter: blur(24px);
-  transform: translate3d(0, calc(32px * var(--footer-reveal-inverse)), 0);
-  will-change: transform;
-
-  @media (prefers-reduced-motion: reduce) {
-    transform: none;
-    will-change: auto;
-  }
-}
-
-@utility footer-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(54px);
-  opacity: 0.85;
-  transform: translate3d(0, calc(24px * var(--footer-reveal-inverse)), 0);
-  will-change: transform;
-
-  @media (prefers-reduced-motion: reduce) {
-    transform: none;
-    will-change: auto;
-  }
-}
-
-@utility footer-orb--left {
-  width: 20rem;
-  height: 20rem;
-  left: -5rem;
-  top: -1rem;
-  background: hsl(var(--blue-500) / 0.28);
-}
-
-@utility footer-orb--right {
-  width: 22rem;
-  height: 22rem;
-  right: -4rem;
-  top: 30%;
-  background: hsl(235 85% 62% / 0.22);
-  transform: translate3d(0, calc(-18px * var(--footer-reveal-inverse)), 0);
 }
 
 @utility auth-page-main {

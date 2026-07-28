@@ -105,16 +105,10 @@ const Footer = () => {
   const handleBackToTop = () => scrollToTop();
 
   return (
-    <footer ref={footerRef} className="footer-reveal relative overflow-hidden border-t border-border/40 bg-[#050608] text-zinc-100">
-      <div aria-hidden className="footer-parallax pointer-events-none absolute inset-0">
-        <div className="footer-parallax-sheen" />
-        <div className="footer-orb footer-orb--left" />
-        <div className="footer-orb footer-orb--right" />
-      </div>
-
+    <footer ref={footerRef} className="footer-reveal relative overflow-hidden">
       <div className="container relative mx-auto px-4 py-14 sm:py-16">
-        <div className="rounded-4xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-lg sm:p-8 lg:p-10">
-          <div className="flex flex-col gap-8 border-b border-white/10 pb-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="glass-panel rounded-4xl p-6 sm:p-8 lg:p-10">
+          <div className="flex flex-col gap-8 border-b border-border/60 pb-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-4">
               <Link to={ROUTES.home} className="inline-flex items-center gap-3">
                 <img
@@ -122,11 +116,11 @@ const Footer = () => {
                   alt="Perspectiva Logo"
                   className="h-11 w-11 rounded-md"
                 />
-                <span className="text-xl font-semibold tracking-[0.12em] text-white">
+                <span className="text-xl font-semibold tracking-[0.12em] text-foreground">
                   PERSPECTIVA
                 </span>
               </Link>
-              <p className="text-xs uppercase tracking-[0.24em] text-zinc-400">
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
                 Collaborative Intelligence Platform
               </p>
             </div>
@@ -142,7 +136,7 @@ const Footer = () => {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={socialLink.label}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/20 bg-white/5 text-zinc-200 transition-all hover:border-cyan-300/70 hover:text-cyan-200"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-primary/5 text-muted-foreground transition-all hover:border-primary/50 hover:text-primary"
                   >
                     <Icon className="h-4 w-4" />
                   </a>
@@ -163,7 +157,7 @@ const Footer = () => {
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {footerSections.map((section) => (
                 <div key={section.title}>
-                  <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                  <h3 className="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     {section.title}
                   </h3>
                   <ul className="space-y-3">
@@ -171,7 +165,7 @@ const Footer = () => {
                       <li key={linkItem.to}>
                         <Link
                           to={linkItem.to}
-                          className="footer-nav-link text-sm text-zinc-300 transition-colors hover:text-white focus-visible:text-white"
+                          className="footer-nav-link text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground"
                         >
                           {linkItem.label}
                         </Link>
@@ -182,14 +176,14 @@ const Footer = () => {
               ))}
             </div>
 
-            <section className="rounded-2xl border border-white/15 bg-white/5 p-6 ">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+            <section className="rounded-2xl border border-border/60 bg-primary/5 p-6">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--eyebrow-fg))]">
                 Don't Miss A Beat
               </p>
-              <h3 className="mt-3 text-2xl font-semibold leading-tight text-white">
+              <h3 className="mt-3 font-display text-2xl font-semibold leading-tight text-foreground">
                 Get product updates first.
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 Monthly releases and useful resources.
               </p>
               <form
@@ -203,32 +197,29 @@ const Footer = () => {
                   id="footer-email"
                   type="email"
                   placeholder="Email address"
-                  className="h-11 border-white/20 bg-black/20 text-white placeholder:text-zinc-400 focus-visible:ring-cyan-400 focus-visible:ring-offset-black"
+                  className="h-11"
                 />
-                <Button
-                  type="submit"
-                  className="h-11 bg-none bg-white px-6 font-semibold text-zinc-950 shadow-none hover:bg-zinc-200 hover:shadow-none"
-                >
+                <Button type="submit" className="h-11 px-6 font-semibold">
                   Submit
                 </Button>
               </form>
             </section>
           </div>
 
-          <div className="mt-10 border-t border-white/10 pt-6">
-            <div className="flex flex-col gap-4 text-sm text-zinc-400 md:flex-row md:items-center md:justify-between">
-              <p className="max-w-2xl leading-relaxed text-zinc-400">
+          <div className="mt-10 border-t border-border/60 pt-6">
+            <div className="flex flex-col gap-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+              <p className="max-w-2xl leading-relaxed text-muted-foreground">
                 Need help getting started? Explore{" "}
                 <Link
                   to={ROUTES.faqs}
-                  className="font-medium text-zinc-200 transition-colors hover:text-white"
+                  className="font-medium text-foreground transition-colors hover:text-primary"
                 >
                   FAQs
                 </Link>{" "}
                 or{" "}
                 <Link
                   to={ROUTES.contact}
-                  className="font-medium text-zinc-200 transition-colors hover:text-white"
+                  className="font-medium text-foreground transition-colors hover:text-primary"
                 >
                   contact our team
                 </Link>
@@ -237,7 +228,7 @@ const Footer = () => {
               <button
                 type="button"
                 onClick={handleBackToTop}
-                className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-white/20 bg-white/5 px-4 py-2 font-medium text-zinc-200 transition-all hover:border-cyan-300/70 hover:text-cyan-200"
+                className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-primary/5 px-4 py-2 font-medium text-muted-foreground transition-all hover:border-primary/50 hover:text-primary"
               >
                 <ArrowUp className="h-4 w-4" />
                 Back to top
@@ -246,7 +237,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-2 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>Copyright &copy; {year} Perspectiva. All rights reserved.</p>
           <p>Built for curious teams across global communities.</p>
         </div>
