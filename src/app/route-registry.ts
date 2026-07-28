@@ -32,7 +32,6 @@ export const APP_ROUTE_PATHS = {
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
   buttonShowcase: "/dev/buttons",
-  heroLab: "/dev/hero-lab",
   admin: "/admin",
   notifications: "/notifications",
   userProfile: "/u/:username",
@@ -104,10 +103,7 @@ const ROUTE_CONFIG: RouteConfigEntry[] = [
   { key: "userProfile",   component: lazy(() => import("@/pages/UserProfile")) },
   // Only include the dev showcase in development builds.
   ...(import.meta.env.DEV
-    ? [
-        { key: "buttonShowcase" as const, component: lazy(() => import("@/pages/ButtonShowcase")) },
-        { key: "heroLab" as const, component: lazy(() => import("@/pages/HeroLab")), noindex: true },
-      ]
+    ? [{ key: "buttonShowcase" as const, component: lazy(() => import("@/pages/ButtonShowcase")) }]
     : []),
   { key: "notFound",       component: lazy(() => import("@/pages/NotFound")),       path: "*" as const, title: "Page Not Found | Perspectiva", noindex: true },
 ];
