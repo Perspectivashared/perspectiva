@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ROUTES, LANDING_SECTION_IDS } from "@/lib/routes";
+import HighlightParticles from "@/components/HighlightParticles";
 
 /**
  * Landing hero — the locked "perspective" composition. Transparent so the
@@ -36,13 +37,17 @@ const Hero = () => {
           Many perspectives. <span className="text-primary">One clear picture.</span>
         </p>
 
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Button asChild size="lg" className="h-12 px-8 text-base">
-            <Link to={ROUTES.signUp}>Get Started Free</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
-            <a href={`#${LANDING_SECTION_IDS.howItWorks}`}>See how it works</a>
-          </Button>
+        <div className="relative mt-6 px-10 py-6">
+          {/* Focused accent particles around the primary highlight (the CTAs) */}
+          <HighlightParticles count={14} />
+          <div className="relative flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg" className="h-12 px-8 text-base">
+              <Link to={ROUTES.signUp}>Get Started Free</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
+              <a href={`#${LANDING_SECTION_IDS.howItWorks}`}>See how it works</a>
+            </Button>
+          </div>
         </div>
 
         <p className="mt-5 text-xs text-muted-foreground">

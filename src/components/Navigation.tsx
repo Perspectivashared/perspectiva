@@ -79,8 +79,8 @@ const Navigation = () => {
           {/* Logo */}
           <Link to={ROUTES.home} className="flex items-center gap-2">
             <img src={logo} alt="Perspectiva Logo" className="w-10 h-10" />
-            <span className="text-xl font-bold text-foreground">
-              PERSPECTIVA
+            <span className="font-display text-xl font-semibold tracking-[0.02em] text-foreground">
+              Perspectiva
             </span>
           </Link>
 
