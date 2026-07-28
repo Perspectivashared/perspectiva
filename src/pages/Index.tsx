@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import Navigation from "@/components/Navigation";
 import { JsonLd } from "@/shared/components/seo/JsonLd";
 import Hero from "@/components/Hero";
@@ -10,6 +11,9 @@ import Testimonials from "@/components/Testimonials";
 import CtaBanner from "@/components/CtaBanner";
 import Footer from "@/components/Footer";
 import { LANDING_SECTION_IDS } from "@/lib/routes";
+
+// Lazy: keep three/R3F off the initial bundle.
+const PerspectiveScene = lazy(() => import("@/three/PerspectiveScene"));
 
 const Index = () => {
   return (
@@ -30,20 +34,28 @@ const Index = () => {
         "description": "Join Perspectiva, the gamified survey exchange platform for students and researchers.",
       }} />
     <div className="min-h-screen">
+      {/* Persistent WebGL backdrop (or CSS/SVG poster) fixed behind everything. */}
+      <Suspense fallback={null}>
+        <PerspectiveScene />
+      </Suspense>
       <Navigation />
-      <main>
+      <main className="relative z-10">
         <Hero />
-        <SurveyBuilderFeatures />
-        <PlatformDifferentiators />
-        <div id={LANDING_SECTION_IDS.howItWorks}>
-          <HowItWorks />
+        {/* Below the hero stays opaque over the canvas until P2c makes each
+            section glass; the wrapper covers the fixed canvas for now. */}
+        <div className="relative bg-background">
+          <SurveyBuilderFeatures />
+          <PlatformDifferentiators />
+          <div id={LANDING_SECTION_IDS.howItWorks}>
+            <HowItWorks />
+          </div>
+          <UseCases />
+          <div id={LANDING_SECTION_IDS.communities}>
+            <Communities />
+          </div>
+          <Testimonials />
+          <CtaBanner />
         </div>
-        <UseCases />
-        <div id={LANDING_SECTION_IDS.communities}>
-          <Communities />
-        </div>
-        <Testimonials />
-        <CtaBanner />
       </main>
       <Footer />
     </div>
