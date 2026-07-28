@@ -3,6 +3,7 @@ import Navigation from "@/components/Navigation";
 import { JsonLd } from "@/shared/components/seo/JsonLd";
 import Hero from "@/components/Hero";
 import ProductShowcase from "@/components/ProductShowcase";
+import CursorParticles from "@/components/CursorParticles";
 import SurveyBuilderFeatures from "@/components/SurveyBuilderFeatures";
 import PlatformDifferentiators from "@/components/PlatformDifferentiators";
 import HowItWorks from "@/components/HowItWorks";
@@ -39,6 +40,7 @@ const Index = () => {
       <Suspense fallback={null}>
         <PerspectiveScene />
       </Suspense>
+      <CursorParticles />
       <Navigation />
       <main className="relative z-10">
         <Hero />

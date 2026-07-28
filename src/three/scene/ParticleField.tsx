@@ -4,7 +4,7 @@ import * as THREE from "three";
 import type { ScenePalette } from "../palettes";
 import { scrollProgress } from "../scrollProgress";
 import { makeCircleTexture } from "./textures";
-import { easeInOut, hash } from "./motion";
+import { easeInOut, hash, smoothstep } from "./motion";
 
 const IS_NARROW = typeof window !== "undefined" && window.innerWidth < 768;
 const DEFAULT_COUNT = IS_NARROW ? 480 : 1000;
@@ -63,6 +63,10 @@ export function ParticleField({ pal, count = DEFAULT_COUNT }: { pal: ScenePalett
     for (let i = 0; i < N * 3; i++) arr[i] = scatter[i] + (target[i] - scatter[i]) * t;
     pts.geometry.attributes.position.needsUpdate = true;
     pts.rotation.y = scrollProgress.current * 0.5;
+    // Calm the field below the showcase: keep particles present everywhere,
+    // but ramp opacity down so content sections stay readable.
+    const mat = pts.material as THREE.PointsMaterial;
+    mat.opacity = pal.particleOpacity * (1 - 0.45 * smoothstep(0.12, 0.4, scrollProgress.current));
   });
 
   return (
