@@ -19,9 +19,9 @@ const SHARD_DIVISIONS = IS_NARROW ? 2 : 3; // 4·d² fragments (16 / 36)
 // outward from their own positions and tumble — a true fracture, not a cloud of
 // mini-prisms. All a pure function of scroll → scrubbing up reassembles it.
 const SOLID_FADE_IN = 0.05;
-const SOLID_FADE_OUT = 0.09;
+const SOLID_FADE_OUT = 0.07; // snap the solid off fast so the burst takes over crisply
 const SHATTER_START = 0.05;
-const SHATTER_END = 0.22;
+const SHATTER_END = 0.16; // short window → pieces SHOOT out, not drift
 
 /**
  * Hero centerpiece — a tetrahedral glass prism. Core meshPhysicalMaterial (NOT
@@ -118,8 +118,10 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
     mesh.visible = s > 0.001 && s < 0.999;
     if (!mesh.visible) return;
     mat.uniforms.uS.value = s;
-    // Fade in on the crack, out as the shards leave.
-    mat.uniforms.uOpacity.value = 0.95 * smoothstep(0, 0.04, s) * (1 - smoothstep(0.72, 1, s));
+    // Pieces are near-solid the instant the glass breaks (barely any fade-in),
+    // hold through the flight, then fade only as they've left the frame — so it
+    // reads as opaque chunks exploding outward, not a cloud fading in.
+    mat.uniforms.uOpacity.value = 0.95 * smoothstep(0, 0.015, s) * (1 - smoothstep(0.65, 1, s));
   });
 
   return (
@@ -153,7 +155,8 @@ const SHARD_VERT = /* glsl */ `
   }
 
   void main() {
-    float posEase = 1.0 - (1.0 - uS) * (1.0 - uS); // ease-out throw
+    float e = 1.0 - uS;
+    float posEase = 1.0 - e * e * e; // cubic ease-out: high initial velocity, a real burst
     float ang = aTurns * uS;
     vec3 rp = rot(position, aAxis, ang);            // spin about own centroid
     vec3 dir = normalize(aCentroid);
@@ -173,7 +176,7 @@ const SHARD_FRAG = /* glsl */ `
   varying float vFres;
   void main() {
     vec3 col = mix(uBody, uGlint, vFres);
-    float a = uOpacity * (0.25 + 0.75 * vFres); // faint faces, bright edges → glassy
+    float a = uOpacity * (0.6 + 0.4 * vFres); // solid glassy chunks, brighter at the edges
     if (a < 0.01) discard;
     gl_FragColor = vec4(col, a);
   }
@@ -219,8 +222,8 @@ function buildFractureGeometry(radius: number, divisions: number): THREE.BufferG
       hash(idx * 4.3) - 0.5,
       hash(idx * 5.9) - 0.5,
     ).normalize();
-    const sp = 5 + hash(idx * 7.7) * 8;
-    const tn = (hash(idx * 8.9) * 2 - 1) * (2 + hash(idx * 9.3) * 4); // signed spin
+    const sp = 8 + hash(idx * 7.7) * 14; // throw far enough to clear the frame
+    const tn = (hash(idx * 8.9) * 2 - 1) * (5 + hash(idx * 9.3) * 8); // fast signed spin
     for (const P of [P0, P1, P2]) {
       position.push(P.x - cen.x, P.y - cen.y, P.z - cen.z);
       normal.push(nrm.x, nrm.y, nrm.z);
