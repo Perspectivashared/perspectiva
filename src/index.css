@@ -202,6 +202,24 @@
   }
 }
 
+/* Smooth light↔dark switch: ThemeContext flags <html class="theme-transition">
+   for ~0.5s around a toggle so token-driven colours tween instead of snapping.
+   Scoped to that transient class so normal hover/focus colour changes stay
+   instant, and disabled under reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition:
+      background-color 0.5s ease,
+      border-color 0.5s ease,
+      color 0.5s ease,
+      fill 0.5s ease,
+      stroke 0.5s ease !important;
+  }
+}
+
 /* ─── Contact Page ───────────────────────────────────────────── */
 
 @utility card-arc-gradient {

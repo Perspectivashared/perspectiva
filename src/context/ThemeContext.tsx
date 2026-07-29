@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
@@ -57,9 +58,21 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
   const [theme, setThemeState] = useState<Theme>(readStoredTheme);
+  const prevResolvedRef = useRef<"light" | "dark" | null>(null);
 
-  // Apply theme class whenever preference changes
+  // Apply theme class whenever preference changes. On an actual light↔dark
+  // change (not the first mount), briefly flag <html> so the token-driven DOM
+  // colours tween instead of snapping — see the `.theme-transition` rule in
+  // index.css. The WebGL scene handles its own crossfade separately.
   useEffect(() => {
+    const resolved = theme === "system" ? getSystemTheme() : theme;
+    const prev = prevResolvedRef.current;
+    if (prev !== null && prev !== resolved && typeof document !== "undefined") {
+      const el = document.documentElement;
+      el.classList.add("theme-transition");
+      window.setTimeout(() => el.classList.remove("theme-transition"), 550);
+    }
+    prevResolvedRef.current = resolved;
     applyTheme(theme);
   }, [theme]);
 
