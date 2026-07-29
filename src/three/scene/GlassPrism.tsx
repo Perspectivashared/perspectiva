@@ -17,8 +17,12 @@ const SHARD_DIVISIONS = IS_NARROW ? 2 : 3; // 4·d² fragments (16 / 36)
 // start the fragments still reassemble the prism exactly (a real fracture of
 // the tetra, not a cloud of mini-prisms); everything is a pure function of
 // scroll → scrubbing up reassembles it.
-const SOLID_FADE_IN = 0.04;
-const SOLID_FADE_OUT = 0.075; // fade the smooth prism as the faceted cracks take over
+// The smooth solid and the faceted shard mesh must never be on-screen together —
+// overlapping, they occupy the same volume and z-fight (the "glitchy" transition).
+// So we swap them ATOMICALLY at CRACK_START: on the frame scroll crosses it the
+// solid hides and the shards — already assembled into the same tetra with the same
+// spin — appear at full opacity. Shape and opacity stay continuous (never a frame
+// with both, nor with neither); only the material flips as the crack begins.
 // The break plays as two scroll-driven stages. Cracks animate in SLOWLY across
 // a long, early window — seams propagate over the still-whole prism as you
 // scroll — then a short, fast window detonates the pieces. Kept early enough
@@ -51,23 +55,10 @@ export function GlassPrism({ pal }: { pal: ScenePalette }) {
       g.rotation.y += d * 0.22;
       g.rotation.x += d * 0.08;
     }
-    // Hold full size, then dissolve fast right as the shatter begins so the
-    // fragments take over the glass presence as it cracks.
+    // Show the solid until the crack begins, then hand off atomically to the
+    // shards (see note at CRACK_START) — a single-frame swap, no overlap.
     const m = solid.current;
-    if (m) {
-      const o = 1 - smoothstep(SOLID_FADE_IN, SOLID_FADE_OUT, scrollProgress.current);
-      const transparent = o < 0.999;
-      m.visible = o > 0.01;
-      m.traverse((child) => {
-        const mat = (child as Mesh).material as
-          | { transparent: boolean; opacity: number }
-          | undefined;
-        if (mat) {
-          mat.transparent = transparent;
-          mat.opacity = o;
-        }
-      });
-    }
+    if (m) m.visible = scrollProgress.current < CRACK_START;
   });
   return (
     <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
@@ -129,15 +120,14 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
     const mat = matRef.current;
     if (!mesh || !mat) return;
     const p = scrollProgress.current;
-    const crack = smoothstep(CRACK_START, CRACK_END, p);
     const explode = smoothstep(EXPLODE_START, EXPLODE_END, p);
-    mesh.visible = crack > 0.001 && explode < 0.999;
+    // Appear exactly when the solid hides (atomic swap), at full opacity so the
+    // hand-off is seamless; only fade out once the pieces have left the frame.
+    mesh.visible = p >= CRACK_START && explode < 0.999;
     if (!mesh.visible) return;
-    mat.uniforms.uCrack.value = crack;
+    mat.uniforms.uCrack.value = smoothstep(CRACK_START, CRACK_END, p);
     mat.uniforms.uExplode.value = explode;
-    // Fade in as the first cracks open, hold through the flight, fade out only
-    // once the pieces have left the frame — opaque chunks, not a cloud.
-    mat.uniforms.uOpacity.value = 0.95 * smoothstep(0, 0.06, crack) * (1 - smoothstep(0.7, 1, explode));
+    mat.uniforms.uOpacity.value = 0.95 * (1 - smoothstep(0.7, 1, explode));
   });
 
   return (
