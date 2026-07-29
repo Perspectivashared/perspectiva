@@ -9,24 +9,34 @@ import { hash } from "./motion";
 const IS_NARROW = typeof window !== "undefined" && window.innerWidth < 768;
 const DEFAULT_COUNT = IS_NARROW ? 320 : 760;
 
-// Per-particle staggered reveal. A global `uLevel` rises 0→~1.15→0 across the
-// dive; each particle carries its own threshold `aThr`, and only lights up once
-// the level climbs past it (soft edge `uSoft`). Low-threshold particles appear
-// first / leave last, high-threshold ones appear last / leave first — so the
-// swarm grows and shrinks in COUNT gradually, instead of every particle fading
-// together. Size also ramps with the per-particle reveal so they grow in, too.
+// Per-particle staggered reveal, keyed directly to scroll POSITION. Each
+// particle carries its own appear point `aAppear` and disappear point `aOut`
+// (spread across the dive window), so as `uP` (raw scroll progress) sweeps
+// down the page, particles switch on one-by-one across p[0.02,0.16] and switch
+// off one-by-one across p[0.20,0.34] — the COUNT scrubs with the scrollbar
+// rather than every particle fading in lockstep. Size ramps with the reveal so
+// they grow in, too. Scrolling back up reverses it exactly (no time component).
 const VERT = /* glsl */ `
-  attribute float aThr;
+  attribute float aAppear;
+  attribute float aOut;
   attribute vec3 aColor;
-  uniform float uLevel;
-  uniform float uSoft;
+  uniform float uP;
   uniform float uSize;
   uniform float uScale;
   varying vec3 vColor;
   varying float vA;
+
+  const float APPEAR_START = 0.02;
+  const float APPEAR_END   = 0.16;
+  const float OUT_START     = 0.20;
+  const float OUT_END       = 0.34;
+  const float SOFT          = 0.03;
+
   void main() {
     vColor = aColor;
-    float a = smoothstep(aThr, aThr + uSoft, uLevel);
+    float pin  = mix(APPEAR_START, APPEAR_END, aAppear);
+    float pout = mix(OUT_START, OUT_END, aOut);
+    float a = smoothstep(pin, pin + SOFT, uP) * (1.0 - smoothstep(pout, pout + SOFT, uP));
     vA = a;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     gl_PointSize = uSize * (0.3 + 0.7 * a) * (uScale / -mv.z);
@@ -61,10 +71,11 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
   const sprite = useMemo(() => makeCircleTexture(), []);
   const N = count;
 
-  const { positions, colors, thresholds } = useMemo(() => {
+  const { positions, colors, appear, out } = useMemo(() => {
     const positions = new Float32Array(N * 3);
     const colors = new Float32Array(N * 3);
-    const thresholds = new Float32Array(N);
+    const appear = new Float32Array(N);
+    const out = new Float32Array(N);
     const cA = new THREE.Color(pal.particleA);
     const cB = new THREE.Color(pal.particleB);
     for (let i = 0; i < N; i++) {
@@ -79,16 +90,16 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
-      thresholds[i] = hash(i * 5.3); // per-particle birth/death threshold 0..1
+      appear[i] = hash(i * 5.3); // scroll fraction (0..1) at which this one lights up
+      out[i] = hash(i * 6.7); //    scroll fraction (0..1) at which it winks out
     }
-    return { positions, colors, thresholds };
+    return { positions, colors, appear, out };
   }, [N, pal]);
 
   const uniforms = useMemo(
     () => ({
       uMap: { value: sprite },
-      uLevel: { value: 0 },
-      uSoft: { value: 0.14 },
+      uP: { value: 0 },
       uSize: { value: pal.particleSize * (IS_NARROW ? 1.1 : 0.85) },
       uScale: { value: 400 },
       uOpacity: { value: pal.particleOpacity * 1.1 },
@@ -101,10 +112,9 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
     const mat = matRef.current;
     if (pts) pts.rotation.y += d * 0.06;
     if (mat) {
-      // Normalized dive progress → level rises then falls (peak ~p=0.155),
-      // slightly overshooting 1 so even the highest-threshold particles light up.
-      const g = Math.min(1, Math.max(0, scrollProgress.current / 0.31));
-      mat.uniforms.uLevel.value = Math.sin(g * Math.PI) * 1.15;
+      // Drive the whole reveal straight off scroll position — no easing, so
+      // scrubbing the scrollbar scrubs which particles are lit.
+      mat.uniforms.uP.value = scrollProgress.current;
       // Match PointsMaterial's sizeAttenuation scale (0.5 * drawing-buffer height).
       mat.uniforms.uScale.value = gl.domElement.height * 0.5;
     }
@@ -115,7 +125,8 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         <bufferAttribute attach="attributes-aColor" args={[colors, 3]} />
-        <bufferAttribute attach="attributes-aThr" args={[thresholds, 1]} />
+        <bufferAttribute attach="attributes-aAppear" args={[appear, 1]} />
+        <bufferAttribute attach="attributes-aOut" args={[out, 1]} />
       </bufferGeometry>
       <shaderMaterial
         ref={matRef}
