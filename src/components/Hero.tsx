@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ROUTES, LANDING_SECTION_IDS } from "@/lib/routes";
 import HighlightParticles from "@/components/HighlightParticles";
+import RepelText from "@/components/RepelText";
 
 /**
  * Landing hero — the locked "perspective" composition. Transparent so the
@@ -23,12 +24,11 @@ const Hero = () => {
           <span aria-hidden>●</span> Gamified research platform
         </p>
 
-        <h1
+        <RepelText
+          text="Perspectiva"
           className="font-display font-semibold leading-[0.9] tracking-[-0.04em] text-foreground"
           style={{ fontSize: "clamp(3.5rem, 13vw, 12rem)" }}
-        >
-          Perspectiva
-        </h1>
+        />
 
         <p
           className="mt-6 font-display font-medium text-foreground"
