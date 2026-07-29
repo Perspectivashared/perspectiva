@@ -9,6 +9,8 @@ import { sampleRamp, toColors } from "./colors";
 
 const IS_NARROW = typeof window !== "undefined" && window.innerWidth < 768;
 const DEFAULT_COUNT = IS_NARROW ? 480 : 1000;
+// Keep the ambient cloud faint so it reads as atmosphere, not clutter.
+const AMBIENT_DIM = 0.4;
 
 /**
  * Ambient / transition particle cloud. Lerps from a scattered sphere into a 3D
@@ -67,9 +69,11 @@ export function ParticleField({ pal, count = DEFAULT_COUNT }: { pal: ScenePalett
     pts.geometry.attributes.position.needsUpdate = true;
     pts.rotation.y = scrollProgress.current * 0.5;
     // Calm the field below the showcase: keep particles present everywhere,
-    // but ramp opacity down so content sections stay readable.
+    // but ramp opacity down so content sections stay readable. Kept faint
+    // overall (AMBIENT_DIM) so the ambient cloud never competes with content.
     const mat = pts.material as THREE.PointsMaterial;
-    mat.opacity = pal.particleOpacity * (1 - 0.45 * smoothstep(0.12, 0.4, scrollProgress.current));
+    mat.opacity =
+      pal.particleOpacity * AMBIENT_DIM * (1 - 0.45 * smoothstep(0.12, 0.4, scrollProgress.current));
   });
 
   return (
@@ -84,7 +88,7 @@ export function ParticleField({ pal, count = DEFAULT_COUNT }: { pal: ScenePalett
         alphaMap={sprite}
         vertexColors
         transparent
-        opacity={pal.particleOpacity}
+        opacity={pal.particleOpacity * AMBIENT_DIM}
         sizeAttenuation
         depthWrite={false}
         blending={pal.additive ? THREE.AdditiveBlending : THREE.NormalBlending}

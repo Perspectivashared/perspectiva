@@ -114,7 +114,7 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
       uTime: { value: 0 },
       uSize: { value: pal.particleSize * (IS_NARROW ? 1.1 : 0.85) },
       uScale: { value: 400 },
-      uOpacity: { value: pal.particleOpacity * 1.1 },
+      uOpacity: { value: pal.particleOpacity * 0.6 },
     }),
     [sprite, pal],
   );

@@ -71,7 +71,9 @@ export const PALETTES: Record<"light" | "dark", ScenePalette> = {
     bgStops: ["#ffffff", "#e5edf9", "#bcd2ec"],
     fogColor: "#e9f0fb",
     fog: [13, 32],
-    particleRamp: ["#1b3fa6", "#2f74d6", "#0f9bb8", "#3f6fca", "#6b46d4"],
+    // Consistent blue family (no teal/violet outliers) so the ambient field and
+    // the revealed inner swarm read the same hue before/after the fracture.
+    particleRamp: ["#22499f", "#2f5fc0", "#2f74d6", "#3f6fca", "#4a5fc8"],
     particleOpacity: 0.92,
     particleSize: 0.1,
     additive: false,

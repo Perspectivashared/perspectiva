@@ -133,12 +133,15 @@ export function GlassPrism({ pal }: { pal: ScenePalette }) {
     uniforms.uCrack.value = crack;
     uniforms.uExplode.value = explode;
     uniforms.uEdgeColor.value.copy(edgeColor);
-    uniforms.uEdgeI.value = pal.additive ? 6.0 : 2.2;
+    uniforms.uEdgeI.value = pal.additive ? 4.5 : 2.0;
 
     const mesh = meshRef.current;
     const mat = matRef.current;
     if (mesh) mesh.visible = explode < 0.999;
     if (mat) {
+      // Clear single-sided glass while whole (avoids the back faces darkening the
+      // hero); double-sided once it breaks so tumbling fragments show both faces.
+      mat.side = crack > 0.01 ? THREE.DoubleSide : THREE.FrontSide;
       // Clear glass when assembled (crack 0 → the hero look); solidify into
       // opaque, glowing chunks as it cracks so the explosion reads as solid.
       mat.transmission = 1 - 0.94 * crack;
