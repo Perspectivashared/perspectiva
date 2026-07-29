@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import type { RefObject } from "react";
-import type { Group } from "three";
+import type { Group, PerspectiveCamera } from "three";
 import type { PointerRef } from "../pointer";
 import { scrollProgress } from "../scrollProgress";
 import { damp, smoothstep, smootherstep } from "./motion";
@@ -39,6 +39,18 @@ export function ScrollCamera({ pointer, rigRef, bloomRef, baseBloom }: ScrollCam
     const dive = smootherstep(0, 0.34, p);
     camera.position.z = damp(camera.position.z, 6.4 - dive * 8.8, 3, dt);
     camera.lookAt(0, 0, 0);
+
+    // Subtle FOV punch at the glass-break moment (~p=0.09) — a brief widen that
+    // damps back, amplifying the sense of bursting through the shards.
+    const cam = camera as PerspectiveCamera;
+    if (cam.isPerspectiveCamera) {
+      const burst = Math.max(0, 1 - Math.abs(p - 0.09) / 0.06);
+      const targetFov = 50 + burst * 4;
+      if (Math.abs(cam.fov - targetFov) > 0.01) {
+        cam.fov = damp(cam.fov, targetFov, 6, dt);
+        cam.updateProjectionMatrix();
+      }
+    }
 
     const rig = rigRef.current;
     if (rig) {
