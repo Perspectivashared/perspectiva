@@ -31,7 +31,12 @@ export function ScrollCamera({ pointer, rigRef, bloomRef, baseBloom }: ScrollCam
 
     camera.position.x = damp(camera.position.x, px * 0.6, 4, dt);
     camera.position.y = damp(camera.position.y, -py * 0.5, 4, dt);
-    camera.position.z = damp(camera.position.z, 6.4 - p * 1.2, 4, dt);
+    // Fly-through dolly: dive from the hero (z=6.4) down through the prism to
+    // just past the origin (z=-1.6) over the transition window. The prism and
+    // geodesic dissolve (rather than shrink) as we pass, revealing the inner
+    // particle swarm — a continuous zoom-in instead of a hard scale-out.
+    const dive = smoothstep(0, 0.22, p);
+    camera.position.z = damp(camera.position.z, 6.4 - dive * 8, 4, dt);
     camera.lookAt(0, 0, 0);
 
     const rig = rigRef.current;

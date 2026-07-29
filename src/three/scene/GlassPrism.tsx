@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Float, Edges } from "@react-three/drei";
-import type { Group, Mesh } from "three";
+import type { Mesh } from "three";
 import type { ScenePalette } from "../palettes";
 import { scrollProgress } from "../scrollProgress";
 import { smoothstep } from "./motion";
@@ -15,21 +15,29 @@ import { smoothstep } from "./motion";
  */
 export function GlassPrism({ pal }: { pal: ScenePalette }) {
   const spin = useRef<Mesh>(null);
-  const fade = useRef<Group>(null);
   useFrame((_, d) => {
-    if (spin.current) {
-      spin.current.rotation.y += d * 0.22;
-      spin.current.rotation.x += d * 0.08;
-    }
-    if (fade.current) {
-      // Recede past the hero + product showcase so deeper content stays calm.
-      const s = 1 - smoothstep(0.16, 0.21, scrollProgress.current);
-      fade.current.scale.setScalar(Math.max(0.0001, s));
-      fade.current.visible = s > 0.01;
-    }
+    const m = spin.current;
+    if (!m) return;
+    m.rotation.y += d * 0.22;
+    m.rotation.x += d * 0.08;
+    // Fly-through: hold full size and DISSOLVE as the camera dives through, so
+    // the prism engulfs the view then melts into the inner particles — instead
+    // of shrinking away. Fade the physical material AND the wireframe edges.
+    const o = 1 - smoothstep(0.1, 0.2, scrollProgress.current);
+    const transparent = o < 0.999;
+    m.visible = o > 0.01;
+    m.traverse((child) => {
+      const mat = (child as Mesh).material as
+        | { transparent: boolean; opacity: number }
+        | undefined;
+      if (mat) {
+        mat.transparent = transparent;
+        mat.opacity = o;
+      }
+    });
   });
   return (
-    <group ref={fade}>
+    <group>
       <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
         <mesh ref={spin}>
         <tetrahedronGeometry args={[2.6, 0]} />

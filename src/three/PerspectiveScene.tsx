@@ -10,6 +10,7 @@ import { usePointer } from "./pointer";
 import { SceneEnvironment } from "./scene/SceneEnvironment";
 import { Backdrop } from "./scene/Backdrop";
 import { ParticleField } from "./scene/ParticleField";
+import { InnerParticles } from "./scene/InnerParticles";
 import { ScrollCamera } from "./scene/ScrollCamera";
 import { GlassPrism } from "./scene/GlassPrism";
 import { SecondaryGeodesic } from "./scene/SecondaryGeodesic";
@@ -79,6 +80,7 @@ function SceneCanvas({ theme }: { theme: "light" | "dark" }) {
           <Backdrop pal={pal} />
           <group ref={rigRef}>
             <ParticleField pal={pal} />
+            <InnerParticles pal={pal} />
             <SecondaryGeodesic pal={pal} />
             <GlassPrism pal={pal} />
           </group>
