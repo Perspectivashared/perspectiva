@@ -23,7 +23,8 @@ export function GlassPrism({ pal }: { pal: ScenePalette }) {
     // Fly-through: hold full size and DISSOLVE as the camera dives through, so
     // the prism engulfs the view then melts into the inner particles — instead
     // of shrinking away. Fade the physical material AND the wireframe edges.
-    const o = 1 - smoothstep(0.1, 0.2, scrollProgress.current);
+    // Window tracks the slower dive: gone by ~p=0.21, when the camera hits origin.
+    const o = 1 - smoothstep(0.11, 0.21, scrollProgress.current);
     const transparent = o < 0.999;
     m.visible = o > 0.01;
     m.traverse((child) => {

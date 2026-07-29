@@ -18,7 +18,7 @@ export function SecondaryGeodesic({ pal }: { pal: ScenePalette }) {
     const mat = matRef.current;
     if (mat) {
       // Linger through the dive (we're inside it), then dissolve for calm content.
-      const o = 1 - smoothstep(0.2, 0.34, scrollProgress.current);
+      const o = 1 - smoothstep(0.28, 0.46, scrollProgress.current);
       mat.opacity = pal.geoOpacity * o;
       if (ref.current) ref.current.visible = o > 0.01;
     }

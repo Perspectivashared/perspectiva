@@ -14,6 +14,14 @@ export const smoothstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
+/** Quintic smootherstep (Perlin), clamped. Zero 1st AND 2nd derivative at both
+ *  ends — no velocity/acceleration snap, so scroll-driven camera moves read as
+ *  perfectly smooth glides rather than the slight jerk cubic smoothstep leaves. */
+export const smootherstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * t * (t * (t * 6 - 15) + 10);
+};
+
 /** Cheap deterministic pseudo-random in [0,1) for stable particle layouts. */
 export const hash = (i: number) => {
   const x = Math.sin(i * 12.9898) * 43758.5453;

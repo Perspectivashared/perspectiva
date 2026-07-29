@@ -12,8 +12,8 @@ const DEFAULT_COUNT = IS_NARROW ? 320 : 760;
 // Per-particle staggered reveal, keyed directly to scroll POSITION. Each
 // particle carries its own appear point `aAppear` and disappear point `aOut`
 // (spread across the dive window), so as `uP` (raw scroll progress) sweeps
-// down the page, particles switch on one-by-one across p[0.02,0.16] and switch
-// off one-by-one across p[0.20,0.34] — the COUNT scrubs with the scrollbar
+// down the page, particles switch on one-by-one across p[0.02,0.26] and switch
+// off one-by-one across p[0.30,0.56] — the COUNT scrubs with the scrollbar
 // rather than every particle fading in lockstep. Size ramps with the reveal so
 // they grow in, too. Scrolling back up reverses it exactly (no time component).
 const VERT = /* glsl */ `
@@ -27,10 +27,10 @@ const VERT = /* glsl */ `
   varying float vA;
 
   const float APPEAR_START = 0.02;
-  const float APPEAR_END   = 0.16;
-  const float OUT_START     = 0.20;
-  const float OUT_END       = 0.34;
-  const float SOFT          = 0.03;
+  const float APPEAR_END   = 0.26;
+  const float OUT_START     = 0.30;
+  const float OUT_END       = 0.56;
+  const float SOFT          = 0.035;
 
   void main() {
     vColor = aColor;
