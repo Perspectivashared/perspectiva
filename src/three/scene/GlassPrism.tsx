@@ -13,18 +13,20 @@ const SHARD_DIVISIONS = IS_NARROW ? 2 : 3; // 4·d² fragments (16 / 36)
 
 // Scroll windows (in scrollProgress terms — normalized page progress). The
 // break is timed EARLY, while the prism is still centre-stage and unoccluded:
-// past ~p=0.10 the DOM content cards rise over the canvas centre, so a later
-// shatter would burst behind them. At SHATTER_START the fragments still
-// reassemble the prism exactly; across [SHATTER_START, SHATTER_END] they fly
-// outward from their own positions and tumble — a true fracture, not a cloud of
-// mini-prisms. All a pure function of scroll → scrubbing up reassembles it.
-const SOLID_FADE_IN = 0.05;
-const SOLID_FADE_OUT = 0.075; // snap the solid off as the crack forms
-const SHATTER_START = 0.05;
-const SHATTER_END = 0.18;
-// Fraction of the shatter window (in normalized s) spent CRACKING before the
-// explosion: seams open across the still-whole prism, then it detonates.
-const CRACK_FRAC = 0.3;
+// past ~p=0.13 the DOM content cards rise over the canvas centre. At crack
+// start the fragments still reassemble the prism exactly (a real fracture of
+// the tetra, not a cloud of mini-prisms); everything is a pure function of
+// scroll → scrubbing up reassembles it.
+const SOLID_FADE_IN = 0.04;
+const SOLID_FADE_OUT = 0.075; // fade the smooth prism as the faceted cracks take over
+// The break plays as two scroll-driven stages. Cracks animate in SLOWLY across
+// a long, early window — seams propagate over the still-whole prism as you
+// scroll — then a short, fast window detonates the pieces. Kept early enough
+// that the crack finishes before the DOM content cards rise over the centre.
+const CRACK_START = 0.04;
+const CRACK_END = 0.13;
+const EXPLODE_START = 0.13;
+const EXPLODE_END = 0.2;
 
 /**
  * Hero centerpiece — a tetrahedral glass prism. Core meshPhysicalMaterial (NOT
@@ -105,9 +107,9 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
 
   const uniforms = useMemo(
     () => ({
-      uS: { value: 0 },
+      uCrack: { value: 0 },
+      uExplode: { value: 0 },
       uOpacity: { value: 0 },
-      uCrackGlow: { value: 0 },
       uBody: { value: new THREE.Color(pal.geodesic) },
       uGlint: { value: new THREE.Color(pal.edge) },
     }),
@@ -118,17 +120,16 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
     const mesh = meshRef.current;
     const mat = matRef.current;
     if (!mesh || !mat) return;
-    const s = smoothstep(SHATTER_START, SHATTER_END, scrollProgress.current);
-    mesh.visible = s > 0.001 && s < 0.999;
+    const p = scrollProgress.current;
+    const crack = smoothstep(CRACK_START, CRACK_END, p);
+    const explode = smoothstep(EXPLODE_START, EXPLODE_END, p);
+    mesh.visible = crack > 0.001 && explode < 0.999;
     if (!mesh.visible) return;
-    mat.uniforms.uS.value = s;
-    // Pieces are near-solid the instant the glass breaks (barely any fade-in),
-    // hold through the flight, then fade only as they've left the frame — so it
-    // reads as opaque chunks exploding outward, not a cloud fading in.
-    mat.uniforms.uOpacity.value = 0.95 * smoothstep(0, 0.015, s) * (1 - smoothstep(0.7, 1, s));
-    // Seams glow brightest while cracking, easing off once the pieces fly apart.
-    mat.uniforms.uCrackGlow.value =
-      smoothstep(0, CRACK_FRAC, s) * (1 - smoothstep(CRACK_FRAC, CRACK_FRAC + 0.2, s));
+    mat.uniforms.uCrack.value = crack;
+    mat.uniforms.uExplode.value = explode;
+    // Fade in as the first cracks open, hold through the flight, fade out only
+    // once the pieces have left the frame — opaque chunks, not a cloud.
+    mat.uniforms.uOpacity.value = 0.95 * smoothstep(0, 0.06, crack) * (1 - smoothstep(0.7, 1, explode));
   });
 
   return (
@@ -152,11 +153,14 @@ const SHARD_VERT = /* glsl */ `
   attribute vec3 aAxis;
   attribute float aSpread;
   attribute float aTurns;
-  uniform float uS;
+  attribute float aCrack;   // 0..1 order this piece cracks in (spreads across the prism)
+  uniform float uCrack;     // 0..1 crack-in progress
+  uniform float uExplode;   // 0..1 explosion progress
   varying float vFres;
+  varying float vGlow;
 
-  const float CRACK_FRAC = 0.3;
-  const float GAP = 0.16; // how far seams open during the crack phase
+  const float GAP = 0.18;   // how far seams open during the crack phase
+  const float BAND = 0.4;   // per-piece crack softness (overlap → smooth propagation)
 
   // Rodrigues rotation of v about unit axis a by angle.
   vec3 rot(vec3 v, vec3 a, float ang) {
@@ -165,34 +169,37 @@ const SHARD_VERT = /* glsl */ `
   }
 
   void main() {
-    // Two-stage break: cracks open first (pieces inch apart, no spin), then the
-    // explosion throws them out with high initial velocity and full tumble.
-    float sc = smoothstep(0.0, CRACK_FRAC, uS);      // 0..1 crack separation
-    float se = smoothstep(CRACK_FRAC, 1.0, uS);      // 0..1 explosion progress
-    float ee = 1.0 - pow(1.0 - se, 3.0);             // cubic ease-out throw
-    float ang = aTurns * se;                         // spin only once it detonates
+    // Progressive crack: each piece opens once the crack front (uCrack) passes
+    // its own threshold, so seams spread across the prism as you scroll.
+    float thr = aCrack * (1.0 - BAND);
+    float crackAmt = smoothstep(thr, thr + BAND, uCrack);
+    // Explosion: cubic ease-out throw (high initial velocity) + full tumble.
+    float ee = 1.0 - pow(1.0 - uExplode, 3.0);
+    float ang = aTurns * uExplode;                   // spin only once it detonates
     vec3 rp = rot(position, aAxis, ang);             // spin about own centroid
     vec3 dir = normalize(aCentroid);
-    vec3 c = aCentroid + dir * (sc * GAP + ee * aSpread);
+    vec3 c = aCentroid + dir * (crackAmt * GAP + ee * aSpread);
     vec4 mv = modelViewMatrix * vec4(c + rp, 1.0);
     vec3 n = normalize(normalMatrix * rot(normal, aAxis, ang));
     vec3 vd = normalize(-mv.xyz);
     vFres = pow(1.0 - abs(dot(n, vd)), 2.0);
+    // Seam glow travels with the crack front (peaks mid-open), gone once exploded.
+    vGlow = crackAmt * (1.0 - crackAmt) * 4.0 * (1.0 - uExplode);
     gl_Position = projectionMatrix * mv;
   }
 `;
 
 const SHARD_FRAG = /* glsl */ `
   uniform float uOpacity;
-  uniform float uCrackGlow;
   uniform vec3 uBody;
   uniform vec3 uGlint;
   varying float vFres;
+  varying float vGlow;
   void main() {
-    // Brighten toward the glint during the crack so the opening seams glow.
-    float edge = clamp(vFres + uCrackGlow * 0.5, 0.0, 1.0);
+    // Brighten toward the glint along the travelling crack front so seams glow.
+    float edge = clamp(vFres + vGlow * 0.6, 0.0, 1.0);
     vec3 col = mix(uBody, uGlint, edge);
-    float a = uOpacity * (0.6 + 0.4 * vFres + uCrackGlow * 0.2); // solid chunks, glowing seams
+    float a = uOpacity * (0.6 + 0.4 * vFres + vGlow * 0.25); // solid chunks, glowing seams
     if (a < 0.01) discard;
     gl_FragColor = vec4(col, a);
   }
@@ -224,10 +231,15 @@ function buildFractureGeometry(radius: number, divisions: number): THREE.BufferG
   const axis: number[] = [];
   const spread: number[] = [];
   const turns: number[] = [];
+  const crack: number[] = [];
+  const seed = base[0]; // cracks radiate outward from this corner
+  let maxCrack = 0;
   let idx = 0;
 
   const pushTri = (P0: THREE.Vector3, P1: THREE.Vector3, P2: THREE.Vector3) => {
     const cen = new THREE.Vector3().add(P0).add(P1).add(P2).multiplyScalar(1 / 3);
+    const dc = cen.distanceTo(seed);
+    if (dc > maxCrack) maxCrack = dc;
     const nrm = new THREE.Vector3()
       .subVectors(P1, P0)
       .cross(new THREE.Vector3().subVectors(P2, P0))
@@ -247,6 +259,7 @@ function buildFractureGeometry(radius: number, divisions: number): THREE.BufferG
       axis.push(ax.x, ax.y, ax.z);
       spread.push(sp);
       turns.push(tn);
+      crack.push(dc);
     }
     idx++;
   };
@@ -272,6 +285,9 @@ function buildFractureGeometry(radius: number, divisions: number): THREE.BufferG
     }
   }
 
+  const inv = maxCrack > 0 ? 1 / maxCrack : 1; // normalize crack order to 0..1
+  for (let k = 0; k < crack.length; k++) crack[k] *= inv;
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(position, 3));
   geo.setAttribute("normal", new THREE.Float32BufferAttribute(normal, 3));
@@ -279,5 +295,6 @@ function buildFractureGeometry(radius: number, divisions: number): THREE.BufferG
   geo.setAttribute("aAxis", new THREE.Float32BufferAttribute(axis, 3));
   geo.setAttribute("aSpread", new THREE.Float32BufferAttribute(spread, 1));
   geo.setAttribute("aTurns", new THREE.Float32BufferAttribute(turns, 1));
+  geo.setAttribute("aCrack", new THREE.Float32BufferAttribute(crack, 1));
   return geo;
 }
