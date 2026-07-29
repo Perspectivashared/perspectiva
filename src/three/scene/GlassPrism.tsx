@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Float, Edges } from "@react-three/drei";
 import * as THREE from "three";
-import type { Mesh } from "three";
+import type { Group, Mesh } from "three";
 import type { ScenePalette } from "../palettes";
 import { scrollProgress } from "../scrollProgress";
 import { hash, smoothstep } from "./motion";
@@ -40,31 +40,39 @@ const EXPLODE_END = 0.2;
  * breaking-glass transition into the inner particle field.
  */
 export function GlassPrism({ pal }: { pal: ScenePalette }) {
-  const spin = useRef<Mesh>(null);
+  const rot = useRef<Group>(null);
+  const solid = useRef<Mesh>(null);
   useFrame((_, d) => {
-    const m = spin.current;
-    if (!m) return;
-    m.rotation.y += d * 0.22;
-    m.rotation.x += d * 0.08;
+    // Spin the SHARED group so the solid prism and its fracture fragments rotate
+    // (and Float) as one — otherwise the shards, built in the base orientation,
+    // wouldn't line up with the spinning prism at the moment it breaks.
+    const g = rot.current;
+    if (g) {
+      g.rotation.y += d * 0.22;
+      g.rotation.x += d * 0.08;
+    }
     // Hold full size, then dissolve fast right as the shatter begins so the
     // fragments take over the glass presence as it cracks.
-    const o = 1 - smoothstep(SOLID_FADE_IN, SOLID_FADE_OUT, scrollProgress.current);
-    const transparent = o < 0.999;
-    m.visible = o > 0.01;
-    m.traverse((child) => {
-      const mat = (child as Mesh).material as
-        | { transparent: boolean; opacity: number }
-        | undefined;
-      if (mat) {
-        mat.transparent = transparent;
-        mat.opacity = o;
-      }
-    });
+    const m = solid.current;
+    if (m) {
+      const o = 1 - smoothstep(SOLID_FADE_IN, SOLID_FADE_OUT, scrollProgress.current);
+      const transparent = o < 0.999;
+      m.visible = o > 0.01;
+      m.traverse((child) => {
+        const mat = (child as Mesh).material as
+          | { transparent: boolean; opacity: number }
+          | undefined;
+        if (mat) {
+          mat.transparent = transparent;
+          mat.opacity = o;
+        }
+      });
+    }
   });
   return (
-    <group>
-      <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
-        <mesh ref={spin}>
+    <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
+      <group ref={rot}>
+        <mesh ref={solid}>
           <tetrahedronGeometry args={[PRISM_RADIUS, 0]} />
           <meshPhysicalMaterial
             transmission={1}
@@ -84,9 +92,9 @@ export function GlassPrism({ pal }: { pal: ScenePalette }) {
           />
           <Edges threshold={15} color={pal.edge} />
         </mesh>
-      </Float>
-      <PrismShards pal={pal} />
-    </group>
+        <PrismShards pal={pal} />
+      </group>
+    </Float>
   );
 }
 
