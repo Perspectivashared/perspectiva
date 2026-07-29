@@ -1,8 +1,8 @@
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Float, Edges } from "@react-three/drei";
+import { Float } from "@react-three/drei";
 import * as THREE from "three";
-import type { Group, Mesh } from "three";
+import type { Group } from "three";
 import type { ScenePalette } from "../palettes";
 import { scrollProgress } from "../scrollProgress";
 import { hash, smoothstep } from "./motion";
@@ -11,77 +11,151 @@ const IS_NARROW = typeof window !== "undefined" && window.innerWidth < 768;
 const PRISM_RADIUS = 2.6;
 const SHARD_DIVISIONS = IS_NARROW ? 2 : 3; // 4·d² fragments (16 / 36)
 
-// Scroll windows (in scrollProgress terms — normalized page progress). The
-// break is timed EARLY, while the prism is still centre-stage and unoccluded:
-// past ~p=0.13 the DOM content cards rise over the canvas centre. At crack
-// start the fragments still reassemble the prism exactly (a real fracture of
-// the tetra, not a cloud of mini-prisms); everything is a pure function of
-// scroll → scrubbing up reassembles it.
-// The transmissive solid CROSSFADES into the faceted shard mesh over
-// [CRACK_START, HANDOFF_END]: the solid fades its opacity out while the shards
-// (glassy at this point — see uSolidify) fade in, so the material morphs
-// gradually instead of switching in one frame. The two meshes are coplanar
-// during the fade, which would normally z-fight; we avoid that by turning OFF
-// the shards' depthTest for the duration (they simply draw over the fading
-// solid), restoring it once the solid is gone. Both share the same tetra + spin,
-// so the crossfade reads as one object smoothly turning from glass to fragments.
-const HANDOFF_END = 0.075;
-// The break plays as two scroll-driven stages. Cracks animate in SLOWLY across
-// a long, early window — seams propagate over the still-whole prism as you
-// scroll — then a short, fast window detonates the pieces. Kept early enough
-// that the crack finishes before the DOM content cards rise over the centre.
+// Scroll windows (normalized page progress). Timed early, while the prism is
+// centre-stage: cracks spread across [CRACK_START, CRACK_END], then the pieces
+// detonate across [EXPLODE_START, EXPLODE_END]. All a pure function of scroll →
+// scrubbing up reassembles the prism exactly.
 const CRACK_START = 0.04;
 const CRACK_END = 0.13;
 const EXPLODE_START = 0.13;
 const EXPLODE_END = 0.2;
 
+const WHITE = new THREE.Color("#ffffff");
+
 /**
- * Hero centerpiece — a tetrahedral glass prism. Core meshPhysicalMaterial (NOT
- * drei MeshTransmissionMaterial, which would sample the particles). The
- * per-theme axis is the LOCKED look: DARK = frosted (rough 0.24, subtle
- * dispersion), LIGHT = clear crystal (rough 0.05, vivid edge CA). Reads
- * transparent because the opaque Backdrop sits behind it.
+ * Hero centerpiece — a tetrahedral glass prism that FRACTURES on the dive.
  *
- * On the dive the solid prism hands off to `PrismShards`, which fracture the
- * same tetrahedron into triangular pieces that break apart and fly past — a
- * breaking-glass transition into the inner particle field.
+ * There is only ONE mesh, and it is the real transmissive prism the whole time.
+ * Rather than swap a solid prism for a separate shard mesh (which no crossfade
+ * could hide — two different materials never match), we subdivide the tetra into
+ * triangular fragments and inject the crack/explode displacement straight into a
+ * `meshPhysicalMaterial` via `onBeforeCompile`. Assembled (scroll 0), the
+ * fragments tile the exact tetra surface with the exact hero material, so it is
+ * pixel-identical to the un-fractured prism — there is no transition to notice,
+ * only vertices moving as you scroll. As it detonates the same material morphs
+ * (transmission ↓, colour/emissive ↑) so the flying pieces read as solid chunks.
  */
 export function GlassPrism({ pal }: { pal: ScenePalette }) {
   const rot = useRef<Group>(null);
-  const solid = useRef<Mesh>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
+  const matRef = useRef<THREE.MeshPhysicalMaterial>(null);
+
+  const geometry = useMemo(() => buildFractureGeometry(PRISM_RADIUS, SHARD_DIVISIONS), []);
+  const uniforms = useMemo(
+    () => ({
+      uCrack: { value: 0 },
+      uExplode: { value: 0 },
+      uEdgeColor: { value: new THREE.Color() },
+      uEdgeI: { value: 0 },
+    }),
+    [],
+  );
+  const bodyColor = useMemo(() => new THREE.Color(pal.geodesic), [pal]);
+  const emissiveColor = useMemo(() => new THREE.Color(pal.sparkle), [pal]);
+  const edgeColor = useMemo(() => new THREE.Color(pal.edge), [pal]);
+
+  // Inject the per-fragment displacement + a fresnel edge glow into the physical
+  // material's shaders (so the prism reads sharp without a separate edge mesh,
+  // and the glow fractures with the fragments).
+  const onBeforeCompile = useCallback(
+    (shader: {
+      uniforms: Record<string, { value: unknown }>;
+      vertexShader: string;
+      fragmentShader: string;
+    }) => {
+      shader.uniforms.uCrack = uniforms.uCrack;
+      shader.uniforms.uExplode = uniforms.uExplode;
+      shader.uniforms.uEdgeColor = uniforms.uEdgeColor;
+      shader.uniforms.uEdgeI = uniforms.uEdgeI;
+      shader.vertexShader =
+        /* glsl */ `
+        attribute vec3 aCentroid;
+        attribute vec3 aAxis;
+        attribute float aSpread;
+        attribute float aTurns;
+        attribute float aCrack;
+        uniform float uCrack;
+        uniform float uExplode;
+        vec3 fractureRot(vec3 v, vec3 a, float ang) {
+          float c = cos(ang), s = sin(ang);
+          return v * c + cross(a, v) * s + a * dot(a, v) * (1.0 - c);
+        }
+      ` + shader.vertexShader;
+      // Rotate each fragment's normal by its tumble (explosion only).
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <beginnormal_vertex>",
+        /* glsl */ `#include <beginnormal_vertex>
+        objectNormal = fractureRot(objectNormal, aAxis, aTurns * uExplode);`,
+      );
+      // Progressive crack (each piece opens once the front passes its threshold)
+      // + cubic ease-out explosion throw with tumble. `position` is stored
+      // relative to the fragment centroid, so we spin it then re-offset.
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <begin_vertex>",
+        /* glsl */ `#include <begin_vertex>
+        {
+          const float GAP = 0.18;
+          const float BAND = 0.4;
+          float thr = aCrack * (1.0 - BAND);
+          float crackAmt = smoothstep(thr, thr + BAND, uCrack);
+          float ee = 1.0 - pow(1.0 - uExplode, 3.0);
+          float ang = aTurns * uExplode;
+          vec3 dir = normalize(aCentroid);
+          vec3 cen = aCentroid + dir * (crackAmt * GAP + ee * aSpread);
+          transformed = cen + fractureRot(position, aAxis, ang);
+        }`,
+      );
+      // Fresnel edge glow → bright rim on grazing angles, like the old wireframe
+      // edges but self-contained per fragment (added to the emissive so it blooms).
+      shader.fragmentShader =
+        "uniform vec3 uEdgeColor;\nuniform float uEdgeI;\n" + shader.fragmentShader;
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <emissivemap_fragment>",
+        /* glsl */ `#include <emissivemap_fragment>
+        float edgeFres = pow(1.0 - clamp(dot(normalize(vNormal), normalize(vViewPosition)), 0.0, 1.0), 1.8);
+        totalEmissiveRadiance += uEdgeColor * edgeFres * uEdgeI;`,
+      );
+    },
+    [uniforms],
+  );
+
   useFrame((_, d) => {
-    // Spin the SHARED group so the solid prism and its fracture fragments rotate
-    // (and Float) as one — otherwise the shards, built in the base orientation,
-    // wouldn't line up with the spinning prism at the moment it breaks.
+    // Spin + Float the whole prism (fragments inherit it, so they break from the
+    // correct spinning positions).
     const g = rot.current;
     if (g) {
       g.rotation.y += d * 0.22;
       g.rotation.x += d * 0.08;
     }
-    // Crossfade the solid out over the hand-off window (the shards fade in to
-    // meet it — see PrismShards) so the glass→fragments morph is gradual.
-    const m = solid.current;
-    if (m) {
-      const o = 1 - smoothstep(CRACK_START, HANDOFF_END, scrollProgress.current);
-      const transparent = o < 0.999;
-      m.visible = o > 0.01;
-      m.traverse((child) => {
-        const mat = (child as Mesh).material as
-          | { transparent: boolean; opacity: number }
-          | undefined;
-        if (mat) {
-          mat.transparent = transparent;
-          mat.opacity = o;
-        }
-      });
+    const p = scrollProgress.current;
+    const crack = smoothstep(CRACK_START, CRACK_END, p);
+    const explode = smoothstep(EXPLODE_START, EXPLODE_END, p);
+    uniforms.uCrack.value = crack;
+    uniforms.uExplode.value = explode;
+    uniforms.uEdgeColor.value.copy(edgeColor);
+    uniforms.uEdgeI.value = pal.additive ? 6.0 : 2.2;
+
+    const mesh = meshRef.current;
+    const mat = matRef.current;
+    if (mesh) mesh.visible = explode < 0.999;
+    if (mat) {
+      // Clear glass when assembled (crack 0 → the hero look); solidify into
+      // opaque, glowing chunks as it cracks so the explosion reads as solid.
+      mat.transmission = 1 - 0.94 * crack;
+      mat.roughness = pal.rough + (0.5 - pal.rough) * crack;
+      mat.color.copy(WHITE).lerp(bodyColor, 0.75 * crack);
+      mat.emissive.copy(emissiveColor);
+      mat.emissiveIntensity = (pal.additive ? 0.6 : 0.18) * crack;
+      mat.opacity = 1 - smoothstep(0.7, 1, explode);
     }
   });
+
   return (
     <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
       <group ref={rot}>
-        <mesh ref={solid}>
-          <tetrahedronGeometry args={[PRISM_RADIUS, 0]} />
+        <mesh ref={meshRef} geometry={geometry} frustumCulled={false}>
           <meshPhysicalMaterial
+            ref={matRef}
             transmission={1}
             thickness={1.1}
             roughness={pal.rough}
@@ -94,155 +168,24 @@ export function GlassPrism({ pal }: { pal: ScenePalette }) {
             envMapIntensity={pal.envI}
             specularIntensity={0.5}
             color="#ffffff"
+            emissive="#000000"
             attenuationColor={pal.glassTint}
             attenuationDistance={pal.glassTintDist}
+            transparent
+            onBeforeCompile={onBeforeCompile}
           />
-          <Edges threshold={15} color={pal.edge} />
         </mesh>
-        <PrismShards pal={pal} />
       </group>
     </Float>
   );
 }
 
 /**
- * Fracture the tetrahedron into triangular fragments and animate them entirely
- * on the GPU (one draw call). Each fragment's vertices are stored relative to
- * its own centroid, so the vertex shader rotates each piece about its centre and
- * throws that centre radially outward by a scroll-driven amount: at s=0 the
- * pieces sit exactly where the solid tetra's faces are (it looks whole), then
- * they separate and tumble. A fresnel term fakes glassy edge-lit shards without
- * the cost of transmission.
- */
-function PrismShards({ pal }: { pal: ScenePalette }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const matRef = useRef<THREE.ShaderMaterial>(null);
-
-  const geometry = useMemo(() => buildFractureGeometry(PRISM_RADIUS, SHARD_DIVISIONS), []);
-
-  const uniforms = useMemo(
-    () => ({
-      uCrack: { value: 0 },
-      uExplode: { value: 0 },
-      uOpacity: { value: 0 },
-      uSolidify: { value: 0 }, // 0 = glassy (matches the prism at hand-off), 1 = opaque chunks
-      // Glassy-phase face fill: ~0 on additive (dark) so faces stay clear/dark
-      // like the transmissive prism (additive would otherwise glow bright); a
-      // faint fill on normal (light) to match the light prism's tinted faces.
-      uFaceGlass: { value: pal.additive ? 0.0 : 0.12 },
-      uBody: { value: new THREE.Color(pal.geodesic) },
-      uGlint: { value: new THREE.Color(pal.edge) },
-    }),
-    [pal],
-  );
-
-  useFrame(() => {
-    const mesh = meshRef.current;
-    const mat = matRef.current;
-    if (!mesh || !mat) return;
-    const p = scrollProgress.current;
-    const crack = smoothstep(CRACK_START, CRACK_END, p);
-    const explode = smoothstep(EXPLODE_START, EXPLODE_END, p);
-    // Fade in over the hand-off window to meet the fading solid. The shards are
-    // GLASSY here (uSolidify ~0) so they read like the transmissive prism; they
-    // solidify into opaque chunks as the cracks spread, then fade out once the
-    // pieces have left the frame.
-    const appear = smoothstep(CRACK_START, HANDOFF_END, p);
-    mesh.visible = p >= CRACK_START && explode < 0.999;
-    if (!mesh.visible) return;
-    // While coplanar with the still-present solid, ignore depth so the two can't
-    // z-fight; restore normal depth once the solid has faded out.
-    mat.depthTest = p >= HANDOFF_END;
-    mat.uniforms.uCrack.value = crack;
-    mat.uniforms.uSolidify.value = crack;
-    mat.uniforms.uExplode.value = explode;
-    mat.uniforms.uOpacity.value = 0.95 * appear * (1 - smoothstep(0.7, 1, explode));
-  });
-
-  return (
-    <mesh ref={meshRef} geometry={geometry} frustumCulled={false}>
-      <shaderMaterial
-        ref={matRef}
-        vertexShader={SHARD_VERT}
-        fragmentShader={SHARD_FRAG}
-        uniforms={uniforms}
-        transparent
-        depthWrite={false}
-        side={THREE.DoubleSide}
-        blending={pal.additive ? THREE.AdditiveBlending : THREE.NormalBlending}
-      />
-    </mesh>
-  );
-}
-
-const SHARD_VERT = /* glsl */ `
-  attribute vec3 aCentroid;
-  attribute vec3 aAxis;
-  attribute float aSpread;
-  attribute float aTurns;
-  attribute float aCrack;   // 0..1 order this piece cracks in (spreads across the prism)
-  uniform float uCrack;     // 0..1 crack-in progress
-  uniform float uExplode;   // 0..1 explosion progress
-  varying float vFres;
-  varying float vGlow;
-
-  const float GAP = 0.18;   // how far seams open during the crack phase
-  const float BAND = 0.4;   // per-piece crack softness (overlap → smooth propagation)
-
-  // Rodrigues rotation of v about unit axis a by angle.
-  vec3 rot(vec3 v, vec3 a, float ang) {
-    float c = cos(ang), s = sin(ang);
-    return v * c + cross(a, v) * s + a * dot(a, v) * (1.0 - c);
-  }
-
-  void main() {
-    // Progressive crack: each piece opens once the crack front (uCrack) passes
-    // its own threshold, so seams spread across the prism as you scroll.
-    float thr = aCrack * (1.0 - BAND);
-    float crackAmt = smoothstep(thr, thr + BAND, uCrack);
-    // Explosion: cubic ease-out throw (high initial velocity) + full tumble.
-    float ee = 1.0 - pow(1.0 - uExplode, 3.0);
-    float ang = aTurns * uExplode;                   // spin only once it detonates
-    vec3 rp = rot(position, aAxis, ang);             // spin about own centroid
-    vec3 dir = normalize(aCentroid);
-    vec3 c = aCentroid + dir * (crackAmt * GAP + ee * aSpread);
-    vec4 mv = modelViewMatrix * vec4(c + rp, 1.0);
-    vec3 n = normalize(normalMatrix * rot(normal, aAxis, ang));
-    vec3 vd = normalize(-mv.xyz);
-    vFres = pow(1.0 - abs(dot(n, vd)), 2.0);
-    // Seam glow travels with the crack front (peaks mid-open), gone once exploded.
-    vGlow = crackAmt * (1.0 - crackAmt) * 4.0 * (1.0 - uExplode);
-    gl_Position = projectionMatrix * mv;
-  }
-`;
-
-const SHARD_FRAG = /* glsl */ `
-  uniform float uOpacity;
-  uniform float uSolidify;
-  uniform float uFaceGlass;
-  uniform vec3 uBody;
-  uniform vec3 uGlint;
-  varying float vFres;
-  varying float vGlow;
-  void main() {
-    float edge = clamp(vFres + vGlow * 0.6, 0.0, 1.0);
-    // Glassy (uSolidify 0): clear/dark faces, bright fresnel edges — matches the
-    // transmissive prism at the hand-off. Solid (uSolidify 1): opaque body-toned
-    // chunks. Blend between the two as the glass cracks apart.
-    vec3 col = mix(uGlint, mix(uBody, uGlint, edge), uSolidify);
-    float aGlass = uFaceGlass + 0.7 * vFres;
-    float aSolid = 0.6 + 0.4 * vFres;
-    float a = uOpacity * mix(aGlass, aSolid, uSolidify) + uOpacity * vGlow * 0.25; // glowing seams
-    if (a < 0.01) discard;
-    gl_FragColor = vec4(col, a);
-  }
-`;
-
-/**
  * Build a tetrahedron subdivided into `4·divisions²` triangular fragments.
  * Positions are stored RELATIVE to each fragment's centroid (so the shader can
  * spin each piece in place); `aCentroid` carries the world offset, and per-piece
- * `aAxis` / `aSpread` / `aTurns` seed the burst. Non-indexed (flat facets).
+ * `aAxis` / `aSpread` / `aTurns` / `aCrack` seed the break. Non-indexed (flat
+ * facets) so the assembled shell shades exactly like the solid tetra.
  */
 function buildFractureGeometry(radius: number, divisions: number): THREE.BufferGeometry {
   const base = [
