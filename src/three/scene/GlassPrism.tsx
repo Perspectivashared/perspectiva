@@ -19,9 +19,12 @@ const SHARD_DIVISIONS = IS_NARROW ? 2 : 3; // 4·d² fragments (16 / 36)
 // outward from their own positions and tumble — a true fracture, not a cloud of
 // mini-prisms. All a pure function of scroll → scrubbing up reassembles it.
 const SOLID_FADE_IN = 0.05;
-const SOLID_FADE_OUT = 0.07; // snap the solid off fast so the burst takes over crisply
+const SOLID_FADE_OUT = 0.075; // snap the solid off as the crack forms
 const SHATTER_START = 0.05;
-const SHATTER_END = 0.16; // short window → pieces SHOOT out, not drift
+const SHATTER_END = 0.18;
+// Fraction of the shatter window (in normalized s) spent CRACKING before the
+// explosion: seams open across the still-whole prism, then it detonates.
+const CRACK_FRAC = 0.3;
 
 /**
  * Hero centerpiece — a tetrahedral glass prism. Core meshPhysicalMaterial (NOT
@@ -104,6 +107,7 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
     () => ({
       uS: { value: 0 },
       uOpacity: { value: 0 },
+      uCrackGlow: { value: 0 },
       uBody: { value: new THREE.Color(pal.geodesic) },
       uGlint: { value: new THREE.Color(pal.edge) },
     }),
@@ -121,7 +125,10 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
     // Pieces are near-solid the instant the glass breaks (barely any fade-in),
     // hold through the flight, then fade only as they've left the frame — so it
     // reads as opaque chunks exploding outward, not a cloud fading in.
-    mat.uniforms.uOpacity.value = 0.95 * smoothstep(0, 0.015, s) * (1 - smoothstep(0.65, 1, s));
+    mat.uniforms.uOpacity.value = 0.95 * smoothstep(0, 0.015, s) * (1 - smoothstep(0.7, 1, s));
+    // Seams glow brightest while cracking, easing off once the pieces fly apart.
+    mat.uniforms.uCrackGlow.value =
+      smoothstep(0, CRACK_FRAC, s) * (1 - smoothstep(CRACK_FRAC, CRACK_FRAC + 0.2, s));
   });
 
   return (
@@ -148,6 +155,9 @@ const SHARD_VERT = /* glsl */ `
   uniform float uS;
   varying float vFres;
 
+  const float CRACK_FRAC = 0.3;
+  const float GAP = 0.16; // how far seams open during the crack phase
+
   // Rodrigues rotation of v about unit axis a by angle.
   vec3 rot(vec3 v, vec3 a, float ang) {
     float c = cos(ang), s = sin(ang);
@@ -155,12 +165,15 @@ const SHARD_VERT = /* glsl */ `
   }
 
   void main() {
-    float e = 1.0 - uS;
-    float posEase = 1.0 - e * e * e; // cubic ease-out: high initial velocity, a real burst
-    float ang = aTurns * uS;
-    vec3 rp = rot(position, aAxis, ang);            // spin about own centroid
+    // Two-stage break: cracks open first (pieces inch apart, no spin), then the
+    // explosion throws them out with high initial velocity and full tumble.
+    float sc = smoothstep(0.0, CRACK_FRAC, uS);      // 0..1 crack separation
+    float se = smoothstep(CRACK_FRAC, 1.0, uS);      // 0..1 explosion progress
+    float ee = 1.0 - pow(1.0 - se, 3.0);             // cubic ease-out throw
+    float ang = aTurns * se;                         // spin only once it detonates
+    vec3 rp = rot(position, aAxis, ang);             // spin about own centroid
     vec3 dir = normalize(aCentroid);
-    vec3 c = aCentroid + dir * (aSpread * posEase); // throw centroid outward
+    vec3 c = aCentroid + dir * (sc * GAP + ee * aSpread);
     vec4 mv = modelViewMatrix * vec4(c + rp, 1.0);
     vec3 n = normalize(normalMatrix * rot(normal, aAxis, ang));
     vec3 vd = normalize(-mv.xyz);
@@ -171,12 +184,15 @@ const SHARD_VERT = /* glsl */ `
 
 const SHARD_FRAG = /* glsl */ `
   uniform float uOpacity;
+  uniform float uCrackGlow;
   uniform vec3 uBody;
   uniform vec3 uGlint;
   varying float vFres;
   void main() {
-    vec3 col = mix(uBody, uGlint, vFres);
-    float a = uOpacity * (0.6 + 0.4 * vFres); // solid glassy chunks, brighter at the edges
+    // Brighten toward the glint during the crack so the opening seams glow.
+    float edge = clamp(vFres + uCrackGlow * 0.5, 0.0, 1.0);
+    vec3 col = mix(uBody, uGlint, edge);
+    float a = uOpacity * (0.6 + 0.4 * vFres + uCrackGlow * 0.2); // solid chunks, glowing seams
     if (a < 0.01) discard;
     gl_FragColor = vec4(col, a);
   }
