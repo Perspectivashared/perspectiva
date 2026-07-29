@@ -17,12 +17,15 @@ const SHARD_DIVISIONS = IS_NARROW ? 2 : 3; // 4·d² fragments (16 / 36)
 // start the fragments still reassemble the prism exactly (a real fracture of
 // the tetra, not a cloud of mini-prisms); everything is a pure function of
 // scroll → scrubbing up reassembles it.
-// The smooth solid and the faceted shard mesh must never be on-screen together —
-// overlapping, they occupy the same volume and z-fight (the "glitchy" transition).
-// So we swap them ATOMICALLY at CRACK_START: on the frame scroll crosses it the
-// solid hides and the shards — already assembled into the same tetra with the same
-// spin — appear at full opacity. Shape and opacity stay continuous (never a frame
-// with both, nor with neither); only the material flips as the crack begins.
+// The transmissive solid CROSSFADES into the faceted shard mesh over
+// [CRACK_START, HANDOFF_END]: the solid fades its opacity out while the shards
+// (glassy at this point — see uSolidify) fade in, so the material morphs
+// gradually instead of switching in one frame. The two meshes are coplanar
+// during the fade, which would normally z-fight; we avoid that by turning OFF
+// the shards' depthTest for the duration (they simply draw over the fading
+// solid), restoring it once the solid is gone. Both share the same tetra + spin,
+// so the crossfade reads as one object smoothly turning from glass to fragments.
+const HANDOFF_END = 0.075;
 // The break plays as two scroll-driven stages. Cracks animate in SLOWLY across
 // a long, early window — seams propagate over the still-whole prism as you
 // scroll — then a short, fast window detonates the pieces. Kept early enough
@@ -55,10 +58,23 @@ export function GlassPrism({ pal }: { pal: ScenePalette }) {
       g.rotation.y += d * 0.22;
       g.rotation.x += d * 0.08;
     }
-    // Show the solid until the crack begins, then hand off atomically to the
-    // shards (see note at CRACK_START) — a single-frame swap, no overlap.
+    // Crossfade the solid out over the hand-off window (the shards fade in to
+    // meet it — see PrismShards) so the glass→fragments morph is gradual.
     const m = solid.current;
-    if (m) m.visible = scrollProgress.current < CRACK_START;
+    if (m) {
+      const o = 1 - smoothstep(CRACK_START, HANDOFF_END, scrollProgress.current);
+      const transparent = o < 0.999;
+      m.visible = o > 0.01;
+      m.traverse((child) => {
+        const mat = (child as Mesh).material as
+          | { transparent: boolean; opacity: number }
+          | undefined;
+        if (mat) {
+          mat.transparent = transparent;
+          mat.opacity = o;
+        }
+      });
+    }
   });
   return (
     <Float speed={0.7} rotationIntensity={0.28} floatIntensity={0.5}>
@@ -127,16 +143,20 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
     const p = scrollProgress.current;
     const crack = smoothstep(CRACK_START, CRACK_END, p);
     const explode = smoothstep(EXPLODE_START, EXPLODE_END, p);
-    // Appear exactly when the solid hides (atomic swap). At the hand-off the
-    // shards are GLASSY (uSolidify 0) so they read like the transmissive prism;
-    // they solidify into opaque chunks as the cracks spread, then fade out only
-    // once the pieces have left the frame.
+    // Fade in over the hand-off window to meet the fading solid. The shards are
+    // GLASSY here (uSolidify ~0) so they read like the transmissive prism; they
+    // solidify into opaque chunks as the cracks spread, then fade out once the
+    // pieces have left the frame.
+    const appear = smoothstep(CRACK_START, HANDOFF_END, p);
     mesh.visible = p >= CRACK_START && explode < 0.999;
     if (!mesh.visible) return;
+    // While coplanar with the still-present solid, ignore depth so the two can't
+    // z-fight; restore normal depth once the solid has faded out.
+    mat.depthTest = p >= HANDOFF_END;
     mat.uniforms.uCrack.value = crack;
     mat.uniforms.uSolidify.value = crack;
     mat.uniforms.uExplode.value = explode;
-    mat.uniforms.uOpacity.value = 0.95 * (1 - smoothstep(0.7, 1, explode));
+    mat.uniforms.uOpacity.value = 0.95 * appear * (1 - smoothstep(0.7, 1, explode));
   });
 
   return (
