@@ -5,6 +5,7 @@ import type { ScenePalette } from "../palettes";
 import { scrollProgress } from "../scrollProgress";
 import { makeCircleTexture } from "./textures";
 import { easeInOut, hash, smoothstep } from "./motion";
+import { sampleRamp, toColors } from "./colors";
 
 const IS_NARROW = typeof window !== "undefined" && window.innerWidth < 768;
 const DEFAULT_COUNT = IS_NARROW ? 480 : 1000;
@@ -29,8 +30,8 @@ export function ParticleField({ pal, count = DEFAULT_COUNT }: { pal: ScenePalett
     const colors = new Float32Array(N * 3);
     const cols = 20;
     const rows = 12;
-    const cA = new THREE.Color(pal.particleA);
-    const cB = new THREE.Color(pal.particleB);
+    const ramp = toColors(pal.particleRamp);
+    const c = new THREE.Color();
     for (let i = 0; i < N; i++) {
       const r = 5 + hash(i * 3.1) * 5;
       const th = hash(i * 1.7) * Math.PI * 2;
@@ -45,7 +46,9 @@ export function ParticleField({ pal, count = DEFAULT_COUNT }: { pal: ScenePalett
       target[i * 3] = (col - (cols - 1) / 2) * 0.3;
       target[i * 3 + 1] = -1.8 + barH * fill;
       target[i * 3 + 2] = (row - (rows - 1) / 2) * 0.3;
-      const c = cA.clone().lerp(cB, fill);
+      // Height-graded spectrum: taller bars pull toward the violet end, plus a
+      // little per-particle jitter so equal-height bars aren't monochrome.
+      sampleRamp(ramp, fill * 0.85 + hash(i * 5.7) * 0.15, c);
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;

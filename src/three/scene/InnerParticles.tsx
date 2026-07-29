@@ -5,6 +5,7 @@ import type { ScenePalette } from "../palettes";
 import { scrollProgress } from "../scrollProgress";
 import { makeCircleTexture } from "./textures";
 import { hash } from "./motion";
+import { sampleRamp, toColors } from "./colors";
 
 const IS_NARROW = typeof window !== "undefined" && window.innerWidth < 768;
 const DEFAULT_COUNT = IS_NARROW ? 320 : 760;
@@ -20,7 +21,9 @@ const VERT = /* glsl */ `
   attribute float aAppear;
   attribute float aOut;
   attribute vec3 aColor;
+  attribute float aTwinkle;
   uniform float uP;
+  uniform float uTime;
   uniform float uSize;
   uniform float uScale;
   varying vec3 vColor;
@@ -33,13 +36,16 @@ const VERT = /* glsl */ `
   const float SOFT          = 0.035;
 
   void main() {
-    vColor = aColor;
+    // Gentle per-particle shimmer (brightness + a touch of size) so the swarm
+    // breathes; phase is per-particle so they don't pulse in lockstep.
+    float tw = sin(uTime * 1.4 + aTwinkle * 6.2831853);
+    vColor = aColor * (0.86 + 0.14 * tw);
     float pin  = mix(APPEAR_START, APPEAR_END, aAppear);
     float pout = mix(OUT_START, OUT_END, aOut);
     float a = smoothstep(pin, pin + SOFT, uP) * (1.0 - smoothstep(pout, pout + SOFT, uP));
     vA = a;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = uSize * (0.3 + 0.7 * a) * (uScale / -mv.z);
+    gl_PointSize = uSize * (0.3 + 0.7 * a) * (1.0 + 0.08 * tw) * (uScale / -mv.z);
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -71,13 +77,14 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
   const sprite = useMemo(() => makeCircleTexture(), []);
   const N = count;
 
-  const { positions, colors, appear, out } = useMemo(() => {
+  const { positions, colors, appear, out, twinkle } = useMemo(() => {
     const positions = new Float32Array(N * 3);
     const colors = new Float32Array(N * 3);
     const appear = new Float32Array(N);
     const out = new Float32Array(N);
-    const cA = new THREE.Color(pal.particleA);
-    const cB = new THREE.Color(pal.particleB);
+    const twinkle = new Float32Array(N);
+    const ramp = toColors(pal.particleRamp);
+    const c = new THREE.Color();
     for (let i = 0; i < N; i++) {
       // Tight shell around the origin so the camera flies through the middle.
       const r = 0.4 + hash(i * 3.7) * 3.4;
@@ -86,20 +93,25 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
       positions[i * 3] = r * Math.sin(ph) * Math.cos(th);
       positions[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
       positions[i * 3 + 2] = r * Math.cos(ph);
-      const c = cA.clone().lerp(cB, hash(i * 4.1));
+      // Radius-graded spectrum (outer shell cooler/violet, core warmer) with a
+      // little jitter, then a per-particle brightness spread for depth.
+      const t = ((r - 0.4) / 3.4) * 0.7 + hash(i * 4.1) * 0.3;
+      sampleRamp(ramp, t, c).multiplyScalar(0.7 + hash(i * 8.3) * 0.55);
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
       appear[i] = hash(i * 5.3); // scroll fraction (0..1) at which this one lights up
       out[i] = hash(i * 6.7); //    scroll fraction (0..1) at which it winks out
+      twinkle[i] = hash(i * 7.9); // shimmer phase
     }
-    return { positions, colors, appear, out };
+    return { positions, colors, appear, out, twinkle };
   }, [N, pal]);
 
   const uniforms = useMemo(
     () => ({
       uMap: { value: sprite },
       uP: { value: 0 },
+      uTime: { value: 0 },
       uSize: { value: pal.particleSize * (IS_NARROW ? 1.1 : 0.85) },
       uScale: { value: 400 },
       uOpacity: { value: pal.particleOpacity * 1.1 },
@@ -107,7 +119,7 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
     [sprite, pal],
   );
 
-  useFrame((_, d) => {
+  useFrame((state, d) => {
     const pts = ref.current;
     const mat = matRef.current;
     if (pts) pts.rotation.y += d * 0.06;
@@ -115,6 +127,7 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
       // Drive the whole reveal straight off scroll position — no easing, so
       // scrubbing the scrollbar scrubs which particles are lit.
       mat.uniforms.uP.value = scrollProgress.current;
+      mat.uniforms.uTime.value = state.clock.elapsedTime;
       // Match PointsMaterial's sizeAttenuation scale (0.5 * drawing-buffer height).
       mat.uniforms.uScale.value = gl.domElement.height * 0.5;
     }
@@ -127,6 +140,7 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
         <bufferAttribute attach="attributes-aColor" args={[colors, 3]} />
         <bufferAttribute attach="attributes-aAppear" args={[appear, 1]} />
         <bufferAttribute attach="attributes-aOut" args={[out, 1]} />
+        <bufferAttribute attach="attributes-aTwinkle" args={[twinkle, 1]} />
       </bufferGeometry>
       <shaderMaterial
         ref={matRef}

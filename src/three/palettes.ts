@@ -15,8 +15,9 @@ export interface ScenePalette {
   bgStops: [string, string, string];
   fogColor: string;
   fog: [number, number];
-  particleA: string;
-  particleB: string;
+  /** Prism-dispersion spectrum (low→high): particles sample across it for a
+      rich multi-hue swarm instead of a flat two-colour lerp. */
+  particleRamp: string[];
   particleOpacity: number;
   particleSize: number;
   additive: boolean;
@@ -44,8 +45,7 @@ export const PALETTES: Record<"light" | "dark", ScenePalette> = {
     bgStops: ["#1c2f58", "#0b1428", "#05080f"],
     fogColor: "#0a1122",
     fog: [11, 26],
-    particleA: "#5f92dd",
-    particleB: "#aed4ff",
+    particleRamp: ["#4d7ce6", "#63d5e6", "#8fe6d8", "#bfe0ff", "#a98bff"],
     particleOpacity: 0.95,
     particleSize: 0.07,
     additive: true,
@@ -71,8 +71,7 @@ export const PALETTES: Record<"light" | "dark", ScenePalette> = {
     bgStops: ["#ffffff", "#e5edf9", "#bcd2ec"],
     fogColor: "#e9f0fb",
     fog: [13, 32],
-    particleA: "#3f6fca",
-    particleB: "#123f9e",
+    particleRamp: ["#1b3fa6", "#2f74d6", "#0f9bb8", "#3f6fca", "#6b46d4"],
     particleOpacity: 0.92,
     particleSize: 0.1,
     additive: false,
