@@ -4,7 +4,7 @@ import * as THREE from "three";
 import type { ScenePalette } from "../palettes";
 import { scrollProgress } from "../scrollProgress";
 import { makeCircleTexture } from "./textures";
-import { hash, smoothstep } from "./motion";
+import { hash } from "./motion";
 
 const IS_NARROW = typeof window !== "undefined" && window.innerWidth < 768;
 const DEFAULT_COUNT = IS_NARROW ? 320 : 760;
@@ -50,9 +50,13 @@ export function InnerParticles({ pal, count = DEFAULT_COUNT }: { pal: ScenePalet
     if (mat && pts) {
       const p = scrollProgress.current;
       // Hidden at the hero → revealed through the dive → gone before content.
-      const reveal = smoothstep(0.06, 0.15, p) * (1 - smoothstep(0.22, 0.34, p));
+      // Raised-cosine (Hann) bell over p[0,0.31]: zero value AND zero slope at
+      // both ends, single smooth peak at the pass-through (~p=0.155) — so the
+      // swarm eases in and out instead of popping on/off.
+      const t = Math.min(1, Math.max(0, p / 0.31));
+      const reveal = 0.5 - 0.5 * Math.cos(t * Math.PI * 2);
       mat.opacity = pal.particleOpacity * 1.1 * reveal;
-      pts.visible = reveal > 0.005;
+      pts.visible = reveal > 0.002;
     }
   });
 
