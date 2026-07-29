@@ -109,6 +109,11 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
       uCrack: { value: 0 },
       uExplode: { value: 0 },
       uOpacity: { value: 0 },
+      uSolidify: { value: 0 }, // 0 = glassy (matches the prism at hand-off), 1 = opaque chunks
+      // Glassy-phase face fill: ~0 on additive (dark) so faces stay clear/dark
+      // like the transmissive prism (additive would otherwise glow bright); a
+      // faint fill on normal (light) to match the light prism's tinted faces.
+      uFaceGlass: { value: pal.additive ? 0.0 : 0.12 },
       uBody: { value: new THREE.Color(pal.geodesic) },
       uGlint: { value: new THREE.Color(pal.edge) },
     }),
@@ -120,12 +125,16 @@ function PrismShards({ pal }: { pal: ScenePalette }) {
     const mat = matRef.current;
     if (!mesh || !mat) return;
     const p = scrollProgress.current;
+    const crack = smoothstep(CRACK_START, CRACK_END, p);
     const explode = smoothstep(EXPLODE_START, EXPLODE_END, p);
-    // Appear exactly when the solid hides (atomic swap), at full opacity so the
-    // hand-off is seamless; only fade out once the pieces have left the frame.
+    // Appear exactly when the solid hides (atomic swap). At the hand-off the
+    // shards are GLASSY (uSolidify 0) so they read like the transmissive prism;
+    // they solidify into opaque chunks as the cracks spread, then fade out only
+    // once the pieces have left the frame.
     mesh.visible = p >= CRACK_START && explode < 0.999;
     if (!mesh.visible) return;
-    mat.uniforms.uCrack.value = smoothstep(CRACK_START, CRACK_END, p);
+    mat.uniforms.uCrack.value = crack;
+    mat.uniforms.uSolidify.value = crack;
     mat.uniforms.uExplode.value = explode;
     mat.uniforms.uOpacity.value = 0.95 * (1 - smoothstep(0.7, 1, explode));
   });
@@ -189,15 +198,21 @@ const SHARD_VERT = /* glsl */ `
 
 const SHARD_FRAG = /* glsl */ `
   uniform float uOpacity;
+  uniform float uSolidify;
+  uniform float uFaceGlass;
   uniform vec3 uBody;
   uniform vec3 uGlint;
   varying float vFres;
   varying float vGlow;
   void main() {
-    // Brighten toward the glint along the travelling crack front so seams glow.
     float edge = clamp(vFres + vGlow * 0.6, 0.0, 1.0);
-    vec3 col = mix(uBody, uGlint, edge);
-    float a = uOpacity * (0.6 + 0.4 * vFres + vGlow * 0.25); // solid chunks, glowing seams
+    // Glassy (uSolidify 0): clear/dark faces, bright fresnel edges — matches the
+    // transmissive prism at the hand-off. Solid (uSolidify 1): opaque body-toned
+    // chunks. Blend between the two as the glass cracks apart.
+    vec3 col = mix(uGlint, mix(uBody, uGlint, edge), uSolidify);
+    float aGlass = uFaceGlass + 0.7 * vFres;
+    float aSolid = 0.6 + 0.4 * vFres;
+    float a = uOpacity * mix(aGlass, aSolid, uSolidify) + uOpacity * vGlow * 0.25; // glowing seams
     if (a < 0.01) discard;
     gl_FragColor = vec4(col, a);
   }
